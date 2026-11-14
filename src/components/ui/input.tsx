@@ -34,3 +34,20 @@ export function FieldHint({ className, ...props }: React.ComponentProps<"p">) {
 export function FieldError({ className, ...props }: React.ComponentProps<"p">) {
   return <p role="alert" className={cn("mt-2 text-sm font-medium text-danger", className)} {...props} />;
 }
+
+const fieldClasses = cn(
+  "w-full rounded-md border border-ink-300 bg-white px-4 text-base text-ink-900 transition-colors",
+  "hover:border-ink-400 focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/15 focus-visible:outline-none",
+  "disabled:cursor-not-allowed disabled:bg-ink-100 disabled:opacity-70",
+  "aria-invalid:border-danger aria-invalid:focus-visible:ring-danger/15",
+);
+
+export function NativeSelect({ className, invalid, ...props }: React.ComponentProps<"select"> & { invalid?: boolean }) {
+  return <select aria-invalid={invalid || undefined} className={cn(fieldClasses, "h-12 appearance-auto", className)} {...props} />;
+}
+
+export function Textarea({ className, invalid, ...props }: React.ComponentProps<"textarea"> & { invalid?: boolean }) {
+  return (
+    <textarea aria-invalid={invalid || undefined} className={cn(fieldClasses, "min-h-28 py-3 leading-relaxed", className)} {...props} />
+  );
+}

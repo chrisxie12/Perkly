@@ -8,10 +8,10 @@ function VerifyVignette() {
       <p className="text-xs font-semibold text-ink-600">Verification request · GCTU</p>
       <ul className="mt-3 space-y-2 text-sm font-medium">
         <li className="flex items-center gap-2">
-          <BadgeCheck className="size-4 text-success" aria-hidden /> School email confirmed
+          <BadgeCheck className="size-4 text-success" aria-hidden /> Student ID number added
         </li>
         <li className="flex items-center gap-2">
-          <BadgeCheck className="size-4 text-success" aria-hidden /> Student ID and photos added
+          <BadgeCheck className="size-4 text-success" aria-hidden /> ID photo and selfie added
         </li>
         <li className="flex items-center gap-2 text-ink-700">
           <Clock3 className="size-4 text-orange-600" aria-hidden /> Waiting for your school
@@ -67,7 +67,7 @@ function ScanVignette() {
 const steps = [
   {
     title: "Get verified by your school",
-    body: "Sign up, then send your school a verification request: school email code, student ID number, ID photo and a selfie. Your school approves it.",
+    body: "Sign up with your personal email, then send your school a verification request: student ID number, ID photo and a selfie. A school email is optional. Your school approves it.",
     vignette: <VerifyVignette />,
   },
   {

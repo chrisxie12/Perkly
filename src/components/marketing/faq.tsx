@@ -12,7 +12,7 @@ export const faqs = [
   },
   {
     q: "How does verification work?",
-    a: "After you sign up, you send your school a verification request: a code sent to your school email, your student ID number, a photo of your student ID and a selfie. Reviewers appointed by your school approve it. Deals unlock as soon as your school approves you.",
+    a: "Sign up with your personal email, then send your school a verification request with your student ID number, a photo of your student ID and a selfie. Adding a school email is optional. Reviewers appointed by your school approve it, and deals unlock as soon as they do.",
   },
   {
     q: "Do I need to download an app?",

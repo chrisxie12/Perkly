@@ -147,7 +147,7 @@ Access: everyone (including guests) reads `pilot`/`active` rows; admins write vi
 | `domain`         | citext unique | e.g. the GCTU student mail domain (to be confirmed with GCTU) |
 | `is_active`      | boolean       |                                                               |
 
-Access: authenticated users read active rows (needed to validate the school email); admins write.
+Access: authenticated users read active rows; admins write. The list only helps reviewers (an application shows whether an included institutional email's domain is listed). It never decides anything.
 
 #### `campuses` (supporting)
 
@@ -181,54 +181,64 @@ Access: reviewers read rows of their own institution; institution admins appoint
 
 ### 5.3 Students
 
+Implemented in migration 0004 (`20261114090004_students.sql`). Rules:
+
+- Students sign up and sign in with a **personal email** (Supabase Auth, `auth.users`). That identity never changes for verification.
+- An **institutional email is optional**. It lives on `student_profiles`, separately from the sign-in email, with its own confirmation state. A confirmed institutional email, or one whose domain is on the institution's list, **never** verifies a student by itself.
+- **Verification** needs an application (institution, student ID number, ID card photo, selfie) approved by an authorised reviewer of that institution. Students can't change their own state or review their own application.
+- Only verified students pass `private.require_verified_student()`, which every booking and redemption function calls first.
+
 #### `student_profiles` (brief)
 
-Purpose: the student side of an account, and the single source of truth for verification state.
+Purpose: the student side of an account, the optional institutional email, and the single source of truth for verification state.
 
-| Field                             | Type                                              | Notes                                                                                    |
-| --------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `user_id`                         | uuid PK                                           | FK `profiles`, cascade                                                                   |
-| `institution_id`                  | uuid FK                                           | Chosen at sign-up                                                                        |
-| `campus_id`                       | uuid FK null                                      |                                                                                          |
-| `programme`, `level`, `grad_year` | text, text, smallint                              |                                                                                          |
-| `student_id_hash`                 | text null                                         | `encode(hmac(student_id_number, pepper), 'hex')`; the pepper is stored in Supabase Vault |
-| `verification_status`             | `student_verification_state` default `unverified` | Changed only by functions                                                                |
-| `verified_at`, `verified_until`   | timestamptz null                                  |                                                                                          |
-| `current_verification_id`         | uuid FK `student_verifications` null              |                                                                                          |
+| Field                             | Type                                              | Notes                                                                                                                                        |
+| --------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user_id`                         | uuid PK                                           | FK `profiles`, cascade                                                                                                                       |
+| `institution_id`                  | uuid FK                                           | Chosen by the student. Locked while an application is open or they're verified                                                               |
+| `campus_id`                       | uuid FK null                                      | Must belong to the institution                                                                                                               |
+| `programme`, `level`, `grad_year` | text, text, smallint                              | Optional                                                                                                                                     |
+| `institutional_email`             | citext null                                       | **Optional.** Format-checked only; its domain is not trusted                                                                                 |
+| `institutional_email_verified_at` | timestamptz null                                  | Set when the student enters the code emailed to that address. Cleared whenever the address changes. Informational only                       |
+| `student_id_hash`                 | text null                                         | HMAC-SHA256 of the institution and the normalised student ID number, set on approval. The pepper is a random value in `private.app_settings` |
+| `verification_status`             | `student_verification_state` default `unverified` | Changed only by functions. `verified` past `verified_until` reads as `expired` everywhere (`private.student_state()`)                        |
+| `verified_at`, `verified_until`   | timestamptz null                                  | `verified_until` = the institution's next academic year end at least 30 days away, or one year if the institution hasn't set it              |
+| `current_verification_id`         | uuid FK `student_verifications` null              |                                                                                                                                              |
 
-Constraints: unique `(institution_id, student_id_hash) where student_id_hash is not null` (one Perqly account per student ID per institution).
-Indexes: `(institution_id, verification_status)`.
-Access: the student reads their own row and updates `campus_id`, `programme`, `level`, `grad_year` through `update_student_profile()`. No direct `update` grant. Reviewers read rows of their own institution's students. Support and above read all.
+Constraints: partial unique `(institution_id, student_id_hash)` (one Perqly account per student ID per institution); institutional email confirmation requires an address; `verified` requires both dates.
+Indexes: `(institution_id, verification_status)`, `(campus_id)`, `(current_verification_id)`.
+Access: students read their own row; **no direct writes for anyone**. Changes go through `upsert_student_profile()` and `set_institutional_email()`. Reviewers read profiles of students who applied to their institution. Support and above read all.
+
+Codes that confirm an institutional email live in `private.institutional_email_codes` (hashed, 10-minute expiry, 5 attempts, 3 sends an hour). They're issued by `issue_institutional_email_code()`, which only the **service role** may call: the server checks who the user is, issues the code with the secret key and emails it through Resend. Students confirm with `confirm_institutional_email_code()`.
 
 #### `student_verifications` (brief)
 
-Purpose: one row per verification request; history is kept.
+Purpose: one row per verification application; history is kept.
 
-| Field                             | Type                          | Notes                                                                                                 |
-| --------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `id`                              | uuid PK                       |                                                                                                       |
-| `student_id`                      | uuid FK `student_profiles`    |                                                                                                       |
-| `institution_id`                  | uuid FK                       | Snapshot at submission                                                                                |
-| `institutional_email`             | citext                        | Domain must match an active `institution_email_domains` row                                           |
-| `email_otp_hash`                  | text null                     | Hash of the 6-digit code                                                                              |
-| `email_otp_expires_at`            | timestamptz null              | 10 minutes                                                                                            |
-| `email_otp_attempts`              | smallint default 0            | Max 5 per code                                                                                        |
-| `email_verified_at`               | timestamptz null              |                                                                                                       |
-| `student_id_number`               | text null                     | Visible to the reviewer while undecided; replaced by its last 3 characters 30 days after the decision |
-| `programme`, `level`, `grad_year` |                               | Snapshot                                                                                              |
-| `id_card_path`, `selfie_path`     | text null                     | Private `verification-documents` bucket                                                               |
-| `status`                          | `verification_request_status` |                                                                                                       |
-| `submitted_at`                    | timestamptz null              |                                                                                                       |
-| `decided_by`                      | uuid FK `profiles` null       |                                                                                                       |
-| `decided_by_type`                 | `decider_type` null           |                                                                                                       |
-| `decision_reason`                 | text null                     | Preset reason code plus optional note                                                                 |
-| `resubmission_note`               | text null                     | What the student must fix                                                                             |
-| `decided_at`                      | timestamptz null              |                                                                                                       |
-| `documents_deleted_at`            | timestamptz null              | Set by the 30-day cleanup job                                                                         |
+| Field                               | Type                          | Notes                                                                                                                                  |
+| ----------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                | uuid PK                       |                                                                                                                                        |
+| `student_id`                        | uuid FK `student_profiles`    |                                                                                                                                        |
+| `institution_id`                    | uuid FK                       | From the profile when the application starts                                                                                           |
+| `student_id_number`                 | text null                     | Required to submit. Visible to the reviewer; never written to the audit log                                                            |
+| `programme`, `level`, `grad_year`   |                               | Snapshot at submission                                                                                                                 |
+| `institutional_email`               | citext null                   | Optional snapshot, only if the student chose to include it                                                                             |
+| `institutional_email_confirmed`     | boolean                       | Snapshot: confirmed by code at submission. Informational only                                                                          |
+| `institutional_email_domain_listed` | boolean                       | Snapshot: domain is on the institution's list. Informational only                                                                      |
+| `id_card_path`, `selfie_path`       | text null                     | Required to submit. Private `verification-documents` bucket                                                                            |
+| `status`                            | `verification_request_status` | `draft` → `submitted` (pending) → `approved`, `rejected` or `resubmission_requested` (→ `submitted` again); `withdrawn` by the student |
+| `submitted_at`, `decided_at`        | timestamptz null              |                                                                                                                                        |
+| `decided_by`                        | uuid FK `profiles` null       | The reviewer. Hidden from students                                                                                                     |
+| `decided_by_type`                   | `decider_type` null           | `institution` or `perqly` (delegated review only)                                                                                      |
+| `decision_reason`                   | text null                     | Rejection code: `not_enrolled`, `id_mismatch`, `photo_mismatch`, `unreadable_documents`, `duplicate_account`, `other`                  |
+| `reviewer_note`                     | text null                     | Shown to the student; required for resubmission requests and "other" rejections                                                        |
+| `documents_deleted_at`              | timestamptz null              | Set by the 30-day cleanup (roadmap 1.8)                                                                                                |
 
-Constraints: partial unique `(student_id) where status in ('draft','submitted','resubmission_requested')` (one open request at a time); partial unique `(lower(institutional_email)) where status = 'approved'` (one school email per verified account).
-Indexes: `(institution_id, status, submitted_at)` for the queue.
-Access: the student reads their own requests (never the reviewer's identity) and acts through `start_verification()`, `send_email_otp()`, `confirm_email_otp()`, `submit_verification()`, `withdraw_verification()`. Reviewers read their institution's requests and decide through `decide_verification()`. Perqly reviewers decide only where `review_mode = 'delegated'`. Document access is via `get_verification_document_url()`, which returns a 5-minute signed URL and writes an audit row.
+Constraints: partial unique `(student_id) where status in ('draft','submitted','resubmission_requested')` (one open application at a time).
+Indexes: `(institution_id, status, submitted_at)` for the queue; `(student_id, created_at desc)`; `(decided_by)`.
+Access: no direct writes for anyone. Students use `start_verification_application()`, `submit_verification_application()`, `withdraw_verification_application()` and read their state through `get_my_student_status()`, which never returns the reviewer's identity. Reviewers read their institution's non-draft applications and decide with `decide_verification()`: institution reviewers, institution admins **with two-factor**, or Perqly reviewers only where `review_mode = 'delegated'`. Nobody can decide their own application. `get_verification_document_paths()` audits each reviewer view; the app then creates 5-minute signed URLs, which Storage only issues to readers its policies allow.
+
+Expiry: `public.expire_student_verifications()` (service role, scheduled with the jobs in roadmap 1.8) marks lapsed verifications `expired`. Until it runs, `private.student_state()` already treats them as expired.
 
 ### 5.4 Merchants
 
@@ -701,31 +711,31 @@ Lives in the `private` schema; functions read it with `private.setting_int()`. K
 
 R = read, W = direct write allowed by RLS, F = only through a function, – = no access.
 
-| Table                                              | Guest      | Student                 | Merchant user                                                        | Institution reviewer                   | Platform staff                |
-| -------------------------------------------------- | ---------- | ----------------------- | -------------------------------------------------------------------- | -------------------------------------- | ----------------------------- |
-| institutions, campuses, merchant_categories        | R (active) | R                       | R                                                                    | R                                      | R; F admin                    |
-| institution_email_domains                          | –          | R (active)              | –                                                                    | R own                                  | R; F admin                    |
-| institution_reviewers                              | –          | –                       | –                                                                    | R own institution; F institution admin | R; F admin                    |
-| profiles                                           | –          | R own; W own name/photo | First name + photo of students in a live session at their branch (F) | Applicants' name + photo (F)           | R support+                    |
-| student_profiles                                   | –          | R own; F                | –                                                                    | R own institution                      | R support+                    |
-| student_verifications                              | –          | R own; F                | –                                                                    | R + decide F, own institution          | R; decide F only if delegated |
-| merchants, merchant_branches                       | –          | R approved              | R own; W owner/manager; status F                                     | R approved                             | R; status F                   |
-| merchant_users, merchant_user_branches             | –          | –                       | R own merchant; F                                                    | –                                      | R; F admin                    |
-| merchant_documents                                 | –          | –                       | R/W owner                                                            | –                                      | R reviewer+                   |
-| services, products, service_branches               | –          | R active                | R own; W owner/manager                                               | –                                      | R                             |
-| offers, offer_branches, offer_institutions         | –          | R active and eligible   | R own; W drafts; status F                                            | –                                      | R; moderation F               |
-| branch_availability_rules, availability_exceptions | –          | R                       | R own; W owner/manager                                               | –                                      | R                             |
-| bookings                                           | –          | R own; F                | R own branches; F                                                    | –                                      | R support+                    |
-| merchant_qr_codes                                  | –          | –                       | R owner/manager; F                                                   | –                                      | R; revoke F admin             |
-| redemption_sessions                                | –          | R own; F                | R own branches; F                                                    | –                                      | R support+                    |
-| redemptions                                        | –          | R own                   | R own merchant (cashier: own branches, 7 days); payment F            | –                                      | R; void F support+            |
-| student_savings                                    | –          | R own                   | –                                                                    | –                                      | R                             |
-| favourites                                         | –          | R/W own                 | – (counts via analytics)                                             | –                                      | R support+                    |
-| reviews                                            | –          | R published; F          | R own; reply F                                                       | –                                      | R; hide F                     |
-| audit_logs                                         | –          | –                       | R own merchant (owner)                                               | R own institution (admin)              | R admin                       |
-| disputes                                           | –          | R own; F                | R own; F                                                             | –                                      | R/F support+                  |
-| notifications                                      | –          | R own; mark read W      | R own; mark read W                                                   | R own; mark read W                     | R own                         |
-| rate_limit_events, app_settings                    | –          | –                       | –                                                                    | –                                      | app_settings R/F admin        |
+| Table                                              | Guest      | Student                                                          | Merchant user                                                        | Institution reviewer                                   | Platform staff                         |
+| -------------------------------------------------- | ---------- | ---------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------- |
+| institutions, campuses, merchant_categories        | R (active) | R                                                                | R                                                                    | R                                                      | R; F admin                             |
+| institution_email_domains                          | –          | R (active)                                                       | –                                                                    | R own                                                  | R; F admin                             |
+| institution_reviewers                              | –          | –                                                                | –                                                                    | R own institution; F institution admin                 | R; F admin                             |
+| profiles                                           | –          | R own; W own name/photo                                          | First name + photo of students in a live session at their branch (F) | Applicants' name + photo (F)                           | R support+                             |
+| student_profiles                                   | –          | R own; F (incl. optional institutional email)                    | –                                                                    | R applicants to own institution                        | R support+                             |
+| student_verifications                              | –          | Own, through `get_my_student_status()` (no reviewer identity); F | –                                                                    | R + decide F, own institution (admins with two-factor) | R support+; decide F only if delegated |
+| merchants, merchant_branches                       | –          | R approved                                                       | R own; W owner/manager; status F                                     | R approved                                             | R; status F                            |
+| merchant_users, merchant_user_branches             | –          | –                                                                | R own merchant; F                                                    | –                                                      | R; F admin                             |
+| merchant_documents                                 | –          | –                                                                | R/W owner                                                            | –                                                      | R reviewer+                            |
+| services, products, service_branches               | –          | R active                                                         | R own; W owner/manager                                               | –                                                      | R                                      |
+| offers, offer_branches, offer_institutions         | –          | R active and eligible                                            | R own; W drafts; status F                                            | –                                                      | R; moderation F                        |
+| branch_availability_rules, availability_exceptions | –          | R                                                                | R own; W owner/manager                                               | –                                                      | R                                      |
+| bookings                                           | –          | R own; F                                                         | R own branches; F                                                    | –                                                      | R support+                             |
+| merchant_qr_codes                                  | –          | –                                                                | R owner/manager; F                                                   | –                                                      | R; revoke F admin                      |
+| redemption_sessions                                | –          | R own; F                                                         | R own branches; F                                                    | –                                                      | R support+                             |
+| redemptions                                        | –          | R own                                                            | R own merchant (cashier: own branches, 7 days); payment F            | –                                                      | R; void F support+                     |
+| student_savings                                    | –          | R own                                                            | –                                                                    | –                                                      | R                                      |
+| favourites                                         | –          | R/W own                                                          | – (counts via analytics)                                             | –                                                      | R support+                             |
+| reviews                                            | –          | R published; F                                                   | R own; reply F                                                       | –                                                      | R; hide F                              |
+| audit_logs                                         | –          | –                                                                | R own merchant (owner)                                               | R own institution (admin)                              | R admin                                |
+| disputes                                           | –          | R own; F                                                         | R own; F                                                             | –                                                      | R/F support+                           |
+| notifications                                      | –          | R own; mark read W                                               | R own; mark read W                                                   | R own; mark read W                                     | R own                                  |
+| rate_limit_events, app_settings                    | –          | –                                                                | –                                                                    | –                                                      | app_settings R/F admin                 |
 
 Example policy shape (cashier sees pending sessions only at their branches):
 
@@ -742,27 +752,28 @@ using (
 
 The app calls these with `supabase.rpc()` from Next.js Server Actions or Route Handlers, never with ad-hoc table writes. Every function validates its input, checks the caller's role, applies rate limits, writes audit rows where listed, and returns a typed result or raises a named error (`not_verified`, `qr_invalid`, `limit_reached`, `session_expired`, `rate_limited`, …) that the app turns into a plain-language message.
 
-| Area         | Function                                                                                                                                                                                                         | Caller                                                 |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Students     | `update_student_profile`, `start_verification`, `send_email_otp`, `confirm_email_otp`, `submit_verification`, `withdraw_verification`                                                                            | Student                                                |
-| Verification | `get_verification_queue`, `get_verification_document_url`, `decide_verification`                                                                                                                                 | Institution reviewer (or Perqly reviewer if delegated) |
-| Institutions | `upsert_institution`, `appoint_institution_reviewer`, `remove_institution_reviewer`                                                                                                                              | Admin, institution admin                               |
-| Merchants    | `create_merchant`, `create_merchant_on_behalf`, `submit_merchant_for_review`, `decide_merchant`, `suspend_merchant`, `manage_merchant_user`, `accept_merchant_invite`                                            | Merchant owner, admin                                  |
-| Offers       | `submit_offer`, `pause_offer`, `archive_offer`, `moderate_offer`                                                                                                                                                 | Owner/manager, staff                                   |
-| Bookings     | `get_available_slots`, `request_booking`, `respond_to_booking`, `respond_to_reschedule`, `cancel_booking`, `mark_booking`                                                                                        | Student, merchant                                      |
-| QR           | `reissue_branch_qr`, `revoke_qr_code`                                                                                                                                                                            | Owner/manager, admin                                   |
-| Redemption   | `open_redemption_session`, `select_redemption_item`, `merchant_confirm_redemption`, `merchant_reject_redemption`, `student_confirm_redemption`, `cancel_redemption_session`, `record_payment`, `void_redemption` | See the QR specification                               |
-| Engagement   | `create_review`, `reply_to_review`, `open_dispute`, `resolve_dispute`                                                                                                                                            | Student, merchant, support                             |
-| Admin        | `set_account_suspension`, `set_platform_role`; `get_my_context` (any signed-in user: routing data)                                                                                                               | Admin, super admin (MFA)                               |
+| Area         | Function                                                                                                                                                                                                                                                 | Caller                                                 |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Students     | `upsert_student_profile`, `set_institutional_email`, `confirm_institutional_email_code`, `start_verification_application`, `submit_verification_application`, `withdraw_verification_application`, `get_my_student_status`, `get_student_benefit_access` | Student                                                |
+| Verification | `decide_verification`, `get_verification_document_paths` (the queue is a plain RLS-protected read)                                                                                                                                                       | Institution reviewer (or Perqly reviewer if delegated) |
+| Server only  | `issue_institutional_email_code`, `expire_student_verifications`                                                                                                                                                                                         | Service role                                           |
+| Institutions | `upsert_institution`, `appoint_institution_reviewer`, `remove_institution_reviewer`                                                                                                                                                                      | Admin, institution admin                               |
+| Merchants    | `create_merchant`, `create_merchant_on_behalf`, `submit_merchant_for_review`, `decide_merchant`, `suspend_merchant`, `manage_merchant_user`, `accept_merchant_invite`                                                                                    | Merchant owner, admin                                  |
+| Offers       | `submit_offer`, `pause_offer`, `archive_offer`, `moderate_offer`                                                                                                                                                                                         | Owner/manager, staff                                   |
+| Bookings     | `get_available_slots`, `request_booking`, `respond_to_booking`, `respond_to_reschedule`, `cancel_booking`, `mark_booking`                                                                                                                                | Student, merchant                                      |
+| QR           | `reissue_branch_qr`, `revoke_qr_code`                                                                                                                                                                                                                    | Owner/manager, admin                                   |
+| Redemption   | `open_redemption_session`, `select_redemption_item`, `merchant_confirm_redemption`, `merchant_reject_redemption`, `student_confirm_redemption`, `cancel_redemption_session`, `record_payment`, `void_redemption`                                         | See the QR specification                               |
+| Engagement   | `create_review`, `reply_to_review`, `open_dispute`, `resolve_dispute`                                                                                                                                                                                    | Student, merchant, support                             |
+| Admin        | `set_account_suspension`, `set_platform_role`; `get_my_context` (any signed-in user: routing data)                                                                                                                                                       | Admin, super admin (MFA)                               |
 
 ## 8. Storage buckets
 
-| Bucket                   | Visibility  | Path rule                                | Notes                                                                                                |
-| ------------------------ | ----------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `verification-documents` | Private     | `{student_id}/{verification_id}/{id-card | selfie}.webp`                                                                                        | Students upload only to their own folder while a request is `draft` or `resubmission_requested`. Nobody reads through the client; reviewers get 5-minute signed URLs. Deleted 30 days after a decision |
-| `avatars`                | Private     | `{user_id}/avatar.webp`                  | Owner writes. Merchants see it only through a short signed URL during a live session at their branch |
-| `merchant-media`         | Public read | `merchants/{merchant_id}/…`              | Owners and managers write. Logos, covers, item images                                                |
-| `merchant-documents`     | Private     | `{merchant_id}/…`                        | Owners upload; Perqly reviewers read through signed URLs                                             |
+| Bucket                   | Visibility  | Path rule                                                              | Notes                                                                                                                                                                                                                                                       |
+| ------------------------ | ----------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `verification-documents` | Private     | `{student_id}/{application_id}/{id-card or selfie}.{webp, jpg or png}` | Created by migration 0004 (5 MB, images only). Students write only to their own open application's folder. Only the student and authorised reviewers of that institution can read, reviewers through 5-minute signed URLs. Deleted 30 days after a decision |
+| `avatars`                | Private     | `{user_id}/avatar.webp`                                                | Owner writes. Merchants see it only through a short signed URL during a live session at their branch                                                                                                                                                        |
+| `merchant-media`         | Public read | `merchants/{merchant_id}/…`                                            | Owners and managers write. Logos, covers, item images                                                                                                                                                                                                       |
+| `merchant-documents`     | Private     | `{merchant_id}/…`                                                      | Owners upload; Perqly reviewers read through signed URLs                                                                                                                                                                                                    |
 
 Images are resized and converted to WebP in the browser before upload (max 1600 px, 5 MB limit enforced by bucket settings).
 

@@ -46,28 +46,32 @@ First name (shown to merchants), profile photo (required before the first redemp
 
 ### S3. Verification (`/student/verify`)
 
-A four-step form with a progress bar. Each step saves, so the student can stop and continue.
+Before applying, the student saves their school on the profile (S13). The application then asks for:
 
-| Step              | Content                                                                                                                                       | System                                            |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| 1. School email   | Enter the school address. Only domains for the chosen institution are accepted ("Use your GCTU student email")                                | `start_verification()`, `send_email_otp()`        |
-| 2. Email code     | 6-digit code, 10-minute expiry, 5 attempts                                                                                                    | `confirm_email_otp()`                             |
-| 3. Student ID     | Student ID number; photo of the ID card (camera or upload, cropped and compressed to WebP in the browser)                                     | Upload to `verification-documents/{student_id}/…` |
-| 4. Selfie         | Front camera with an oval guide; retake option                                                                                                | Upload                                            |
-| Review and submit | Summary; consent: "GCTU's appointed reviewers will see this to confirm you're a student. ID photos are deleted 30 days after their decision." | `submit_verification()`                           |
+| Item                         | Content                                                                                                 | System                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Student ID number            | As printed on the card                                                                                  | Checked for format; never written to logs                                                                                                   |
+| Photo of the student ID card | Rear camera or upload; compressed to WebP (JPEG on older iPhones) in the browser, location data removed | Uploaded straight to `verification-documents/{student}/{application}/id-card.*`, which only the student and the school's reviewers can read |
+| Selfie                       | Front camera                                                                                            | Same, `selfie.*`                                                                                                                            |
+| Institutional email          | **Optional.** If one is saved on the profile, a ticked box includes it, marked confirmed or not         | Snapshot on the application, for the reviewer's information only                                                                            |
+| Notice                       | "GCTU's appointed reviewers will see these details and photos… deleted 30 days after the decision."     |                                                                                                                                             |
+| **Send to GCTU for review**  |                                                                                                         | `submit_verification_application()`                                                                                                         |
 
-**Status screen** (same route after submission):
+The first photo creates a draft application (`start_verification_application()`), so there's never more than one open application.
 
-| State                    | What the student sees                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `pending`                | "Waiting for GCTU's reviewers." Submitted date. "Most requests are reviewed within 2 working days" (once the agreement sets a target) |
-| `resubmission_requested` | The reviewer's note, and buttons to replace only what was asked for                                                                   |
-| `rejected`               | The reason, and "Start a new request"                                                                                                 |
-| `verified`               | "Verified until {date}." Badge on the profile                                                                                         |
-| `expired`                | "Your verification ended on {date}. Verify again for this academic year."                                                             |
-| `suspended`              | "Your account is suspended. Contact Perqly support."                                                                                  |
+**Status** (same page, and as a card on the student home):
 
-Until verified, the marketplace works but **Book** and **Scan** are replaced by "Get verified to use this".
+| State                   | What the student sees                                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Not verified            | "Get verified by GCTU to book and redeem student discounts. You can browse offers and prices now." **Start verification** |
+| Pending review          | Date sent, the student ID they used, **Withdraw application**                                                             |
+| Changes requested       | The reviewer's note, and the form with only what's needed to replace                                                      |
+| Not approved (rejected) | The reason in plain words and any note; the form to apply again                                                           |
+| Approved                | "Verified by GCTU until {date}."                                                                                          |
+| Expired                 | "Your verification has expired." The form to renew (also available in the last 30 days)                                   |
+| Suspended               | "Your account is suspended. Contact Perqly support."                                                                      |
+
+Until approved, the marketplace works but **Book** and **Scan** are replaced by "Get verified to use this", and the database refuses both.
 
 ### S4. Marketplace (`/student`)
 
@@ -153,7 +157,9 @@ Saved merchants with their current best offer. Empty: "Tap the heart on a busine
 
 ### S13. Profile (`/student/profile`)
 
-Name, photo, institution and campus, verification status (link to S3), notification settings, install guide, privacy (download my data, delete my account; redemptions are anonymised rather than deleted so merchants' records stay intact), terms, sign out.
+- **School details:** school (locked while an application is open or the student is verified), campus, programme, level, graduation year. `upsert_student_profile()`.
+- **Institutional email (optional):** add, change or remove; shown as Confirmed or Not confirmed. When email sending is configured, **Send code** emails a 6-digit code to that address and the student confirms it here. The card says plainly that confirming doesn't verify them on its own.
+- Name, photo (required before the first redemption), notification settings, install guide, privacy (download my data, delete my account; redemptions are anonymised rather than deleted so merchants' records stay intact), terms, sign out. _(Later steps.)_
 
 ---
 
@@ -264,7 +270,7 @@ Reviewers are invited by email by Perqly (first institution admin) or by their i
 
 ### I3. Student review (`/institution/requests/[id]`)
 
-- Applicant: name, profile photo, school email (confirmed badge), student ID number, programme, level, graduation year, submitted time, previous requests and their outcomes.
+- Applicant: name, student ID number, programme, level, graduation year, submitted time, earlier applications and their outcomes, and the institutional email only if the student included it, marked "Confirmed by code" or "Not confirmed" and whether its domain is on the institution's list, with the note "For information only. An email address doesn't prove enrolment."
 - Evidence: ID card photo and selfie side by side, loaded through 5-minute signed links. "Your view is logged." Zoom and rotate.
 - Duplicate warning if the hashed student ID already belongs to another verified account.
 

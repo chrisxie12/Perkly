@@ -78,6 +78,8 @@ Outside the code: start the GCTU agreement (D14) and the Data Protection Commiss
 
 ### 1.3 Student verification and the institution dashboard
 
+**Progress (2026-11-14):** built locally with optional institutional email (D15): migration 0004 (student profiles, applications, reviewer decisions, private document storage, the verified-student gate) with 52 pgTAP tests; student home, profile and verification screens; institution queue, review and decisions screens; landing copy updated. Not applied to staging. Still to do in this step: admin institution screens (A2), the 30-day document deletion job, and notifications.
+
 |            |                                                                                                                                                                                                                                                                                                                       |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Depends on | 1.2                                                                                                                                                                                                                                                                                                                   |

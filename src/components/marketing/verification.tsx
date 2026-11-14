@@ -2,9 +2,13 @@ import { BadgeCheck, Camera, Clock3, IdCard, Mail, ShieldCheck } from "lucide-re
 import { PageContainer } from "@/components/layout/page-container";
 
 const evidence = [
-  { icon: Mail, title: "School email", body: "We send a 6-digit code to your school email address to confirm it's yours." },
   { icon: IdCard, title: "Student ID number", body: "Your school's reviewers check it against their records." },
   { icon: Camera, title: "ID photo and a selfie", body: "So the reviewer can see the person on the ID is you." },
+  {
+    icon: Mail,
+    title: "School email, if you have one",
+    body: "Optional. You sign up with your personal email, and you can add a school email to your application.",
+  },
 ];
 
 export function Verification() {
@@ -53,7 +57,7 @@ export function Verification() {
               </dl>
               <ol className="mt-6 space-y-3 border-t border-ink-200 pt-5 text-[0.9375rem] font-medium">
                 <li className="flex items-center gap-3">
-                  <BadgeCheck className="size-5 text-success" aria-hidden /> School email confirmed
+                  <BadgeCheck className="size-5 text-success" aria-hidden /> Signed up with a personal email
                 </li>
                 <li className="flex items-center gap-3">
                   <BadgeCheck className="size-5 text-success" aria-hidden /> Student ID number added
