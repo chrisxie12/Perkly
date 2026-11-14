@@ -6,9 +6,11 @@ export function merchantNavFor(membership: MerchantMembership | null) {
   if (!membership) return nav;
   if (membership.role === "owner" || membership.role === "manager") {
     nav.push(
-      { href: "/merchant/profile", label: "Profile" },
+      { href: "/merchant/offers", label: "Offers" },
+      { href: "/merchant/catalogue", label: "Catalogue" },
       { href: "/merchant/branches", label: "Branches" },
       { href: "/merchant/team", label: "Team" },
+      { href: "/merchant/profile", label: "Profile" },
     );
   }
   return nav;

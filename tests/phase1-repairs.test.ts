@@ -173,7 +173,14 @@ describe("merchant roles", () => {
   it("shows cashiers only the overview, and managers the business pages", async () => {
     const { merchantNavFor } = await import("@/app/merchant/merchant-nav");
     expect(merchantNavFor({ ...shop, role: "cashier" }).map((i) => i.label)).toEqual(["Overview"]);
-    expect(merchantNavFor({ ...shop, role: "manager" }).map((i) => i.label)).toEqual(["Overview", "Profile", "Branches", "Team"]);
+    expect(merchantNavFor({ ...shop, role: "manager" }).map((i) => i.label)).toEqual([
+      "Overview",
+      "Offers",
+      "Catalogue",
+      "Branches",
+      "Team",
+      "Profile",
+    ]);
   });
 
   it("validates merchant forms the way the database does", async () => {
