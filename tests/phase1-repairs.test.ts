@@ -170,14 +170,19 @@ describe("merchant roles", () => {
     expect(requiresTwoFactor(cashier)).toBe(false);
   });
 
-  it("shows cashiers only the overview, and managers the business pages", async () => {
+  it("shows cashiers only the overview and counter, and managers the business pages", async () => {
     const { merchantNavFor } = await import("@/app/merchant/merchant-nav");
-    expect(merchantNavFor({ ...shop, role: "cashier" }).map((i) => i.label)).toEqual(["Overview"]);
-    expect(merchantNavFor({ ...shop, role: "manager" }).map((i) => i.label)).toEqual([
+    const live = { ...shop, status: "approved" as const };
+    expect(merchantNavFor({ ...shop, status: "draft", role: "cashier" }).map((i) => i.label)).toEqual(["Overview"]);
+    expect(merchantNavFor({ ...live, role: "cashier" }).map((i) => i.label)).toEqual(["Overview", "Counter", "Redemptions"]);
+    expect(merchantNavFor({ ...live, role: "manager" }).map((i) => i.label)).toEqual([
       "Overview",
+      "Counter",
+      "Redemptions",
       "Offers",
       "Catalogue",
       "Branches",
+      "QR codes",
       "Team",
       "Profile",
     ]);

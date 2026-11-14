@@ -3,4 +3,5 @@ export const adminNav = [
   { href: "/admin/institutions", label: "Institutions" },
   { href: "/admin/merchants", label: "Businesses" },
   { href: "/admin/offers", label: "Offers" },
+  { href: "/admin/redemptions", label: "Redemptions" },
 ];

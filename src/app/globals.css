@@ -219,3 +219,21 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Printing one branch's QR poster from /merchant/codes. */
+@media print {
+  body.printing-poster * {
+    visibility: hidden;
+  }
+  body.printing-poster .print-me,
+  body.printing-poster .print-me * {
+    visibility: visible;
+  }
+  body.printing-poster .print-me {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    transform: scale(1.6);
+    transform-origin: top center;
+  }
+}

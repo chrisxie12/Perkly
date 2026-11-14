@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BadgeCheck, CheckCircle2, Circle, Clock3, ShieldAlert, Store } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getUserContext } from "@/lib/auth/session";
 import { SubmitButton } from "@/features/auth/components/submit-button";
@@ -11,7 +11,7 @@ import { chooseMerchant, submitForReview } from "@/features/merchants/actions";
 import { RegisterMerchantForm } from "@/features/merchants/components/merchant-forms";
 import { getActiveMembership, getBranches, getCategories, getMerchant } from "@/features/merchants/queries";
 import { MERCHANT_STATUS_LABEL, merchantErrorMessage } from "@/features/merchants/schemas";
-import { merchantNavFor } from "./merchant-nav";
+import { canManage, merchantNavFor } from "./merchant-nav";
 
 export const metadata: Metadata = { title: "Your business", robots: { index: false } };
 
@@ -147,8 +147,27 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
 
         {merchant.status === "approved" && (
           <Card>
-            <CardTitle>Next</CardTitle>
-            <CardDescription>Add what you sell and create student offers. Then print your branch QR code for the counter.</CardDescription>
+            <CardTitle>At the counter</CardTitle>
+            <CardDescription>
+              {canManage(membership)
+                ? "Create student offers, print each branch's QR poster, and keep the counter screen open to confirm discounts."
+                : "Keep the counter screen open. Students who scan your code appear there for you to confirm."}
+            </CardDescription>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href="/merchant/counter" className={buttonVariants({})}>
+                Open the counter
+              </Link>
+              {canManage(membership) && (
+                <>
+                  <Link href="/merchant/offers" className={buttonVariants({ variant: "secondary" })}>
+                    Offers
+                  </Link>
+                  <Link href="/merchant/codes" className={buttonVariants({ variant: "secondary" })}>
+                    QR codes
+                  </Link>
+                </>
+              )}
+            </div>
           </Card>
         )}
 
