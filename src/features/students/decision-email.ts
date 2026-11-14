@@ -34,7 +34,7 @@ export function buildDecisionEmail(notice: DecisionNotice, siteUrl: string) {
     case "approved":
       subject = "You're verified on Perqly";
       lines = [
-        `${school} has confirmed you're a student. You can now book and redeem student discounts.`,
+        `${school} has confirmed you're a student. Student offers appear in Perqly as businesses near your campus join.`,
         notice.verified_until ? `Your verification lasts until ${dateFormat.format(new Date(notice.verified_until))}.` : "",
       ];
       break;

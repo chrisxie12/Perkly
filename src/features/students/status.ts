@@ -131,3 +131,22 @@ export function studentErrorMessage(code: string | undefined): string {
       return "Something went wrong. Try again in a moment.";
   }
 }
+
+const OPEN_STATUSES: ApplicationStatus[] = ["draft", "submitted", "resubmission_requested"];
+
+/** The open application a student may withdraw (draft, sent, or sent back for changes), or null. */
+export function withdrawableApplication(status: StudentStatus): { id: string; status: ApplicationStatus } | null {
+  const app = status.application;
+  return app && OPEN_STATUSES.includes(app.status) ? { id: app.id, status: app.status } : null;
+}
+
+/**
+ * Why the student can't change school right now, mirroring upsert_student_profile():
+ * an open application, or an active verification. Null when the school can change.
+ */
+export function schoolLockReason(status: StudentStatus): "open_application" | "verified" | null {
+  if (!status.profile) return null;
+  if (withdrawableApplication(status)) return "open_application";
+  if (status.state === "pending" || status.state === "verified") return "verified";
+  return null;
+}

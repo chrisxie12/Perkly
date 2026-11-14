@@ -5,16 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getUserContext } from "@/lib/auth/session";
 import { getMyStudentStatus } from "@/features/students/queries";
-import { withdrawVerificationApplication } from "@/features/students/actions";
-import { REJECTION_REASONS, verificationView } from "@/features/students/status";
+import { REJECTION_REASONS, studentErrorMessage, verificationView, withdrawableApplication } from "@/features/students/status";
+import { WithdrawCard } from "@/features/students/components/withdraw-card";
 import { VerificationStatusCard, formatDate } from "@/features/students/components/status-card";
 import { VerificationForm } from "@/features/students/components/verification-form";
 import { studentNav } from "../student-nav";
 
 export const metadata: Metadata = { title: "Student verification", robots: { index: false } };
 
-export default async function VerifyPage() {
-  const [ctx, status] = await Promise.all([getUserContext(), getMyStudentStatus()]);
+export default async function VerifyPage({ searchParams }: PageProps<"/student/verify">) {
+  const [ctx, status, query] = await Promise.all([getUserContext(), getMyStudentStatus(), searchParams]);
+  const withdrawable = withdrawableApplication(status);
   const view = verificationView(status);
   const profile = status.profile;
   const app = status.application;
@@ -27,6 +28,16 @@ export default async function VerifyPage() {
         title="Get verified"
         description={`${school}'s appointed reviewers confirm you're a student. You'll need your student ID number, a photo of your student ID card and a selfie.`}
       />
+      {query.withdraw === "done" && (
+        <p role="status" className="mb-6 rounded-lg bg-green-50 px-4 py-3 font-medium text-success">
+          Application withdrawn. You can change your school on your profile, or start a new application below.
+        </p>
+      )}
+      {query.withdraw === "failed" && (
+        <p role="alert" className="mb-6 rounded-lg bg-orange-50 px-4 py-3 font-medium text-ink-900 ring-1 ring-orange-200">
+          Couldn&apos;t withdraw: {studentErrorMessage(typeof query.reason === "string" ? query.reason : undefined)}
+        </p>
+      )}
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr] lg:items-start">
         <VerificationStatusCard status={status} showAction={view === "needs_profile"} />
 
@@ -35,15 +46,9 @@ export default async function VerifyPage() {
             <p className="leading-relaxed text-ink-700">
               Sent on {formatDate(app.submitted_at)} with student ID{" "}
               <strong className="font-semibold text-ink-900">{app.student_id_number}</strong>
-              {app.institutional_email ? ` and institutional email ${app.institutional_email}` : ""}. You&apos;ll be notified when {school}{" "}
+              {app.institutional_email ? ` and institutional email ${app.institutional_email}` : ""}. We&apos;ll email you when {school}{" "}
               decides.
             </p>
-            <form action={withdrawVerificationApplication} className="mt-5">
-              <input type="hidden" name="applicationId" value={app.id} />
-              <Button type="submit" variant="secondary">
-                Withdraw application
-              </Button>
-            </form>
           </Card>
         )}
 
@@ -77,10 +82,13 @@ export default async function VerifyPage() {
           </Card>
         )}
 
+        {withdrawable && <WithdrawCard applicationId={withdrawable.id} status={withdrawable.status} className="lg:col-start-2" />}
+
         {view === "verified" && (
           <Card>
             <p className="leading-relaxed text-ink-700">
-              You can book and redeem student discounts until {formatDate(profile?.verified_until)}.
+              {school} has confirmed you&apos;re a student. Your verification lasts until {formatDate(profile?.verified_until)}. Student
+              offers will appear in Perqly as businesses near your campus join.
             </p>
             <Button asChild variant="secondary" className="mt-4">
               <Link href="/student">Back to home</Link>

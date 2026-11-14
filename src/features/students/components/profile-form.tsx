@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { FieldError, FieldHint, Input, Label, NativeSelect } from "@/components/ui/input";
 import { FormMessage } from "@/features/auth/components/form-message";
 import { SubmitButton } from "@/features/auth/components/submit-button";
@@ -21,15 +22,16 @@ export function StudentProfileForm({
   institutions,
   campuses,
   initial,
-  institutionLocked,
+  lockReason,
   currentYear,
 }: {
   institutions: InstitutionOption[];
   campuses: CampusOption[];
   initial: Initial;
-  institutionLocked: boolean;
+  lockReason: "open_application" | "verified" | null;
   currentYear: number;
 }) {
+  const institutionLocked = lockReason !== null;
   const [state, action] = useActionState(saveStudentProfile, idleState);
   const [institutionId, setInstitutionId] = useState(initial.institutionId ?? (institutions.length === 1 ? institutions[0].id : ""));
   const schoolCampuses = campuses.filter((campus) => campus.institution_id === institutionId);
@@ -57,8 +59,19 @@ export function StudentProfileForm({
           ))}
         </NativeSelect>
         {errors.institutionId && <FieldError id="institutionId-error">{errors.institutionId}</FieldError>}
-        {institutionLocked && (
-          <FieldHint id="institutionId-hint">Your school can&apos;t change while an application is open or you&apos;re verified.</FieldHint>
+        {lockReason === "open_application" && (
+          <FieldHint id="institutionId-hint">
+            You have an open verification application, so your school is fixed for now. To change it,{" "}
+            <Link href="/student/verify" className="font-semibold text-blue-600 underline underline-offset-2">
+              withdraw the application
+            </Link>{" "}
+            first.
+          </FieldHint>
+        )}
+        {lockReason === "verified" && (
+          <FieldHint id="institutionId-hint">
+            You&apos;re verified with this school. You can change it after your verification ends.
+          </FieldHint>
         )}
       </div>
 

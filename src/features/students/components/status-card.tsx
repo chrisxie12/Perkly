@@ -23,7 +23,7 @@ export function VerificationStatusCard({ status, showAction = true }: { status: 
     apply: {
       icon: ShieldQuestion,
       tone: "bg-blue-50 text-blue-700",
-      text: `Get verified by ${school} to book and redeem student discounts. You can browse offers and prices now.`,
+      text: `Get verified by ${school}. Verified students get student prices at Perqly partner businesses.`,
       action: { href: "/student/verify", label: "Start verification" },
     },
     pending: {
@@ -53,7 +53,7 @@ export function VerificationStatusCard({ status, showAction = true }: { status: 
     expired: {
       icon: Clock3,
       tone: "bg-orange-100 text-orange-800",
-      text: "Your verification has expired. Verify again to keep booking and redeeming.",
+      text: "Your verification has expired. Verify again to keep your student prices.",
       action: { href: "/student/verify", label: "Renew verification" },
     },
     suspended: {

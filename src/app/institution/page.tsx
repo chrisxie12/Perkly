@@ -10,7 +10,7 @@ import { institutionNav } from "./institution-nav";
 export const metadata: Metadata = { title: "Verification queue", robots: { index: false } };
 
 const decidedMessages: Record<string, string> = {
-  approve: "Approved. The student can now book and redeem.",
+  approve: "Approved. The student now shows as verified.",
   reject: "Rejected. The student has been told why.",
   request_resubmission: "Sent back to the student with your note.",
 };

@@ -89,3 +89,16 @@ export function defaultDestination(ctx: UserContext): Destination {
   if (work.length === 1 && work[0] === "merchant") return { kind: "redirect", path: AREA_HOME.merchant };
   return { kind: "choose", areas: areasFor(ctx) };
 }
+
+/**
+ * Can change platform settings (institutions, reviewers). Mirrors the database's
+ * `private.is_staff('admin')`, which also needs two-factor; the admin area enforces that.
+ */
+export function canManagePlatform(ctx: UserContext): boolean {
+  return ctx.platformRole === "admin" || ctx.platformRole === "super_admin";
+}
+
+/** Accounts that must use two-factor: platform staff and institution admins. */
+export function requiresTwoFactor(ctx: UserContext): boolean {
+  return ctx.platformRole !== null || ctx.institutionRoles.some((role) => role.role === "admin");
+}

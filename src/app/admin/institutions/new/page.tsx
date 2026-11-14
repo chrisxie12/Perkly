@@ -4,11 +4,21 @@ import { ArrowLeft } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Card } from "@/components/ui/card";
 import { InstitutionForm } from "@/features/admin/components/institution-form";
+import { getUserContext } from "@/lib/auth/session";
+import { canManagePlatform } from "@/lib/auth/roles";
 import { adminNav } from "../../admin-nav";
 
 export const metadata: Metadata = { title: "Add institution", robots: { index: false, follow: false } };
 
-export default function NewInstitutionPage() {
+export default async function NewInstitutionPage() {
+  const ctx = await getUserContext();
+  if (!ctx || !canManagePlatform(ctx)) {
+    return (
+      <AreaShell area="Perqly staff" nav={adminNav}>
+        <PageTitle title="Only Perqly admins can add institutions" description="Ask a Perqly admin if a school needs adding." />
+      </AreaShell>
+    );
+  }
   return (
     <AreaShell area="Perqly staff" nav={adminNav}>
       <Link href="/admin/institutions" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">

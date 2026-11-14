@@ -3,6 +3,7 @@ import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Card, CardTitle } from "@/components/ui/card";
 import { isInstitutionalEmailConfirmationEnabled } from "@/lib/env.server";
 import { getMyStudentStatus, getSchoolOptions } from "@/features/students/queries";
+import { schoolLockReason } from "@/features/students/status";
 import { StudentProfileForm } from "@/features/students/components/profile-form";
 import { InstitutionalEmailCard } from "@/features/students/components/institutional-email-card";
 import { studentNav } from "../student-nav";
@@ -12,8 +13,7 @@ export const metadata: Metadata = { title: "Your profile", robots: { index: fals
 export default async function StudentProfilePage() {
   const [status, options] = await Promise.all([getMyStudentStatus(), getSchoolOptions()]);
   const profile = status.profile;
-  const openApplication = ["draft", "submitted", "resubmission_requested"].includes(status.application?.status ?? "");
-  const locked = Boolean(profile) && (status.state === "pending" || status.state === "verified" || openApplication);
+  const lockReason = schoolLockReason(status);
 
   return (
     <AreaShell area="Student" nav={studentNav}>
@@ -27,7 +27,7 @@ export default async function StudentProfilePage() {
             <StudentProfileForm
               institutions={options.institutions}
               campuses={options.campuses}
-              institutionLocked={locked}
+              lockReason={lockReason}
               currentYear={new Date().getFullYear()}
               initial={{
                 institutionId: profile?.institution_id,

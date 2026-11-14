@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { authErrorMessage, isUnknownAccountError } from "@/lib/auth/messages";
 import { getRequestOrigin } from "@/lib/auth/origin";
 import { safeNextPath } from "@/lib/auth/paths";
+import { requiresTwoFactor } from "@/lib/auth/roles";
+import { getUserContext } from "@/lib/auth/session";
 import { codeSchema, fieldErrors, signInSchema, signUpSchema, totpSchema } from "./schemas";
 import type { FormState, TotpEnrollment } from "./types";
 
@@ -143,6 +145,8 @@ export async function signOut(): Promise<void> {
 /** Starts authenticator-app (TOTP) setup and returns the QR code to scan. */
 export async function startTotpEnrollment(): Promise<{ ok: true; enrollment: TotpEnrollment } | { ok: false; message: string }> {
   if (!hasSupabaseEnv()) return { ok: false, message: notConfigured.message! };
+  const ctx = await getUserContext();
+  if (!ctx || !requiresTwoFactor(ctx)) return { ok: false, message: "Your account doesn't need two-step verification." };
   const supabase = await createClient();
 
   // Remove abandoned, unverified setups so a fresh one can start.

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { hasSupabaseEnv } from "@/lib/env";
 import { isInstitutionalEmailConfirmationEnabled } from "@/lib/env.server";
 import { createClient } from "@/lib/supabase/server";
@@ -136,8 +137,11 @@ export async function submitVerificationApplication(_prev: FormState, formData: 
 
 export async function withdrawVerificationApplication(formData: FormData): Promise<void> {
   const applicationId = String(formData.get("applicationId") ?? "");
-  if (!hasSupabaseEnv() || !/^[0-9a-f-]{36}$/.test(applicationId)) return;
+  if (!hasSupabaseEnv() || !/^[0-9a-f-]{36}$/.test(applicationId)) redirect("/student/verify?withdraw=failed");
   const supabase = await client();
-  await supabase.rpc("withdraw_verification_application", { p_application_id: applicationId });
+  const { error } = await supabase.rpc("withdraw_verification_application", { p_application_id: applicationId });
   revalidatePath("/student", "layout");
+  redirect(
+    error ? `/student/verify?withdraw=failed&reason=${encodeURIComponent(error.message.slice(0, 40))}` : "/student/verify?withdraw=done",
+  );
 }

@@ -11,6 +11,8 @@ import { AddCampusForm, AddDomainForm, AppointForm } from "@/features/admin/comp
 import { InstitutionForm } from "@/features/admin/components/institution-form";
 import { getInstitutionDetail } from "@/features/admin/queries";
 import { formatDate } from "@/features/students/components/status-card";
+import { getUserContext } from "@/lib/auth/session";
+import { canManagePlatform } from "@/lib/auth/roles";
 import { adminNav } from "../../admin-nav";
 
 export const metadata: Metadata = { title: "Institution", robots: { index: false, follow: false } };
@@ -29,11 +31,52 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p className="rounded-lg bg-ink-50 px-4 py-3 text-[0.9375rem] text-ink-600">{children}</p>;
 }
 
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function InstitutionSummary({
+  institution,
+}: {
+  institution: {
+    status: string;
+    review_mode: string;
+    review_delegated_at: string | null;
+    academic_year_end_month: number | null;
+    academic_year_end_day: number | null;
+  };
+}) {
+  const rows = [
+    ["Status", institution.status === "inactive" ? "Hidden from students" : institution.status === "pilot" ? "Pilot" : "Active"],
+    [
+      "Reviewed by",
+      institution.review_mode === "delegated"
+        ? `Perqly, agreement signed ${formatDate(institution.review_delegated_at)}`
+        : "The institution's own reviewers",
+    ],
+    [
+      "Academic year ends",
+      institution.academic_year_end_month && institution.academic_year_end_day
+        ? `${institution.academic_year_end_day} ${months.at(institution.academic_year_end_month - 1)}`
+        : "Not set (verification lasts one year)",
+    ],
+  ];
+  return (
+    <dl className="divide-y divide-ink-200">
+      {rows.map(([label, value]) => (
+        <div key={label} className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr]">
+          <dt className="text-sm font-medium text-ink-600">{label}</dt>
+          <dd className="font-medium text-ink-900">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export default async function InstitutionDetailPage({ params, searchParams }: PageProps<"/admin/institutions/[id]">) {
   const [{ id }, { saved }] = await Promise.all([params, searchParams]);
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const detail = await getInstitutionDetail(id);
+  const [detail, ctx] = await Promise.all([getInstitutionDetail(id), getUserContext()]);
   if (!detail) notFound();
+  const canManage = Boolean(ctx && canManagePlatform(ctx));
   const { institution, domains, campuses, reviewers } = detail;
 
   return (
@@ -42,6 +85,11 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
         <ArrowLeft className="size-4" aria-hidden /> Institutions
       </Link>
       <PageTitle title={institution.name} description={`${institution.short_name} · ${institution.slug}`} />
+      {!canManage && (
+        <p className="mb-6 rounded-lg bg-ink-100 px-4 py-3 text-[0.9375rem] text-ink-700">
+          You can view this institution. Only Perqly admins can change it.
+        </p>
+      )}
       {saved === "institution" && (
         <p role="status" className="mb-6 flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 font-medium text-success">
           <BadgeCheck className="size-5" aria-hidden /> Saved.
@@ -50,7 +98,7 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <Section title="Details" description="Changes are logged. Status controls whether students can choose this institution.">
-          <InstitutionForm institution={institution} />
+          {canManage ? <InstitutionForm institution={institution} /> : <InstitutionSummary institution={institution} />}
         </Section>
 
         <div className="space-y-6">
@@ -75,18 +123,20 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
                     <Badge variant={reviewer.role === "admin" ? "blue" : "outline"}>
                       {reviewer.role === "admin" ? "Institution admin" : "Reviewer"}
                     </Badge>
-                    <form action={removeReviewer}>
-                      <input type="hidden" name="institutionId" value={institution.id} />
-                      <input type="hidden" name="reviewerId" value={reviewer.id} />
-                      <Button type="submit" variant="ghost" size="sm" aria-label={`Remove ${reviewer.full_name}`}>
-                        Remove
-                      </Button>
-                    </form>
+                    {canManage && (
+                      <form action={removeReviewer}>
+                        <input type="hidden" name="institutionId" value={institution.id} />
+                        <input type="hidden" name="reviewerId" value={reviewer.id} />
+                        <Button type="submit" variant="ghost" size="sm" aria-label={`Remove ${reviewer.full_name}`}>
+                          Remove
+                        </Button>
+                      </form>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-            <AppointForm institutionId={institution.id} />
+            {canManage && <AppointForm institutionId={institution.id} />}
           </Section>
 
           <Section title="Campuses" description="Students pick a campus when they set up their profile. Hidden campuses aren't offered.">
@@ -101,23 +151,25 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
                       <span className="text-sm text-ink-600">{campus.digital_address ?? "No GhanaPost address"}</span>
                     </span>
                     {!campus.is_active && <Badge variant="outline">Hidden</Badge>}
-                    <form action={setCampusActive}>
-                      <input type="hidden" name="institutionId" value={institution.id} />
-                      <input type="hidden" name="campusId" value={campus.id} />
-                      <input type="hidden" name="name" value={campus.name} />
-                      <input type="hidden" name="digitalAddress" value={campus.digital_address ?? ""} />
-                      <input type="hidden" name="latitude" value={campus.latitude ?? ""} />
-                      <input type="hidden" name="longitude" value={campus.longitude ?? ""} />
-                      <input type="hidden" name="active" value={campus.is_active ? "false" : "true"} />
-                      <Button type="submit" variant="ghost" size="sm">
-                        {campus.is_active ? "Hide" : "Show"}
-                      </Button>
-                    </form>
+                    {canManage && (
+                      <form action={setCampusActive}>
+                        <input type="hidden" name="institutionId" value={institution.id} />
+                        <input type="hidden" name="campusId" value={campus.id} />
+                        <input type="hidden" name="name" value={campus.name} />
+                        <input type="hidden" name="digitalAddress" value={campus.digital_address ?? ""} />
+                        <input type="hidden" name="latitude" value={campus.latitude ?? ""} />
+                        <input type="hidden" name="longitude" value={campus.longitude ?? ""} />
+                        <input type="hidden" name="active" value={campus.is_active ? "false" : "true"} />
+                        <Button type="submit" variant="ghost" size="sm">
+                          {campus.is_active ? "Hide" : "Show"}
+                        </Button>
+                      </form>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-            <AddCampusForm institutionId={institution.id} />
+            {canManage && <AddCampusForm institutionId={institution.id} />}
           </Section>
 
           <Section
@@ -132,19 +184,21 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
                   <li key={domain.id} className="flex items-center gap-3 py-3">
                     <span className="min-w-0 flex-1 font-semibold break-all text-ink-900">{domain.domain}</span>
                     {!domain.is_active && <Badge variant="outline">Off</Badge>}
-                    <form action={setDomainActive}>
-                      <input type="hidden" name="institutionId" value={institution.id} />
-                      <input type="hidden" name="domain" value={domain.domain} />
-                      <input type="hidden" name="active" value={domain.is_active ? "false" : "true"} />
-                      <Button type="submit" variant="ghost" size="sm">
-                        {domain.is_active ? "Turn off" : "Turn on"}
-                      </Button>
-                    </form>
+                    {canManage && (
+                      <form action={setDomainActive}>
+                        <input type="hidden" name="institutionId" value={institution.id} />
+                        <input type="hidden" name="domain" value={domain.domain} />
+                        <input type="hidden" name="active" value={domain.is_active ? "false" : "true"} />
+                        <Button type="submit" variant="ghost" size="sm">
+                          {domain.is_active ? "Turn off" : "Turn on"}
+                        </Button>
+                      </form>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-            <AddDomainForm institutionId={institution.id} />
+            {canManage && <AddDomainForm institutionId={institution.id} />}
           </Section>
         </div>
       </div>
