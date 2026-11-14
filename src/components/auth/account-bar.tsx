@@ -35,19 +35,27 @@ export async function AccountBar() {
         )}
       </Link>
       <details className="relative">
-        <summary className="flex cursor-pointer list-none items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100 [&::-webkit-details-marker]:hidden">
-          {ctx.firstName ?? "Account"} <ChevronDown className="size-4" aria-hidden />
-          <span className="sr-only">: menu</span>
+        <summary className="flex cursor-pointer list-none items-center gap-1 rounded-full p-1 text-sm font-medium text-ink-700 hover:bg-ink-100 sm:px-3 sm:py-2 [&::-webkit-details-marker]:hidden">
+          <span className="grid size-8 place-items-center rounded-full bg-blue-50 font-semibold text-blue-700 sm:hidden" aria-hidden>
+            {(ctx.firstName ?? ctx.fullName ?? "?").slice(0, 1).toUpperCase()}
+          </span>
+          <span className="hidden max-w-32 truncate sm:inline">{ctx.firstName ?? "Account"}</span>
+          <ChevronDown className="hidden size-4 sm:block" aria-hidden />
+          <span className="sr-only">Account menu</span>
         </summary>
-        <nav aria-label="Account menu" className="absolute right-0 z-20 mt-2 w-56 rounded-xl bg-white p-2 shadow-soft ring-1 ring-ink-200">
+        <nav
+          aria-label="Account menu"
+          className="absolute right-0 z-40 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-white p-2 shadow-soft ring-1 ring-ink-200"
+        >
+          <p className="truncate px-3 pt-1 pb-2 text-sm font-semibold text-ink-900">{ctx.fullName ?? ctx.firstName ?? "Your account"}</p>
           {areas.length > 1 && (
             <>
-              <p className="px-3 pt-1 pb-2 text-xs font-semibold text-ink-600">Go to</p>
+              <p className="px-3 pt-1 pb-1 text-xs font-semibold text-ink-600">Switch to</p>
               {areas.map((area) => (
                 <Link
                   key={area}
                   href={AREA_HOME[area]}
-                  className="block rounded-lg px-3 py-2 text-[0.9375rem] font-medium text-ink-900 hover:bg-ink-100"
+                  className="block rounded-lg px-3 py-2.5 text-[0.9375rem] font-medium text-ink-900 hover:bg-ink-100"
                 >
                   {AREA_LABEL[area]}
                 </Link>
@@ -55,18 +63,21 @@ export async function AccountBar() {
               <hr className="my-2 border-ink-200" />
             </>
           )}
-          <Link href="/account" className="block rounded-lg px-3 py-2 text-[0.9375rem] font-medium text-ink-900 hover:bg-ink-100">
+          <Link href="/account" className="block rounded-lg px-3 py-2.5 text-[0.9375rem] font-medium text-ink-900 hover:bg-ink-100">
             Your account
           </Link>
           <Link
             href="/account/notifications"
-            className="block rounded-lg px-3 py-2 text-[0.9375rem] font-medium text-ink-900 hover:bg-ink-100"
+            className="block rounded-lg px-3 py-2.5 text-[0.9375rem] font-medium text-ink-900 hover:bg-ink-100"
           >
             Notifications
           </Link>
+          <hr className="my-2 border-ink-200" />
+          <div className="px-1">
+            <SignOutButton />
+          </div>
         </nav>
       </details>
-      <SignOutButton />
     </div>
   );
 }

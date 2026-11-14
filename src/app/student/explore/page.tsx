@@ -39,7 +39,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/student/
         </Button>
       </form>
 
-      <nav aria-label="Categories" className="-mx-5 mb-8 flex gap-2 overflow-x-auto px-5 pb-1">
+      <nav aria-label="Categories" className="-mx-4 mb-8 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-5 sm:px-5">
         <Link
           href={query ? `/student/explore?q=${encodeURIComponent(query)}` : "/student/explore"}
           className={cn(

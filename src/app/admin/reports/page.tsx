@@ -19,21 +19,21 @@ function Table({ title, rows, showStudents = true }: { title: string; rows: Repo
       {rows.length === 0 ? (
         <p className="mt-2 text-ink-700">No redemptions in this period.</p>
       ) : (
-        <table className="mt-3 w-full text-left text-[0.9375rem]">
+        <table className="mt-3 w-full text-left text-sm sm:text-[0.9375rem]">
           <thead className="text-sm text-ink-600">
             <tr>
               <th scope="col" className="py-2 font-semibold">
                 Name
               </th>
-              <th scope="col" className="py-2 text-right font-semibold">
-                Redemptions
+              <th scope="col" className="py-2 pl-3 text-right font-semibold">
+                Used
               </th>
               {showStudents && (
-                <th scope="col" className="py-2 text-right font-semibold">
+                <th scope="col" className="hidden py-2 pl-3 text-right font-semibold sm:table-cell">
                   Students
                 </th>
               )}
-              <th scope="col" className="py-2 text-right font-semibold">
+              <th scope="col" className="py-2 pl-3 text-right font-semibold">
                 Saved
               </th>
             </tr>
@@ -42,9 +42,9 @@ function Table({ title, rows, showStudents = true }: { title: string; rows: Repo
             {rows.map((r) => (
               <tr key={r.name}>
                 <td className="py-2 text-ink-900">{r.name}</td>
-                <td className="py-2 text-right text-ink-900">{r.redemptions}</td>
-                {showStudents && <td className="py-2 text-right text-ink-700">{r.students}</td>}
-                <td className="py-2 text-right text-ink-700">{money(r.saved)}</td>
+                <td className="py-2 pl-3 text-right text-ink-900">{r.redemptions}</td>
+                {showStudents && <td className="hidden py-2 pl-3 text-right text-ink-700 sm:table-cell">{r.students}</td>}
+                <td className="py-2 pl-3 text-right whitespace-nowrap text-ink-700">{money(r.saved)}</td>
               </tr>
             ))}
           </tbody>
@@ -91,7 +91,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/admin/re
           <Download aria-hidden /> Download CSV
         </a>
       </div>
-      <section aria-label="Totals" className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Totals" className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {[
           ["Redemptions", `${report.totals.redemptions}`, `${report.voided} voided`],
           ["Students who redeemed", `${report.totals.students}`, `${report.new_students_verified} newly verified`],
@@ -100,7 +100,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/admin/re
         ].map(([label, value, note]) => (
           <Card key={label}>
             <p className="text-sm font-semibold text-ink-600">{label}</p>
-            <p className="mt-1 font-display text-3xl font-extrabold text-ink-900">{value}</p>
+            <p className="mt-1 font-display text-xl font-extrabold text-ink-900 sm:text-3xl">{value}</p>
             <p className="mt-1 text-sm text-ink-600">{note}</p>
           </Card>
         ))}

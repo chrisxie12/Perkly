@@ -25,7 +25,7 @@ export default async function InstitutionOverviewPage() {
                 {r.name}
                 {r.via === "delegated" ? " (reviewed by Perqly)" : ""}
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {[
                   [
                     "Waiting for review",
@@ -38,7 +38,7 @@ export default async function InstitutionOverviewPage() {
                 ].map(([label, value, note]) => (
                   <Card key={label as string}>
                     <p className="text-sm font-semibold text-ink-600">{label}</p>
-                    <p className="mt-1 font-display text-3xl font-extrabold text-ink-900">{value}</p>
+                    <p className="mt-1 font-display text-xl font-extrabold text-ink-900 sm:text-3xl">{value}</p>
                     <p className="mt-1 text-sm text-ink-600">{note}</p>
                   </Card>
                 ))}

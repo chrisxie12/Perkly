@@ -18,36 +18,49 @@ export default async function ActivityPage() {
       {decided.length === 0 ? (
         <EmptyState icon={<History />} title="No decisions yet" description="Approvals, rejections and change requests appear here." />
       ) : (
-        <div className="overflow-x-auto rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70">
-          <table className="w-full min-w-[36rem] text-left text-[0.9375rem]">
-            <thead className="border-b border-ink-200 text-sm text-ink-600">
-              <tr>
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  Student
-                </th>
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  Decision
-                </th>
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  Date
-                </th>
-                <th scope="col" className="px-5 py-3 font-semibold">
-                  By
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink-200">
-              {decided.map((row) => (
-                <tr key={row.id}>
-                  <td className="px-5 py-3 font-medium text-ink-900">{row.full_name}</td>
-                  <td className="px-5 py-3">{labels[row.status] ?? row.status}</td>
-                  <td className="px-5 py-3">{formatDate(row.decided_at)}</td>
-                  <td className="px-5 py-3">{row.decided_by === ctx?.userId ? "You" : "Another reviewer"}</td>
+        <>
+          <ul className="divide-y divide-ink-200 overflow-hidden rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70 sm:hidden">
+            {decided.map((row) => (
+              <li key={row.id} className="p-4">
+                <p className="font-semibold text-ink-900">{row.full_name}</p>
+                <p className="text-sm text-ink-700">
+                  {labels[row.status] ?? row.status}, {formatDate(row.decided_at)}, by{" "}
+                  {row.decided_by === ctx?.userId ? "you" : "another reviewer"}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70 sm:block">
+            <table className="w-full text-left text-[0.9375rem]">
+              <thead className="border-b border-ink-200 text-sm text-ink-600">
+                <tr>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    Student
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    Decision
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    Date
+                  </th>
+                  <th scope="col" className="px-5 py-3 font-semibold">
+                    By
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-ink-200">
+                {decided.map((row) => (
+                  <tr key={row.id}>
+                    <td className="px-5 py-3 font-medium text-ink-900">{row.full_name}</td>
+                    <td className="px-5 py-3">{labels[row.status] ?? row.status}</td>
+                    <td className="px-5 py-3">{formatDate(row.decided_at)}</td>
+                    <td className="px-5 py-3">{row.decided_by === ctx?.userId ? "You" : "Another reviewer"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </AreaShell>
   );

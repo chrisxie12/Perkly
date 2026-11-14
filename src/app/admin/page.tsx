@@ -28,7 +28,7 @@ export default async function AdminPage() {
     <AreaShell area="admin">
       <PageTitle title="Perqly staff" description="How Perqly is doing, and what needs attention." />
       {metrics && (
-        <section aria-label="Platform numbers" className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section aria-label="Platform numbers" className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {[
             [
               "Verified students",
@@ -45,7 +45,7 @@ export default async function AdminPage() {
           ].map(([label, value, note]) => (
             <Card key={label}>
               <p className="text-sm font-semibold text-ink-600">{label}</p>
-              <p className="mt-1 font-display text-4xl font-extrabold text-ink-900">{value}</p>
+              <p className="mt-1 font-display text-xl font-extrabold text-ink-900 sm:text-4xl">{value}</p>
               <p className="mt-1 text-sm text-ink-600">{note}</p>
             </Card>
           ))}

@@ -68,7 +68,7 @@ export default async function InstitutionStudentsPage({ searchParams }: PageProp
                 </Link>
               ))}
             </nav>
-            <form role="search" className="flex min-w-64 flex-1 gap-2">
+            <form role="search" className="flex w-full gap-2 sm:w-auto sm:min-w-64 sm:flex-1">
               <input type="hidden" name="school" value={chosen.institution_id} />
               <input type="hidden" name="state" value={state} />
               <label htmlFor="q" className="sr-only">
@@ -87,42 +87,58 @@ export default async function InstitutionStudentsPage({ searchParams }: PageProp
               description={q ? "Try another name or programme." : "Students appear here once your reviewers approve them."}
             />
           ) : (
-            <div className="overflow-x-auto rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70">
-              <table className="w-full min-w-[40rem] text-left text-[0.9375rem]">
-                <thead className="border-b border-ink-200 text-sm text-ink-600">
-                  <tr>
-                    <th scope="col" className="px-5 py-3 font-semibold">
-                      Student
-                    </th>
-                    <th scope="col" className="px-5 py-3 font-semibold">
-                      Programme
-                    </th>
-                    <th scope="col" className="px-5 py-3 font-semibold">
-                      Verified
-                    </th>
-                    <th scope="col" className="px-5 py-3 font-semibold">
-                      Until
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink-200">
-                  {students.map((s) => (
-                    <tr key={s.student_id}>
-                      <td className="px-5 py-3 font-semibold text-ink-900">{s.full_name ?? "No name"}</td>
-                      <td className="px-5 py-3 text-ink-700">
-                        {[s.programme, s.level, s.campus].filter(Boolean).join(", ") || "Not given"}
-                      </td>
-                      <td className="px-5 py-3 text-ink-700">{formatDate(s.verified_at)}</td>
-                      <td className="px-5 py-3 text-ink-700">
-                        {formatDate(s.verified_until)}
-                        {s.state === "expired" ? " (lapsed)" : ""}
-                      </td>
+            <>
+              <ul className="divide-y divide-ink-200 overflow-hidden rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70 sm:hidden">
+                {students.map((s) => (
+                  <li key={s.student_id} className="p-4">
+                    <p className="font-semibold text-ink-900">{s.full_name ?? "No name"}</p>
+                    <p className="text-sm text-ink-700">
+                      {[s.programme, s.level, s.campus].filter(Boolean).join(", ") || "Programme not given"}
+                    </p>
+                    <p className="mt-1 text-sm text-ink-600">
+                      Verified {formatDate(s.verified_at)}, until {formatDate(s.verified_until)}
+                      {s.state === "expired" ? " (lapsed)" : ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden overflow-x-auto rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70 sm:block">
+                <table className="w-full min-w-[40rem] text-left text-[0.9375rem]">
+                  <thead className="border-b border-ink-200 text-sm text-ink-600">
+                    <tr>
+                      <th scope="col" className="px-5 py-3 font-semibold">
+                        Student
+                      </th>
+                      <th scope="col" className="px-5 py-3 font-semibold">
+                        Programme
+                      </th>
+                      <th scope="col" className="px-5 py-3 font-semibold">
+                        Verified
+                      </th>
+                      <th scope="col" className="px-5 py-3 font-semibold">
+                        Until
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {students.length === 300 && <p className="p-4 text-sm text-ink-600">Showing the first 300. Search to narrow the list.</p>}
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-ink-200">
+                    {students.map((s) => (
+                      <tr key={s.student_id}>
+                        <td className="px-5 py-3 font-semibold text-ink-900">{s.full_name ?? "No name"}</td>
+                        <td className="px-5 py-3 text-ink-700">
+                          {[s.programme, s.level, s.campus].filter(Boolean).join(", ") || "Not given"}
+                        </td>
+                        <td className="px-5 py-3 text-ink-700">{formatDate(s.verified_at)}</td>
+                        <td className="px-5 py-3 text-ink-700">
+                          {formatDate(s.verified_until)}
+                          {s.state === "expired" ? " (lapsed)" : ""}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {students.length === 300 && <p className="mt-3 text-sm text-ink-600">Showing the first 300. Search to narrow the list.</p>}
+            </>
           )}
         </>
       )}

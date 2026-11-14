@@ -45,7 +45,7 @@ export default async function StudentHomePage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <p className="text-sm font-semibold text-ink-600">You&apos;ve saved</p>
-          <p className="mt-1 font-display text-4xl font-extrabold text-success">{money(history.savings?.total_saved ?? 0)}</p>
+          <p className="mt-1 font-display text-xl font-extrabold text-success sm:text-4xl">{money(history.savings?.total_saved ?? 0)}</p>
           <p className="mt-1 text-ink-700">
             {history.savings?.redemption_count
               ? `Across ${history.savings.redemption_count} discount${history.savings.redemption_count === 1 ? "" : "s"}.`

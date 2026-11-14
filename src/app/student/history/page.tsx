@@ -19,14 +19,14 @@ export default async function HistoryPage() {
         title="Your savings"
         description="Every discount you've redeemed. Perqly records the discount; you pay the business directly."
       />
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4">
         <Card>
           <p className="text-sm font-semibold text-ink-600">Saved so far</p>
-          <p className="mt-1 font-display text-4xl font-extrabold text-success">{money(savings?.total_saved ?? 0)}</p>
+          <p className="mt-1 font-display text-xl font-extrabold text-success sm:text-4xl">{money(savings?.total_saved ?? 0)}</p>
         </Card>
         <Card>
           <p className="text-sm font-semibold text-ink-600">Discounts redeemed</p>
-          <p className="mt-1 font-display text-4xl font-extrabold text-ink-900">{savings?.redemption_count ?? 0}</p>
+          <p className="mt-1 font-display text-xl font-extrabold text-ink-900 sm:text-4xl">{savings?.redemption_count ?? 0}</p>
         </Card>
       </div>
       {redemptions.length === 0 ? (

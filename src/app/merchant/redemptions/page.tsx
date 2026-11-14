@@ -43,14 +43,14 @@ export default async function MerchantRedemptionsPage({ searchParams }: PageProp
           {error ? redemptionErrorMessage(error) : "Payment note saved."}
         </div>
       )}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4">
         <Card>
           <p className="text-sm font-semibold text-ink-600">Redemptions</p>
-          <p className="mt-1 font-display text-4xl font-extrabold text-ink-900">{live.length}</p>
+          <p className="mt-1 font-display text-xl font-extrabold text-ink-900 sm:text-4xl">{live.length}</p>
         </Card>
         <Card>
           <p className="text-sm font-semibold text-ink-600">Discounts given</p>
-          <p className="mt-1 font-display text-4xl font-extrabold text-ink-900">{money(total)}</p>
+          <p className="mt-1 font-display text-xl font-extrabold text-ink-900 sm:text-4xl">{money(total)}</p>
         </Card>
       </div>
       {rows.length === 0 ? (

@@ -52,7 +52,7 @@ export async function AreaShell({ area, children }: { area: NavArea; children: R
       </header>
       <div className="flex flex-1">
         {nav && <SideNav nav={nav} />}
-        <main className="mx-auto w-full max-w-5xl min-w-0 flex-1 px-5 pt-8 pb-28 md:pt-12 md:pb-12">
+        <main className="mx-auto w-full max-w-5xl min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-5 md:pt-12 md:pb-12">
           {decision.kind === "allow" ? (
             children
           ) : (
@@ -76,9 +76,9 @@ export async function AreaShell({ area, children }: { area: NavArea; children: R
 
 export function PageTitle({ title, description }: { title: string; description?: React.ReactNode }) {
   return (
-    <div className="mb-8 max-w-2xl">
+    <div className="mb-6 max-w-2xl sm:mb-8">
       <h1 className="font-display text-display-md font-extrabold">{title}</h1>
-      {description && <div className="mt-3 text-lg leading-relaxed text-ink-600">{description}</div>}
+      {description && <div className="mt-2 text-base leading-relaxed text-ink-600 sm:mt-3 sm:text-lg">{description}</div>}
     </div>
   );
 }
