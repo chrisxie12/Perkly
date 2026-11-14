@@ -33,7 +33,7 @@ export function Merchants() {
           </ul>
           <div className="mt-12 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" variant="accent">
-              <Link href="/merchant">Partner with Perqly</Link>
+              <Link href="/register?as=merchant">Partner with Perqly</Link>
             </Button>
           </div>
         </div>

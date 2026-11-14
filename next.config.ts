@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
+import { buildCsp } from "./src/lib/security/csp";
 
 /**
  * Security headers applied to every route.
  *
- * A full nonce-based Content-Security-Policy arrives with authentication
- * (Step 3). For now we ship the parts of CSP that need no nonces.
+ * The Content-Security-Policy is built in src/lib/security/csp.ts. It allows
+ * the configured Supabase project and nothing else outside this site.
  */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -13,12 +14,12 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   {
     key: "Permissions-Policy",
-    // Camera and location are needed later for scanning a merchant's QR.
+    // Camera and location are used for scanning a merchant's QR (roadmap step 1.6).
     value: "camera=(self), geolocation=(self), microphone=(), payment=(), usb=()",
   },
   {
     key: "Content-Security-Policy",
-    value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
+    value: buildCsp({ supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, isDev: process.env.NODE_ENV === "development" }),
   },
 ];
 

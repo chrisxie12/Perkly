@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { AccountBar } from "@/components/auth/account-bar";
 
 /**
  * Honest placeholder for an area that isn't built yet. It shows no data
@@ -28,7 +29,12 @@ export function ComingSoonShell({
           <Link href="/" aria-label="Perqly home">
             <Logo />
           </Link>
-          <span className="rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700">{area}</span>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700">{area}</span>
+            <React.Suspense fallback={null}>
+              <AccountBar />
+            </React.Suspense>
+          </div>
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-5 py-16">

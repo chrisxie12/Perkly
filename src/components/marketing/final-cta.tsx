@@ -17,7 +17,7 @@ export function FinalCta() {
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row md:flex-col lg:flex-row">
             <Button asChild size="lg" variant="accent">
-              <Link href="/student">Get started</Link>
+              <Link href="/register">Get started</Link>
             </Button>
             <Button asChild size="lg" variant="outline-inverse">
               <Link href="/install">Install the app</Link>

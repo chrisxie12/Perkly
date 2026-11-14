@@ -31,7 +31,7 @@ export function Hero() {
 
             <div className="mt-9 flex animate-rise flex-col gap-3 [animation-delay:420ms] sm:flex-row">
               <Button asChild size="lg">
-                <Link href="/student">Get started</Link>
+                <Link href="/register">Get started</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
                 <Link href="/#merchants">I run a business</Link>

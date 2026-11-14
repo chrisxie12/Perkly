@@ -45,10 +45,10 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
-            <Link href="/merchant">For merchants</Link>
+            <Link href="/login">Sign in</Link>
           </Button>
           <Button asChild size="sm" className="hidden sm:inline-flex">
-            <Link href="/student">Get started</Link>
+            <Link href="/register">Get started</Link>
           </Button>
 
           <Sheet>
@@ -81,10 +81,15 @@ export function SiteHeader() {
                     Install the app
                   </Link>
                 </SheetClose>
+                <SheetClose asChild>
+                  <Link href="/login" className="rounded-lg py-3 font-display text-4xl font-bold tracking-tight text-white">
+                    Sign in
+                  </Link>
+                </SheetClose>
               </nav>
               <div className="pb-safe grid gap-3 px-5 pt-6">
                 <Button asChild variant="accent" size="lg">
-                  <Link href="/student">Get started</Link>
+                  <Link href="/register">Get started</Link>
                 </Button>
                 <Button asChild variant="outline-inverse" size="lg">
                   <Link href="/merchant">For merchants</Link>

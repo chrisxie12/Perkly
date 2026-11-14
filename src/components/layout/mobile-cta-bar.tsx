@@ -48,7 +48,7 @@ export function MobileCtaBar() {
           <span className="font-semibold text-ink-900">Free for students.</span> Launching at GCTU.
         </p>
         <Button asChild>
-          <Link href="/student">Get Perqly</Link>
+          <Link href="/register">Get Perqly</Link>
         </Button>
       </div>
     </div>

@@ -9,10 +9,10 @@ export default function StudentPage() {
   return (
     <ComingSoonShell
       area="Students"
-      title="Student sign-up opens with the GCTU pilot."
-      description="This is where you'll sign up, send your verification request to your school, and find deals near campus. It isn't open yet."
+      title="You're in. Verification opens with the GCTU pilot."
+      description="Your account is ready. This is where you'll send your verification request to your school and find deals near campus. Those steps aren't open yet."
       points={[
-        "Sign up with your email or phone number",
+        "Choose your school and campus",
         "Send your school a verification request",
         "Browse deals near your campus",
         "Scan a shop's QR and show your live pass",
