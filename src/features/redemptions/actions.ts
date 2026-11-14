@@ -105,6 +105,27 @@ export async function confirmAtCounter(formData: FormData): Promise<void> {
   redirect(result.ok ? "/merchant/counter?done=confirmed" : withError("/merchant/counter", result));
 }
 
+/** The cashier types the 4-digit code from the student's pass; it must match one live pass at their branches. */
+export async function confirmByCode(formData: FormData): Promise<void> {
+  const merchantId = uuid.safeParse(formData.get("merchantId"));
+  const code = String(formData.get("code") ?? "").replace(/\D/g, "");
+  if (!merchantId.success || !/^\d{4}$/.test(code)) redirect("/merchant/counter?error=code_format");
+  if (!hasSupabaseEnv()) redirect("/merchant/counter?error=unknown");
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("list_counter_sessions", { p_merchant_id: merchantId.data });
+  const matches = ((data ?? []) as { session_id: string; status: string; pass_code: string | null; final_price: number | null }[]).filter(
+    (s) => s.status === "awaiting_merchant" && s.pass_code === code,
+  );
+  if (matches.length === 0) redirect("/merchant/counter?error=code_not_found");
+  if (matches.length > 1) redirect("/merchant/counter?error=code_ambiguous");
+  const result = await sessionCall("merchant_confirm_redemption", {
+    p_session_id: matches[0].session_id,
+    p_expected_final_price: matches[0].final_price,
+    p_client_request_id: randomUUID(),
+  });
+  redirect(result.ok ? "/merchant/counter?done=confirmed" : withError("/merchant/counter", result));
+}
+
 export async function rejectAtCounter(formData: FormData): Promise<void> {
   const sessionId = uuid.safeParse(formData.get("sessionId"));
   const reason = z.enum(Object.keys(REJECT_REASONS) as [string, ...string[]]).safeParse(formData.get("reason"));

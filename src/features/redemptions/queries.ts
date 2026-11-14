@@ -215,3 +215,25 @@ export async function getSavingsSummary() {
   if (error) throw new Error(`Could not load your savings (${error.code ?? "unknown"})`);
   return (data as SavingsSummary | null) ?? { total_saved: 0, redemptions: 0, shops: 0, best: null, first_at: null, by_month: [] };
 }
+
+export type CounterToday = {
+  students: number;
+  returning: number;
+  discount_given: number;
+  recent: {
+    session_id: string;
+    first_name: string | null;
+    item: string | null;
+    outcome: "confirmed" | "declined";
+    reason: string | null;
+    at: string;
+    public_ref: string;
+  }[];
+};
+
+export async function getCounterToday(merchantId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("counter_today", { p_merchant_id: merchantId });
+  if (error) return null;
+  return data as CounterToday;
+}

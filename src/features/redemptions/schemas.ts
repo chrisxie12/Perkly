@@ -103,6 +103,12 @@ export function redemptionErrorMessage(code: string | undefined, detail: LimitDe
       return "Payment can only be recorded within 7 days.";
     case "redemption_voided":
       return "This redemption was cancelled by Perqly support.";
+    case "code_not_found":
+      return "No live pass with that code. Ask the student to check their screen or scan again.";
+    case "code_ambiguous":
+      return "Two passes share that code. Confirm from the cards instead.";
+    case "code_format":
+      return "Pass codes are 4 digits.";
     case "merchant_not_approved":
       return "Your business must be live first.";
     default:

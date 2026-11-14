@@ -31,7 +31,7 @@ returns void language sql as $$
    where user_id = p_user;
 $$;
 grant execute on all functions in schema tests to anon, authenticated, service_role;
-select plan(74);
+select plan(77);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 insert into public.institutions (slug, name, short_name, status) values ('test-u', 'Test University', 'TU', 'pilot') returning id as testu \gset
@@ -164,6 +164,13 @@ select is((select string_agg(action, ',' order by id) from public.audit_logs whe
   'redemption.session_opened,redemption.item_selected,redemption.merchant_confirmed,redemption.completed', 'each step is audited');
 select ok(not exists (select 1 from public.audit_logs where (coalesce(metadata, '{}') || coalesce(after, '{}'))::text like '%' || :'t1' || '%'),
   'no audit row contains a token');
+
+select tests.as_user(:'cashier');
+select is((public.counter_today(:'m') ->> 'students')::int, 1, 'the counter counts today''s students');
+select is((public.counter_today(:'m') -> 'recent' -> 0 ->> 'first_name'), 'Ama', 'today''s outcomes show first names only');
+select tests.as_user(:'s1');
+select throws_ok(format('select public.counter_today(%L)', :'m'), 'P0001', 'forbidden', 'students cannot read the counter');
+select tests.as_postgres();
 
 -- 7. Final states and immutability ------------------------------------------------------
 select throws_ok(format('update public.redemption_sessions set status = %L where id = %L', 'open', :'sess1'), 'P0001', 'session_final',
