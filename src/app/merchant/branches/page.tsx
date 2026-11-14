@@ -4,7 +4,7 @@ import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { BranchForm } from "@/features/merchants/components/merchant-forms";
-import { getActiveMembership, getBranches, getMerchant } from "@/features/merchants/queries";
+import { getActiveMembership, getBranches, getBranchHours, getMerchant } from "@/features/merchants/queries";
 import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Branches", robots: { index: false } };
@@ -14,6 +14,7 @@ export default async function MerchantBranchesPage({ searchParams }: PageProps<"
   if (!membership) redirect("/merchant");
   const [merchant, branches] = await Promise.all([getMerchant(membership.merchantId), getBranches(membership.merchantId)]);
   if (!merchant) redirect("/merchant");
+  const hours = await getBranchHours(branches.map((b) => b.id));
   const readOnly = !canManage(membership) || merchant.status === "suspended";
 
   return (
@@ -37,6 +38,7 @@ export default async function MerchantBranchesPage({ searchParams }: PageProps<"
                   <span className="mt-1 block text-sm text-ink-600">
                     {[branch.address_line, branch.area, branch.city].filter(Boolean).join(", ")}
                   </span>
+                  <span className="block text-sm text-ink-600">{branch.opening_hours ?? "No opening hours set"}</span>
                 </span>
                 <span className="flex items-center gap-2">
                   {!branch.is_active && <Badge variant="outline">Closed</Badge>}
@@ -44,7 +46,7 @@ export default async function MerchantBranchesPage({ searchParams }: PageProps<"
                 </span>
               </summary>
               <div className="mt-6 border-t border-ink-200 pt-6">
-                <BranchForm merchantId={merchant.id} branch={branch} readOnly={readOnly} />
+                <BranchForm merchantId={merchant.id} branch={branch} hours={hours.get(branch.id)} readOnly={readOnly} />
               </div>
             </details>
           </Card>

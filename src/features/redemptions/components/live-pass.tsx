@@ -25,6 +25,7 @@ export function LivePass({
   publicRef,
   expiresAt,
   windowSeconds = 600,
+  photoUrl,
   children,
 }: {
   firstName: string;
@@ -35,6 +36,7 @@ export function LivePass({
   publicRef: string;
   expiresAt: string;
   windowSeconds?: number;
+  photoUrl?: string | null;
   children?: React.ReactNode;
 }) {
   const [now, setNow] = useState<Date | null>(null);
@@ -66,7 +68,12 @@ export function LivePass({
             className="relative grid size-24 place-items-center rounded-full bg-ink-900 font-display text-3xl font-bold text-white ring-4 ring-white outline-2 outline-offset-4 outline-emerald-600"
             aria-hidden
           >
-            {firstName.slice(0, 1).toUpperCase()}
+            {photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
+              <img src={photoUrl} alt="" className="size-full rounded-full object-cover" />
+            ) : (
+              firstName.slice(0, 1).toUpperCase()
+            )}
             <span className="absolute -right-0.5 -bottom-0.5 grid size-7 place-items-center rounded-full bg-emerald-600 ring-3 ring-white">
               <BadgeCheck className="size-4 text-white" />
             </span>

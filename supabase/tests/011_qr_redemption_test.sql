@@ -31,7 +31,7 @@ returns void language sql as $$
    where user_id = p_user;
 $$;
 grant execute on all functions in schema tests to anon, authenticated, service_role;
-select plan(77);
+select plan(83);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 insert into public.institutions (slug, name, short_name, status) values ('test-u', 'Test University', 'TU', 'pilot') returning id as testu \gset
@@ -129,6 +129,20 @@ select is((select regular_price || '/' || discount_amount || '/' || final_price 
 select ok(not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname in ('select_redemption_item', 'student_confirm_redemption', 'open_redemption_session')
     and pg_get_function_arguments(p.oid) ~ 'price'), 'student-side functions take no price parameter');
+
+-- Pass photo: stored by the student, visible to the counter only during a live pass.
+select tests.as_postgres();
+insert into storage.objects (bucket_id, name, owner) values ('pass-photos', :'s1' || '/pass.webp', :'s1');
+select tests.as_user(:'s1');
+select lives_ok(format('select public.set_pass_photo(%L)', :'s1' || '/pass.webp'), 'a student records their own pass photo');
+select throws_ok(format('select public.set_pass_photo(%L)', :'s2' || '/pass.webp'), 'P0001', 'path_invalid', 'nobody can point at another student''s photo');
+select tests.as_user(:'cashier');
+select is((select count(*)::int from public.counter_pass_photos(:'m')), 1, 'the counter gets the photo of a live pass');
+select is((select count(*)::int from storage.objects where bucket_id = 'pass-photos'), 1, 'branch staff can read the photo while the pass is live');
+select tests.as_user(:'cashier2');
+select is((select count(*)::int from storage.objects where bucket_id = 'pass-photos'), 0, 'staff of another branch cannot');
+select tests.as_user(:'s2');
+select is((select count(*)::int from storage.objects where bucket_id = 'pass-photos'), 0, 'other students cannot');
 
 -- 5. Counter and merchant confirmation -------------------------------------------------
 select tests.as_user(:'cashier');

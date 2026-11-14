@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   Bell,
   Building2,
+  Camera,
   ChevronRight,
   Download,
   Hourglass,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
+import { getMyPassPhotoPath, signPassPhoto } from "@/features/pass-photo/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
@@ -38,7 +40,8 @@ function Row({ href, icon: Icon, label, note }: { href: string; icon: typeof Bel
 }
 
 export default async function MePage() {
-  const [ctx, status] = await Promise.all([getUserContext(), getMyStudentStatus()]);
+  const [ctx, status, photoPath] = await Promise.all([getUserContext(), getMyStudentStatus(), getMyPassPhotoPath()]);
+  const photoUrl = await signPassPhoto(photoPath, 120);
   const view = verificationView(status);
   const p = status.profile;
   const name = ctx?.fullName ?? ctx?.firstName ?? "Your account";
@@ -94,12 +97,17 @@ export default async function MePage() {
     <AreaShell area="student">
       <h1 className="sr-only">Me</h1>
       <div className="flex items-center gap-3.5 pb-4">
-        <span
-          className="grid size-16 shrink-0 place-items-center rounded-full bg-ink-900 font-display text-2xl font-bold text-white"
-          aria-hidden
-        >
-          {name.slice(0, 1).toUpperCase()}
-        </span>
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
+          <img src={photoUrl} alt="" className="size-16 shrink-0 rounded-full object-cover" />
+        ) : (
+          <span
+            className="grid size-16 shrink-0 place-items-center rounded-full bg-ink-900 font-display text-2xl font-bold text-white"
+            aria-hidden
+          >
+            {name.slice(0, 1).toUpperCase()}
+          </span>
+        )}
         <div className="min-w-0">
           <p className="truncate font-display text-2xl leading-tight font-bold">{name}</p>
           <p className="text-sm text-ink-600">
@@ -109,6 +117,12 @@ export default async function MePage() {
       </div>
       {card}
       <nav aria-label="Your account" className="mt-4 overflow-hidden rounded-2xl bg-white ring-1 ring-ink-200/70">
+        <Row
+          href="/student/me/photo"
+          icon={Camera}
+          label="Photo for your pass"
+          note={photoUrl ? "Added" : "Not added yet. Cashiers use it to check it's you"}
+        />
         <Row href="/student/profile" icon={Building2} label="School details" note={p ? p.institution_name : "Choose your school"} />
         <Row href="/student/verify" icon={BadgeCheck} label="Verification" />
         <Row href="/account" icon={UserRound} label="Name and account" />

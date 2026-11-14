@@ -12,6 +12,7 @@ import { LivePass } from "@/features/redemptions/components/live-pass";
 import { getRedemptionSession } from "@/features/redemptions/queries";
 import { REJECT_REASONS, redemptionErrorMessage } from "@/features/redemptions/schemas";
 import { MerchantAvatar } from "@/features/students/app/bits";
+import { getMyPassPhotoPath, signPassPhoto } from "@/features/pass-photo/server";
 
 export const metadata: Metadata = { title: "Redeem", robots: { index: false } };
 
@@ -129,6 +130,7 @@ export default async function RedeemPage({ params, searchParams }: PageProps<"/s
 
   // 2. Live pass, waiting for the cashier, then for the student --------------------------
   if (s.status === "awaiting_merchant" || s.status === "awaiting_student") {
+    const photoUrl = await signPassPhoto(await getMyPassPhotoPath());
     return (
       <AreaShell area="student" immersive>
         {refresh}
@@ -140,8 +142,17 @@ export default async function RedeemPage({ params, searchParams }: PageProps<"/s
           passCode={s.status === "awaiting_merchant" ? s.pass_code : null}
           publicRef={s.public_ref}
           expiresAt={s.expires_at}
+          photoUrl={photoUrl}
         >
           <ErrorNote text={errorText} />
+          {!photoUrl && (
+            <Link
+              href="/student/me/photo"
+              className="mt-3 block rounded-xl bg-white/15 p-3 text-center text-sm font-semibold backdrop-blur"
+            >
+              Add a photo to your pass so the cashier can check it&apos;s you
+            </Link>
+          )}
           {s.status === "awaiting_merchant" ? (
             <>
               <div

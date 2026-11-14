@@ -1,5 +1,8 @@
 "use client";
 
+import { HoursEditor } from "./hours-editor";
+import type { DayHours } from "../hours";
+
 import { useActionState, useEffect, useRef, useState } from "react";
 import { FieldError, FieldHint, Input, Label, NativeSelect, Textarea } from "@/components/ui/input";
 import { FormMessage } from "@/features/auth/components/form-message";
@@ -129,7 +132,17 @@ export function MerchantProfileForm({
   );
 }
 
-export function BranchForm({ merchantId, branch, readOnly = false }: { merchantId: string; branch?: BranchRow; readOnly?: boolean }) {
+export function BranchForm({
+  merchantId,
+  branch,
+  hours,
+  readOnly = false,
+}: {
+  merchantId: string;
+  branch?: BranchRow;
+  hours?: DayHours[];
+  readOnly?: boolean;
+}) {
   const [state, action] = useActionState(saveBranch, idleState);
   const e = state.fieldErrors ?? {};
   const id = (name: string) => `${branch?.id ?? "new"}-${name}`;
@@ -164,9 +177,8 @@ export function BranchForm({ merchantId, branch, readOnly = false }: { merchantI
             <Input id={id("longitude")} name="longitude" inputMode="decimal" defaultValue={branch?.longitude ?? ""} />
           </Field>
         </div>
-        <Field id={id("openingHours")} label="Opening hours (optional)" error={e.openingHours} hint="For example Mon to Sat, 8am to 8pm.">
-          <Input id={id("openingHours")} name="openingHours" defaultValue={branch?.opening_hours ?? ""} />
-        </Field>
+        <HoursEditor initial={hours ?? []} disabled={readOnly} />
+        {e.hours && <FieldError>{e.hours}</FieldError>}
         {branch && (
           <Field id={id("isActive")} label="Status">
             <NativeSelect id={id("isActive")} name="isActive" defaultValue={branch.is_active ? "true" : "false"}>

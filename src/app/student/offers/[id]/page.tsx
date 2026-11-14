@@ -10,6 +10,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
 import { DealRow, HeartButton, MerchantAvatar, toneFor, walkLabel } from "@/features/students/app/bits";
+import { openLabel } from "@/features/merchants/hours";
 
 export const metadata: Metadata = { title: "Deal", robots: { index: false } };
 
@@ -52,6 +53,14 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
               <CalendarClock className="size-3.5" aria-hidden />
               {offer.ends_at ? `Until ${formatDate(offer.ends_at)}` : "No end date"}
             </span>
+            {here && openLabel(here) && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full bg-white/75 px-2.5 py-1 text-[0.8125rem] font-semibold ${openLabel(here)?.open ? "text-emerald-800" : "text-ink-700"}`}
+              >
+                <Clock className="size-3.5" aria-hidden /> {openLabel(here)?.text}
+                {here.branch_name && offer.branches.length > 1 ? `, ${here.branch_name}` : ""}
+              </span>
+            )}
             {walk && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/75 px-2.5 py-1 text-[0.8125rem] font-semibold">
                 <Footprints className="size-3.5" aria-hidden /> {walk}

@@ -102,3 +102,21 @@ export async function listMerchantsForStaff() {
   const order = { pending_review: 0, approved: 1, rejected: 2, draft: 3, suspended: 4 } as const;
   return rows.sort((a, b) => order[a.status] - order[b.status]);
 }
+
+/** Structured weekly hours for the business's branches, by branch id. */
+export async function getBranchHours(branchIds: string[]) {
+  const map = new Map<string, { weekday: number; opens: string; closes: string }[]>();
+  if (branchIds.length === 0) return map;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("merchant_branch_hours")
+    .select("branch_id, weekday, opens, closes")
+    .in("branch_id", branchIds)
+    .order("weekday");
+  for (const r of (data ?? []) as { branch_id: string; weekday: number; opens: string; closes: string }[]) {
+    const list = map.get(r.branch_id) ?? [];
+    list.push({ weekday: r.weekday, opens: r.opens.slice(0, 5), closes: r.closes.slice(0, 5) });
+    map.set(r.branch_id, list);
+  }
+  return map;
+}

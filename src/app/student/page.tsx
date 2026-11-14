@@ -10,7 +10,7 @@ import { listDeals } from "@/features/offers/queries";
 import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
-import { CategoryChip, DealRow, MerchantAvatar, walkLabel } from "@/features/students/app/bits";
+import { CategoryChip, DealRow, MerchantAvatar, OpenTag, walkLabel } from "@/features/students/app/bits";
 
 export const metadata: Metadata = { title: "Deals", robots: { index: false } };
 
@@ -38,9 +38,11 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   const near = filtering
     ? []
     : deals
-        .filter((d) => d.distance_m !== null)
+        // Closest first; shops known to be closed right now are left out of this row.
+        .filter((d) => d.distance_m !== null && d.open_now !== false)
         .sort((a, b) => (a.distance_m ?? 0) - (b.distance_m ?? 0))
         .slice(0, 6);
+  const anyHours = near.some((d) => d.has_hours);
   const campus = deals.find((d) => d.campus_name)?.campus_name ?? null;
   const chosen = categories.find((c) => c.slug === category);
   const link = (next: { q?: string; category?: string }) => {
@@ -159,7 +161,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
           <section aria-labelledby="near-h">
             <div className="flex items-baseline justify-between px-4 pt-4 pb-2 sm:px-0">
               <h2 id="near-h" className="font-display text-lg font-bold">
-                Closest to {campus ?? "campus"}
+                {anyHours ? "Open now near" : "Closest to"} {campus ?? "campus"}
               </h2>
               <span className="text-[0.8125rem] font-medium text-ink-600">By walking time</span>
             </div>
@@ -174,7 +176,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
                     <span className="min-h-11 font-display text-lg leading-tight font-bold">{d.title}</span>
                     <span className="text-sm leading-snug text-ink-600">{d.merchant_name}</span>
                     <span className="mt-auto flex items-center justify-between border-t border-ink-200 pt-2.5 text-[0.8125rem] text-ink-600">
-                      <span className="font-semibold text-ink-900">{money(d.final_price)}</span>
+                      {d.has_hours ? <OpenTag deal={d} /> : <span className="font-semibold text-ink-900">{money(d.final_price)}</span>}
                       <span className="inline-flex items-center gap-1">
                         <Footprints className="size-3.5" aria-hidden /> {walkLabel(d.distance_m)}
                       </span>

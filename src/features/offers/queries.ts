@@ -240,11 +240,16 @@ export type Deal = {
   per_student_limit: number;
   per_student_period: LimitPeriod;
   is_favourite: boolean;
+  branch_id: string | null;
   branch_name: string | null;
   branch_area: string | null;
   opening_hours: string | null;
   distance_m: number | null;
   campus_name: string | null;
+  has_hours: boolean | null;
+  open_now: boolean | null;
+  open_until: string | null;
+  opens_next: string | null;
 };
 
 /** Live deals with the nearest branch and its distance from the student's campus. */

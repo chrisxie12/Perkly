@@ -30,7 +30,7 @@ returns void language sql as $$
      set verification_status = 'verified', verified_at = now() - interval '2 years', verified_until = now() + p_until
    where user_id = p_user;
 $$;
-select plan(8);
+select plan(13);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 select id as beauty from public.merchant_categories where slug = 'beauty' \gset
@@ -65,6 +65,21 @@ select is((select campus_name from public.list_deals()), 'Tesano', 'the campus u
 select is((select opening_hours from public.list_deals()), 'Mon–Sat 8am–9pm', 'the branch''s hours come along');
 select tests.as_user(:'s2');
 select is((select branch_name from public.list_deals()), 'Near branch', 'a student without a campus still gets their institution''s only campus');
+
+-- Opening hours: open every day 00:00 to 23:59 means open now; a closed week means closed.
+select tests.as_user(:'owner', 'aal2');
+select (select id from public.merchant_branches where name = 'Near branch') as near \gset
+select public.set_branch_hours(:'near', (select jsonb_agg(jsonb_build_object('weekday', d, 'opens', '00:00', 'closes', '23:59')) from generate_series(1, 7) d));
+select tests.as_user(:'s1');
+select is((select open_now from public.list_deals()), true, 'a branch open all day shows as open now');
+select ok((select open_until = '23:59' from public.list_deals()), 'with its closing time');
+select tests.as_user(:'owner', 'aal2');
+select throws_ok(format('select public.set_branch_hours(%L, %L)', :'near', '[{"weekday": 9, "opens": "08:00", "closes": "20:00"}]'), 'P0001', 'hours_invalid', 'bad days are refused');
+select public.set_branch_hours(:'near', '[]');
+select tests.as_user(:'s1');
+select is((select has_hours from public.list_deals()), false, 'with no hours set, the app says nothing about opening');
+select tests.as_user(:'s2');
+select throws_ok(format('select public.set_branch_hours(%L, %L)', :'near', '[]'), 'P0001', 'forbidden', 'students cannot set hours');
 
 -- Savings summary from real redemptions only.
 select tests.as_user(:'s1');

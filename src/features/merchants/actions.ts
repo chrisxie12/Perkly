@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { parseHours, summariseHours } from "./hours";
 import { z } from "zod";
 import { hasSupabaseEnv } from "@/lib/env";
 import { getUserContext } from "@/lib/auth/session";
@@ -106,10 +107,12 @@ export async function saveBranch(_prev: FormState, formData: FormData): Promise<
     ]),
   );
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  const hours = parseHours(formData.get("hours"));
+  if (hours === null) return { status: "error", fieldErrors: { hours: "Check the opening and closing times." } };
   if (!hasSupabaseEnv()) return unavailable;
   const v = parsed.data;
   const supabase = await createClient();
-  const { error } = await supabase.rpc("upsert_merchant_branch", {
+  const { data: branchId, error } = await supabase.rpc("upsert_merchant_branch", {
     p_merchant_id: v.merchantId,
     p_branch_id: v.branchId ?? null,
     p_name: v.name,
@@ -120,10 +123,13 @@ export async function saveBranch(_prev: FormState, formData: FormData): Promise<
     p_latitude: v.latitude ?? null,
     p_longitude: v.longitude ?? null,
     p_phone: v.phone ?? null,
-    p_opening_hours: v.openingHours ?? null,
+    p_opening_hours: summariseHours(hours) ?? v.openingHours ?? null,
     p_is_active: v.isActive === "true",
   });
   if (error) return { status: "error", message: merchantErrorMessage(error.message) };
+  const hoursResult = await supabase.rpc("set_branch_hours", { p_branch_id: branchId, p_hours: hours });
+  if (hoursResult.error)
+    return { status: "error", message: "The branch was saved, but its hours weren't. Check the times and save again." };
   revalidatePath("/merchant", "layout");
   if (v.branchId) return { status: "success", message: `Saved ${v.name}.` };
   redirect("/merchant/branches?added=1");

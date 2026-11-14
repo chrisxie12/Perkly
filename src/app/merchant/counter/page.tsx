@@ -11,6 +11,7 @@ import { CodeKeypad } from "@/features/redemptions/components/code-keypad";
 import { getCounterSessions, getCounterToday } from "@/features/redemptions/queries";
 import { REJECT_REASONS, redemptionErrorMessage } from "@/features/redemptions/schemas";
 import { MerchantAvatar } from "@/features/students/app/bits";
+import { counterPhotos } from "@/features/pass-photo/server";
 
 export const metadata: Metadata = { title: "Counter", robots: { index: false } };
 
@@ -25,6 +26,7 @@ export default async function CounterPage({ searchParams }: PageProps<"/merchant
     getCounterToday(membership.merchantId),
   ]);
   const waiting = sessions.filter((s) => s.status === "awaiting_merchant");
+  const photos = waiting.length > 0 ? await counterPhotos(membership.merchantId) : new Map<string, string>();
   const confirmed = sessions.filter((s) => s.status !== "awaiting_merchant");
   const branches = [...new Set(sessions.map((s) => s.branch_name))];
   const error = typeof query.error === "string" ? query.error : undefined;
@@ -87,12 +89,21 @@ export default async function CounterPage({ searchParams }: PageProps<"/merchant
                     className="rounded-2xl bg-white p-4 shadow-soft ring-1 ring-ink-200/70"
                   >
                     <div className="flex items-center gap-3.5">
-                      <span
-                        className="grid size-15 shrink-0 place-items-center rounded-full bg-ink-900 font-display text-2xl font-bold text-white"
-                        aria-hidden
-                      >
-                        {(s.student_first_name ?? "?").slice(0, 1).toUpperCase()}
-                      </span>
+                      {photos.get(s.session_id) ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
+                        <img
+                          src={photos.get(s.session_id)}
+                          alt={`Photo of ${s.student_first_name ?? "the student"}`}
+                          className="size-18 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span
+                          className="grid size-15 shrink-0 place-items-center rounded-full bg-ink-900 font-display text-2xl font-bold text-white"
+                          aria-hidden
+                        >
+                          {(s.student_first_name ?? "?").slice(0, 1).toUpperCase()}
+                        </span>
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-display text-[1.375rem] leading-tight font-bold">{s.student_first_name}</p>
                         <p className="flex items-center gap-1 text-sm font-semibold text-emerald-700">
@@ -117,6 +128,9 @@ export default async function CounterPage({ searchParams }: PageProps<"/merchant
                         </strong>
                       </div>
                     </div>
+                    {!photos.get(s.session_id) && (
+                      <p className="mb-3 text-sm text-ink-600">No photo on this pass. Ask to see their student ID.</p>
+                    )}
                     {s.location_signal === "far" && (
                       <p className="mb-3 text-sm font-semibold text-orange-700">
                         Their phone reports it&apos;s far from this branch. Check they&apos;re here.
