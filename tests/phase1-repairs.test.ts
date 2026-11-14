@@ -67,6 +67,7 @@ const ctx = (overrides: Partial<UserContext>): UserContext => ({
   platformRole: null,
   aal: "aal2",
   institutionRoles: [],
+  delegatedInstitutions: [],
   ...overrides,
 });
 
@@ -93,5 +94,56 @@ describe("role consistency", () => {
     ).toBe(false);
     expect(requiresTwoFactor(ctx({ signupIntent: "merchant" }))).toBe(false);
     expect(requiresTwoFactor(ctx({}))).toBe(false);
+  });
+});
+
+describe("phase 2 routing", () => {
+  const du = { institutionId: "55555555-5555-4555-8555-555555555555", shortName: "DU" };
+
+  it("sends Perqly staff with delegated schools to the review area, through two-factor", async () => {
+    const { areasFor, decideAccess } = await import("@/lib/auth/roles");
+    const staff = ctx({ platformRole: "reviewer", delegatedInstitutions: [du], aal: "aal1" });
+    expect(areasFor(staff)).toContain("institution");
+    expect(decideAccess("institution", staff).kind).toBe("mfa");
+    expect(decideAccess("institution", { ...staff, aal: "aal2" }).kind).toBe("allow");
+  });
+
+  it("keeps staff out of the review area when no school is delegated", async () => {
+    const { areasFor, decideAccess } = await import("@/lib/auth/roles");
+    const staff = ctx({ platformRole: "admin" });
+    expect(areasFor(staff)).not.toContain("institution");
+    expect(decideAccess("institution", staff).kind).toBe("forbidden");
+  });
+
+  it("lets a plain institution reviewer in without two-factor", async () => {
+    const { decideAccess } = await import("@/lib/auth/roles");
+    const reviewer = ctx({ aal: "aal1", institutionRoles: [{ institutionId: du.institutionId, shortName: "TU", role: "reviewer" }] });
+    expect(decideAccess("institution", reviewer).kind).toBe("allow");
+  });
+
+  it("shows the Reviewers menu only to institution admins", async () => {
+    const { institutionNavFor } = await import("@/app/institution/institution-nav");
+    const admin = ctx({ institutionRoles: [{ institutionId: du.institutionId, shortName: "TU", role: "admin" }] });
+    const reviewer = ctx({ institutionRoles: [{ institutionId: du.institutionId, shortName: "TU", role: "reviewer" }] });
+    expect(institutionNavFor(admin).map((item) => item.label)).toContain("Reviewers");
+    expect(institutionNavFor(reviewer).map((item) => item.label)).not.toContain("Reviewers");
+  });
+
+  it("reads delegated schools from the database context, and copes with older responses", async () => {
+    const { parseUserContext } = await import("@/lib/auth/roles");
+    const raw = {
+      user_id: "33333333-3333-4333-8333-333333333333",
+      full_name: "Staff",
+      first_name: "Staff",
+      signup_intent: null,
+      is_suspended: false,
+      platform_role: "reviewer",
+      aal: "aal2",
+      institution_roles: [],
+    };
+    expect(parseUserContext(raw).delegatedInstitutions).toEqual([]);
+    expect(
+      parseUserContext({ ...raw, delegated_institutions: [{ institution_id: du.institutionId, short_name: "DU" }] }).delegatedInstitutions,
+    ).toEqual([du]);
   });
 });

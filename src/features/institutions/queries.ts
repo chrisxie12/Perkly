@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type ApplicationRow = {
@@ -37,12 +38,33 @@ async function namesFor(applicationIds: string[]): Promise<Map<string, string>> 
   );
 }
 
-/** Applications visible to the signed-in reviewer (RLS limits them to their institutions). */
+export type ReviewableInstitution = { institution_id: string; short_name: string; name: string; via: "institution" | "delegated" };
+
+/**
+ * Institutions the caller can decide for right now (the database's own rule).
+ * RLS lets support staff read every application, so queues are filtered to
+ * these: nobody is shown work they can't act on.
+ */
+export const getReviewableInstitutions = cache(async (): Promise<ReviewableInstitution[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("my_reviewable_institutions");
+  if (error) throw new Error(`Could not load your institutions (${error.code ?? "unknown"})`);
+  return (data ?? []) as ReviewableInstitution[];
+});
+
+async function reviewableIds() {
+  return (await getReviewableInstitutions()).map((row) => row.institution_id);
+}
+
+/** Applications waiting for a decision at institutions the caller can review. */
 export async function getQueue() {
+  const ids = await reviewableIds();
+  if (ids.length === 0) return [];
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("student_verifications")
     .select(COLUMNS)
+    .in("institution_id", ids)
     .eq("status", "submitted")
     .order("submitted_at", { ascending: true })
     .limit(200);
@@ -53,10 +75,13 @@ export async function getQueue() {
 }
 
 export async function getDecided(limit = 100) {
+  const ids = await reviewableIds();
+  if (ids.length === 0) return [];
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("student_verifications")
     .select(COLUMNS)
+    .in("institution_id", ids)
     .in("status", ["approved", "rejected", "resubmission_requested"])
     .order("decided_at", { ascending: false })
     .limit(limit);
@@ -67,10 +92,12 @@ export async function getDecided(limit = 100) {
 }
 
 export async function getApplication(id: string) {
+  const ids = await reviewableIds();
   const supabase = await createClient();
   const { data } = await supabase.from("student_verifications").select(COLUMNS).eq("id", id).maybeSingle();
   if (!data) return null;
   const row = data as ApplicationRow;
+  if (!ids.includes(row.institution_id)) return null;
   const [names, institution, history] = await Promise.all([
     namesFor([row.id]),
     supabase.from("institutions").select("short_name").eq("id", row.institution_id).maybeSingle(),

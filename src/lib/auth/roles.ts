@@ -16,6 +16,7 @@ const contextSchema = z.object({
       role: z.enum(["reviewer", "admin"]),
     }),
   ),
+  delegated_institutions: z.array(z.object({ institution_id: z.uuid(), short_name: z.string() })).catch([]),
 });
 
 export type PlatformRole = NonNullable<z.infer<typeof contextSchema>["platform_role"]>;
@@ -29,6 +30,8 @@ export interface UserContext {
   platformRole: PlatformRole | null;
   aal: "aal1" | "aal2";
   institutionRoles: { institutionId: string; shortName: string; role: "reviewer" | "admin" }[];
+  /** Delegated institutions a Perqly staff member may review (with two-factor). Empty for everyone else. */
+  delegatedInstitutions: { institutionId: string; shortName: string }[];
 }
 
 /** Parses the result of the `get_my_context` database function. */
@@ -44,6 +47,7 @@ export function parseUserContext(raw: unknown, aalFromToken?: unknown): UserCont
     platformRole: data.platform_role,
     aal,
     institutionRoles: data.institution_roles.map((r) => ({ institutionId: r.institution_id, shortName: r.short_name, role: r.role })),
+    delegatedInstitutions: data.delegated_institutions.map((d) => ({ institutionId: d.institution_id, shortName: d.short_name })),
   };
 }
 
@@ -51,7 +55,7 @@ export function parseUserContext(raw: unknown, aalFromToken?: unknown): UserCont
 export function areasFor(ctx: UserContext): Area[] {
   const areas: Area[] = ["student"];
   if (ctx.signupIntent === "merchant") areas.push("merchant");
-  if (ctx.institutionRoles.length > 0) areas.push("institution");
+  if (ctx.institutionRoles.length > 0 || ctx.delegatedInstitutions.length > 0) areas.push("institution");
   if (ctx.platformRole) areas.push("admin");
   return areas;
 }
@@ -70,9 +74,11 @@ export function decideAccess(area: Area, ctx: UserContext): AccessDecision {
       // Merchant registration opens in roadmap step 1.4; any signed-in user may start it.
       return { kind: "allow" };
     case "institution": {
-      if (ctx.institutionRoles.length === 0) return { kind: "forbidden" };
-      const isAdmin = ctx.institutionRoles.some((r) => r.role === "admin");
-      return isAdmin && ctx.aal !== "aal2" ? { kind: "mfa" } : { kind: "allow" };
+      if (ctx.institutionRoles.length === 0 && ctx.delegatedInstitutions.length === 0) return { kind: "forbidden" };
+      // Institution admins and Perqly staff reviewing delegated schools need two-factor;
+      // the database refuses their decisions without it.
+      const needsTwoFactor = ctx.institutionRoles.some((r) => r.role === "admin") || ctx.institutionRoles.length === 0;
+      return needsTwoFactor && ctx.aal !== "aal2" ? { kind: "mfa" } : { kind: "allow" };
     }
     case "admin":
       if (!ctx.platformRole) return { kind: "forbidden" };
@@ -101,4 +107,9 @@ export function canManagePlatform(ctx: UserContext): boolean {
 /** Accounts that must use two-factor: platform staff and institution admins. */
 export function requiresTwoFactor(ctx: UserContext): boolean {
   return ctx.platformRole !== null || ctx.institutionRoles.some((role) => role.role === "admin");
+}
+
+/** Institutions this person administers (can manage reviewers). */
+export function administeredInstitutions(ctx: UserContext) {
+  return ctx.institutionRoles.filter((role) => role.role === "admin");
 }

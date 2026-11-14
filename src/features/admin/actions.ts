@@ -139,6 +139,7 @@ export async function appointReviewer(_prev: FormState, formData: FormData): Pro
   if (error) return { status: "error", message: adminErrorMessage(error.message) };
 
   revalidatePath(institutionPath(parsed.data.institutionId));
+  revalidatePath("/institution/reviewers");
   return {
     status: "success",
     message: `Appointed ${parsed.data.email} as ${parsed.data.role === "admin" ? "an institution admin" : "a reviewer"}.`,
@@ -153,4 +154,5 @@ export async function removeReviewer(formData: FormData): Promise<void> {
   const supabase = await createClient();
   await supabase.rpc("remove_institution_reviewer", { p_reviewer_id: parsed.data.reviewerId });
   revalidatePath(institutionPath(parsed.data.institutionId));
+  revalidatePath("/institution/reviewers");
 }

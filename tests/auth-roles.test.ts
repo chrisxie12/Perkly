@@ -10,6 +10,7 @@ const base: UserContext = {
   platformRole: null,
   aal: "aal1",
   institutionRoles: [],
+  delegatedInstitutions: [],
 };
 const gctu = { institutionId: "00000000-0000-4000-8000-0000000000aa", shortName: "GCTU" };
 

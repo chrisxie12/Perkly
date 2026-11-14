@@ -6,7 +6,8 @@ import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { removeReviewer, setCampusActive, setDomainActive } from "@/features/admin/actions";
+import { setCampusActive, setDomainActive } from "@/features/admin/actions";
+import { RemoveReviewerButton } from "@/features/admin/components/remove-reviewer-button";
 import { AddCampusForm, AddDomainForm, AppointForm } from "@/features/admin/components/inline-forms";
 import { InstitutionForm } from "@/features/admin/components/institution-form";
 import { getInstitutionDetail } from "@/features/admin/queries";
@@ -124,13 +125,7 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
                       {reviewer.role === "admin" ? "Institution admin" : "Reviewer"}
                     </Badge>
                     {canManage && (
-                      <form action={removeReviewer}>
-                        <input type="hidden" name="institutionId" value={institution.id} />
-                        <input type="hidden" name="reviewerId" value={reviewer.id} />
-                        <Button type="submit" variant="ghost" size="sm" aria-label={`Remove ${reviewer.full_name}`}>
-                          Remove
-                        </Button>
-                      </form>
+                      <RemoveReviewerButton institutionId={institution.id} reviewerId={reviewer.id} name={reviewer.full_name} />
                     )}
                   </li>
                 ))}

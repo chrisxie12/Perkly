@@ -76,7 +76,7 @@ export function AddCampusForm({ institutionId }: { institutionId: string }) {
   );
 }
 
-export function AppointForm({ institutionId }: { institutionId: string }) {
+export function AppointForm({ institutionId, allowAdmin = true }: { institutionId: string; allowAdmin?: boolean }) {
   const [state, action] = useActionState(appointReviewer, idleState);
   const ref = useResetOnSuccess(state.status);
   const errors = state.fieldErrors ?? {};
@@ -100,12 +100,15 @@ export function AppointForm({ institutionId }: { institutionId: string }) {
           <Label htmlFor="appoint-role">Role</Label>
           <NativeSelect id="appoint-role" name="role" defaultValue="reviewer">
             <option value="reviewer">Reviewer</option>
-            <option value="admin">Institution admin</option>
+            {allowAdmin && <option value="admin">Institution admin</option>}
           </NativeSelect>
         </div>
       </div>
       <p className="text-sm text-ink-600">
-        They need a Perqly account first. Institution admins must set up two-factor sign-in and can appoint reviewers themselves.
+        They need a Perqly account first.
+        {allowAdmin
+          ? " Institution admins must set up two-factor sign-in and can appoint reviewers themselves."
+          : " Reviewers can approve and reject your students' applications. Only Perqly can add another institution admin."}
       </p>
       <SubmitButton variant="secondary">Appoint</SubmitButton>
       <FormMessage state={state} />

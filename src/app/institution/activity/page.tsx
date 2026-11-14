@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/shared/states";
 import { getUserContext } from "@/lib/auth/session";
 import { getDecided } from "@/features/institutions/queries";
 import { formatDate } from "@/features/students/components/status-card";
-import { institutionNav } from "../institution-nav";
+import { institutionNavFor } from "../institution-nav";
 
 export const metadata: Metadata = { title: "Decisions", robots: { index: false } };
 
@@ -14,7 +14,7 @@ const labels: Record<string, string> = { approved: "Approved", rejected: "Reject
 export default async function ActivityPage() {
   const [ctx, decided] = await Promise.all([getUserContext(), getDecided()]);
   return (
-    <AreaShell area="Institution reviewer" nav={institutionNav}>
+    <AreaShell area="Institution reviewer" nav={institutionNavFor(ctx)}>
       <PageTitle title="Decisions" description="The latest verification decisions at your institution." />
       {decided.length === 0 ? (
         <EmptyState icon={<History />} title="No decisions yet" description="Approvals, rejections and change requests appear here." />

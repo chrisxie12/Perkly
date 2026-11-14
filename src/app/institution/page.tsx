@@ -3,9 +3,10 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, Inbox } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { EmptyState } from "@/components/shared/states";
-import { getQueue } from "@/features/institutions/queries";
+import { getQueue, getReviewableInstitutions } from "@/features/institutions/queries";
 import { formatDate } from "@/features/students/components/status-card";
-import { institutionNav } from "./institution-nav";
+import { institutionNavFor } from "./institution-nav";
+import { getUserContext } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Verification queue", robots: { index: false } };
 
@@ -22,14 +23,24 @@ function waitingFor(submittedAt: string | null) {
 }
 
 export default async function InstitutionQueuePage({ searchParams }: PageProps<"/institution">) {
-  const [{ decided }, queue] = await Promise.all([searchParams, getQueue()]);
+  const [{ decided }, queue, ctx, reviewable] = await Promise.all([
+    searchParams,
+    getQueue(),
+    getUserContext(),
+    getReviewableInstitutions(),
+  ]);
+  const schoolName = new Map(reviewable.map((row) => [row.institution_id, row.short_name]));
   const message = typeof decided === "string" ? decidedMessages[decided] : undefined;
 
   return (
-    <AreaShell area="Institution reviewer" nav={institutionNav}>
+    <AreaShell area="Institution reviewer" nav={institutionNavFor(ctx)}>
       <PageTitle
         title="Verification queue"
-        description="Oldest first. Check the student ID and photos, then decide. Every document view is logged."
+        description={
+          reviewable.length > 0
+            ? `Oldest first, for ${reviewable.map((row) => (row.via === "delegated" ? `${row.short_name} (for Perqly)` : row.short_name)).join(", ")}. Check the student ID and photos, then decide. Every document view is logged.`
+            : "You can't review any institution at the moment. If you were just appointed, sign out and in again."
+        }
       />
       {message && (
         <p role="status" className="mb-6 flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 font-medium text-success">
@@ -48,7 +59,12 @@ export default async function InstitutionQueuePage({ searchParams }: PageProps<"
             <li key={row.id}>
               <Link href={`/institution/requests/${row.id}`} className="flex items-center gap-4 p-5 hover:bg-ink-50">
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-ink-900">{row.full_name}</span>
+                  <span className="block font-semibold text-ink-900">
+                    {row.full_name}
+                    {reviewable.length > 1 && (
+                      <span className="ml-2 text-sm font-medium text-ink-600">{schoolName.get(row.institution_id)}</span>
+                    )}
+                  </span>
                   <span className="mt-0.5 block text-sm text-ink-600">
                     {[row.programme, row.level && `Level ${row.level}`].filter(Boolean).join(", ") || "Programme not given"}
                   </span>
