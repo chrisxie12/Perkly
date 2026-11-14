@@ -33,3 +33,18 @@ jobs:
         env:
           # The public site builds without Supabase; no secrets are used in CI.
           NEXT_PUBLIC_SITE_URL: https://perqly.example
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Starts only Postgres from the real Supabase image, applies supabase/migrations and seed.sql.
+      - run: supabase db start
+      - name: pgTAP tests (RLS, functions, constraints)
+        run: supabase test db
+      - name: Schema lint
+        run: supabase db lint --level error
