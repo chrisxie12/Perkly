@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Building2 } from "lucide-react";
+import { ArrowRight, Building2, Store } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { listInstitutions } from "@/features/admin/queries";
+import { listMerchantsForStaff } from "@/features/merchants/queries";
 import { adminNav } from "./admin-nav";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 
 export default async function AdminPage() {
-  const institutions = await listInstitutions();
+  const [institutions, merchants] = await Promise.all([listInstitutions(), listMerchantsForStaff()]);
+  const waiting = merchants.filter((m) => m.status === "pending_review").length;
+  const live = merchants.filter((m) => m.status === "approved").length;
   const open = institutions.filter((row) => row.status !== "inactive").length;
   const withoutReviewers = institutions.filter(
     (row) => row.status !== "inactive" && row.reviewers === 0 && row.review_mode === "institution",
@@ -31,11 +34,15 @@ export default async function AdminPage() {
             Manage institutions <ArrowRight className="size-4" aria-hidden />
           </Link>
         </Card>
-        <Card className="bg-ink-50 shadow-none">
-          <CardTitle>Coming in later steps</CardTitle>
+        <Card>
+          <Store className="size-6 text-blue-500" aria-hidden />
+          <CardTitle className="mt-4">Businesses</CardTitle>
           <CardDescription>
-            Merchant approval, offer moderation, disputes and the audit log arrive with the merchant and redemption features.
+            {live} live. {waiting === 0 ? "None waiting for review." : `${waiting} waiting for review.`}
           </CardDescription>
+          <Link href="/admin/merchants" className="mt-5 inline-flex items-center gap-2 font-semibold text-blue-600">
+            Review businesses <ArrowRight className="size-4" aria-hidden />
+          </Link>
         </Card>
       </div>
     </AreaShell>

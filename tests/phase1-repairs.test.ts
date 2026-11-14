@@ -68,6 +68,7 @@ const ctx = (overrides: Partial<UserContext>): UserContext => ({
   aal: "aal2",
   institutionRoles: [],
   delegatedInstitutions: [],
+  merchantRoles: [],
   ...overrides,
 });
 
@@ -145,5 +146,43 @@ describe("phase 2 routing", () => {
     expect(
       parseUserContext({ ...raw, delegated_institutions: [{ institution_id: du.institutionId, short_name: "DU" }] }).delegatedInstitutions,
     ).toEqual([du]);
+  });
+});
+
+describe("merchant roles", () => {
+  const shop = { merchantId: "66666666-6666-4666-8666-666666666666", displayName: "Fresh Fade", status: "approved" as const };
+
+  it("opens the business area to anyone who chose it at sign-up or works for a business", async () => {
+    const { areasFor } = await import("@/lib/auth/roles");
+    expect(areasFor(ctx({ signupIntent: "merchant" }))).toContain("merchant");
+    expect(areasFor(ctx({ merchantRoles: [{ ...shop, role: "cashier" }] }))).toContain("merchant");
+    expect(areasFor(ctx({}))).not.toContain("merchant");
+  });
+
+  it("asks owners for two-factor but not managers or cashiers", async () => {
+    const { decideAccess, requiresTwoFactor } = await import("@/lib/auth/roles");
+    const owner = ctx({ aal: "aal1", merchantRoles: [{ ...shop, role: "owner" }] });
+    expect(decideAccess("merchant", owner).kind).toBe("mfa");
+    expect(decideAccess("merchant", { ...owner, aal: "aal2" }).kind).toBe("allow");
+    expect(requiresTwoFactor(owner)).toBe(true);
+    const cashier = ctx({ aal: "aal1", merchantRoles: [{ ...shop, role: "cashier" }] });
+    expect(decideAccess("merchant", cashier).kind).toBe("allow");
+    expect(requiresTwoFactor(cashier)).toBe(false);
+  });
+
+  it("shows cashiers only the overview, and managers the business pages", async () => {
+    const { merchantNavFor } = await import("@/app/merchant/merchant-nav");
+    expect(merchantNavFor({ ...shop, role: "cashier" }).map((i) => i.label)).toEqual(["Overview"]);
+    expect(merchantNavFor({ ...shop, role: "manager" }).map((i) => i.label)).toEqual(["Overview", "Profile", "Branches", "Team"]);
+  });
+
+  it("validates merchant forms the way the database does", async () => {
+    const { branchSchema, teamMemberSchema, merchantDecisionSchema } = await import("@/features/merchants/schemas");
+    const merchantId = shop.merchantId;
+    expect(branchSchema.safeParse({ merchantId, name: "Tesano", digitalAddress: "ga-123-4567" }).data?.digitalAddress).toBe("GA-123-4567");
+    expect(branchSchema.safeParse({ merchantId, name: "Tesano", latitude: "5.6" }).success).toBe(false);
+    expect(teamMemberSchema.safeParse({ merchantId, email: "a@b.co", role: "cashier", branchIds: [] }).success).toBe(false);
+    expect(merchantDecisionSchema.safeParse({ merchantId, decision: "reject" }).success).toBe(false);
+    expect(merchantDecisionSchema.safeParse({ merchantId, decision: "approve" }).success).toBe(true);
   });
 });
