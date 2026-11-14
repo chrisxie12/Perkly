@@ -65,8 +65,8 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
               </p>
             ) : (
               <p className="mt-2 text-ink-700">
-                Not signed{agreement.current ? ` (current version ${agreement.current.version})` : ""}. The business can&apos;t be submitted or
-                add offers until the owner signs.
+                Not signed{agreement.current ? ` (current version ${agreement.current.version})` : ""}. The business can&apos;t be submitted
+                or add offers until the owner signs.
               </p>
             )}
           </Card>
