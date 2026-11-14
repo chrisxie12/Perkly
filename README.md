@@ -145,13 +145,14 @@ The public site runs **without** Supabase configured. Supabase is only needed on
 
 ## Supabase setup
 
-1. Create **two** Supabase projects on the free plan: `perqly-staging` and `perqly-production`.
-2. Copy each project's URL and publishable key into `.env.local` (staging) and the Vercel environment variables (production).
-3. Local development (optional): install the [Supabase CLI](https://supabase.com/docs/guides/local-development) and run `supabase start`, then use the local URL and key it prints.
-4. Migrations live in `supabase/migrations/` and are applied with the CLI. **It's empty in Phase 0**; the schema arrives in Phase 1 together with RLS policies and pgTAP tests.
-5. Free-plan caveats: projects pause after 7 days of low activity, and there are no automatic backups. Plan a nightly `pg_dump` before the pilot (see the plan).
+Everything (project settings, email templates, Resend SMTP, two-factor, environment variables and how staging and production stay separate) is in [`docs/SUPABASE_SETUP.md`](./docs/SUPABASE_SETUP.md).
 
-Status: the Supabase clients are implemented and type-checked, but **no Supabase project has been connected or tested yet**.
+Database tests:
+
+| Command                 | What it does                                                                                             |
+| ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| `npm run db:test`       | pgTAP tests against a local Supabase (`npx supabase db start` first; needs Docker). This is what CI runs |
+| `npm run db:test:local` | The same tests on any Postgres 16+ with pgTAP, without Docker (set `PGHOST`, `PGPORT`, `PGUSER`)         |
 
 ## PWA
 

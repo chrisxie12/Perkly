@@ -2,12 +2,12 @@
 
 **Phase 1: student marketplace, merchant bookings and QR discount redemption**
 
-|            |                                                                                   |
-| ---------- | --------------------------------------------------------------------------------- |
-| Status     | Draft for approval. No code has been written against this specification yet.      |
-| Date       | 2026-11-14                                                                        |
-| Live app   | https://perqly-eta.vercel.app/ (Phase 0: landing page, PWA, placeholder shells)   |
-| Repository | `chrisxie12/Perkly` (product name is Perqly; the repo keeps its old name for now) |
+|            |                                                                                                            |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
+| Status     | Approved 2026-11-14, with the decisions in section 15. Implementation of roadmap steps 1.1–1.2 has started |
+| Date       | 2026-11-14                                                                                                 |
+| Live app   | https://perqly-eta.vercel.app/ (Phase 0: landing page, PWA, placeholder shells)                            |
+| Repository | `chrisxie12/Perkly` (product name is Perqly; the repo keeps its old name for now)                          |
 
 ## Document set
 
@@ -46,7 +46,7 @@ Perqly is a student-exclusive marketplace that connects verified tertiary studen
 | Pilot                 | Ghana Communication Technology University (GCTU)                  | Institutions are data, so more schools can be added without code changes             |
 | Student verification  | Hybrid: school email code + student ID number + ID photo + selfie | Collected by Perqly, decided by the institution                                      |
 | Verification approval | Institution-authorised reviewers                                  | Perqly staff decide only where an institution formally delegates review              |
-| Offer access          | Verified students only                                            | See decision D1 for exactly what "access" covers                                     |
+| Offer access          | Verified students only for booking and redemption                 | Everyone signed in can browse merchants, offers and student prices (D1)              |
 | Merchant onboarding   | Free during the pilot                                             |                                                                                      |
 | Students              | Always free                                                       |                                                                                      |
 | Merchant revenue      | Hybrid model                                                      | Mix not yet priced; see decision D9                                                  |
@@ -133,22 +133,22 @@ An offer is a student discount on **one specific service or one specific product
 
 Every offer has:
 
-| Field                 | Rule                                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------------- |
-| Merchant              | Required                                                                                          |
-| Branches              | One or more of the merchant's branches. Empty means all active branches                           |
-| Service or product    | Exactly one, from the merchant's catalogue                                                        |
-| Regular price         | Taken from the service or product, in GH₵. Must be greater than 0                                 |
-| Discount type         | `percentage` or `fixed_amount`                                                                    |
-| Discount value        | Percentage: 1–90. Fixed: greater than 0 and less than the regular price                           |
-| Final student price   | Always calculated by the server, never entered or stored from the client                          |
-| Validity period       | Start and end date-times (Africa/Accra). End optional                                             |
-| Redemption conditions | Plain-text terms, for example "Show student pass before payment"                                  |
-| Redemption limits     | Per-student count per period (day, week, month or the offer's lifetime) and an optional total cap |
-| Availability status   | `draft`, `pending_review`, `active`, `paused`, `expired`, `rejected`, `archived`                  |
-| Institution scope     | All active institutions (default) or selected institutions. Only GCTU is active in the pilot      |
+| Field                 | Rule                                                                                                                                                                  |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Merchant              | Required                                                                                                                                                              |
+| Branches              | One or more of the merchant's branches. Empty means all active branches                                                                                               |
+| Service or product    | Exactly one, from the merchant's catalogue                                                                                                                            |
+| Regular price         | Taken from the service or product, in GH₵. Must be greater than 0                                                                                                     |
+| Discount type         | `percentage`, `fixed_amount` (GH₵ off) or `fixed_price` (a set student price)                                                                                         |
+| Discount value        | Percentage: 1–90. Fixed amount: greater than 0 and less than the regular price. Fixed price: the student price itself, greater than 0 and less than the regular price |
+| Final student price   | Always calculated by the server, never entered or stored from the client                                                                                              |
+| Validity period       | Start and end date-times (Africa/Accra). End optional                                                                                                                 |
+| Redemption conditions | Plain-text terms, for example "Show student pass before payment"                                                                                                      |
+| Redemption limits     | Per-student count per period (day, week, month or the offer's lifetime) and an optional total cap                                                                     |
+| Availability status   | `draft`, `pending_review`, `active`, `paused`, `expired`, `rejected`, `archived`                                                                                      |
+| Institution scope     | All active institutions (default) or selected institutions. Only GCTU is active in the pilot                                                                          |
 
-The student price is shown as: regular price struck through, student price, and the saving ("Save GH₵12").
+All three types produce the same display. The student price is shown as: regular price struck through, student price, and the saving ("Save GH₵12").
 
 ## 6. Appointment booking
 
@@ -302,33 +302,33 @@ These are places where the live app or the earlier plan contradicts the confirme
 | C16 | Earlier plan §7, §14                                   | Paystack payments in the roadmap                                                                                                              | Paystack only ever applied to merchant billing, not student payments, and stays out of Phase 1                                                             |
 | C17 | Earlier plan §5                                        | Cashier can void a confirmed redemption within 15 minutes                                                                                     | Not in Phase 1. Voids are support or admin actions after a dispute, so a completed redemption can't be undone casually                                     |
 
-## 15. Unresolved decisions
+## 15. Decisions
 
-Each has a recommendation, so Phase 1 can proceed on it unless you say otherwise.
+Approved by the founder on 2026-11-14. These override any recommendation that differs.
 
-| #   | Decision                                                              | Options                                                                                                                                              | Recommendation                                                                                                                    |
-| --- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | What "offer access: verified only" covers                             | (a) Unverified students can't see discounts at all; (b) they see discounts and prices but can't book or redeem                                       | (b). Seeing the student price motivates verification. Booking, scanning and redeeming are verified-only, enforced in the database |
-| D2  | Offers without a fixed price ("15% off any plate", printing per page) | (a) Not supported in Phase 1; (b) "open-bill" offers where the merchant enters the bill amount at confirmation and the server applies the percentage | (a) for the first release, (b) as a follow-up. Many chop bars and print shops price by quantity, so ask pilot merchants early     |
-| D3  | Location check                                                        | Block redemption beyond a distance, record it as a signal, or skip it                                                                                | Record it if the student allows location; never block. Flag patterns for admin review                                             |
-| D4  | Merchants without a phone at the counter                              | Require one, or allow the owner to confirm remotely from any signed-in device                                                                        | Any signed-in merchant device can confirm, so one owner's phone is enough. A counter device isn't strictly required               |
-| D5  | Session timing                                                        | Selection window and confirmation window                                                                                                             | 5 minutes to pick an item, then 10 minutes for both confirmations. Configurable in `app_settings`                                 |
-| D6  | Sign-in method                                                        | Email + password, email one-time code, phone OTP                                                                                                     | Email one-time code (plus optional password) for the pilot. Phone OTP later, when an SMS budget exists                            |
-| D7  | Order of confirmations                                                | Merchant first then student (as in the brief), or either order                                                                                       | Merchant first, then student, as in the brief. The student's final tap completes it                                               |
-| D8  | Category list                                                         | Brief's list only, or merged                                                                                                                         | Merged list in section 5.2                                                                                                        |
-| D9  | Merchant revenue mix                                                  | Subscriptions, promoted placements, per-redemption fees, brand campaigns                                                                             | Keep the earlier plan's direction; price it from pilot interviews. Not needed for Phase 1                                         |
-| D10 | Hosting plan before the public pilot                                  | Vercel Pro, or another compliant host                                                                                                                | Decide before the public GCTU launch; development stays on Hobby                                                                  |
-| D11 | Email delivery                                                        | Supabase's built-in email (very low hourly limit), or a transactional provider                                                                       | A free-tier transactional provider (for example Resend) for OTPs and booking emails                                               |
-| D12 | Quantity per redemption                                               | One item per redemption, or quantity > 1                                                                                                             | One unit per redemption in Phase 1; quantity later if merchants need it                                                           |
-| D13 | Manual code fallback if the camera fails                              | A short code printed under the QR                                                                                                                    | Allow it, rate-limited, verified students only, because some phones' cameras are poor                                             |
-| D14 | GCTU agreement                                                        | Named reviewers, turnaround and data-sharing terms, or delegated review                                                                              | Still a launch blocker: no student can be verified without it                                                                     |
+| #   | Decision                                  | Outcome                                                                                                                                                                                                                                             |
+| --- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | What "offer access: verified only" covers | **Approved:** unverified students can browse merchant profiles, offers and student prices, but can't book or redeem. Enforced in the database                                                                                                       |
+| D2  | Offers without a fixed price              | **Approved:** MVP offers must be tied to a catalogue service or product with a known regular price. Discount types: percentage, fixed amount off, and **fixed student price**. Open-bill offers are out of the MVP                                  |
+| D3  | Location check                            | Recommendation stands: record as a fraud signal, never block                                                                                                                                                                                        |
+| D4  | Merchants without a counter device        | Recommendation stands: any signed-in merchant device can confirm                                                                                                                                                                                    |
+| D5  | Session timing                            | **Approved:** 5 minutes to pick an item, then 10 minutes for the merchant and student confirmations                                                                                                                                                 |
+| D6  | Sign-in method                            | **Approved:** email one-time code first. Phone sign-in later                                                                                                                                                                                        |
+| D7  | Order of confirmations                    | Recommendation stands: merchant first, then student                                                                                                                                                                                                 |
+| D8  | Category list                             | Recommendation stands: the merged list in section 5.2                                                                                                                                                                                               |
+| D9  | Merchant revenue                          | **Approved:** merchant onboarding is free during the GCTU pilot. No paid subscriptions are built yet                                                                                                                                                |
+| D10 | Hosting                                   | **Approved:** Vercel commercial-use requirements stay on the pre-launch checklist (roadmap step 1.9)                                                                                                                                                |
+| D11 | Email delivery                            | **Approved:** Resend is the preferred transactional email provider, subject to domain verification and free-tier suitability. Credentials only in environment variables and the Supabase dashboard (see [`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md)) |
+| D12 | Quantity per redemption                   | Recommendation stands: one unit per redemption                                                                                                                                                                                                      |
+| D13 | Manual code fallback                      | Recommendation stands: allowed, rate-limited                                                                                                                                                                                                        |
+| D14 | GCTU                                      | **Approved:** an official GCTU pilot requires institutional approval. Until then GCTU appears only as a planned pilot institution, and real students aren't verified                                                                                |
 
 ## 16. Product acceptance criteria for Phase 1
 
 Phase 1 is accepted when, on staging, with two real phones:
 
 1. A student signs up, submits verification, and a GCTU reviewer approves it in `/institution`. A reviewer from another institution can't see the request.
-2. A merchant registers, an admin approves it, and the merchant adds a branch, a service, a product and offers with percentage and fixed discounts.
+2. A merchant registers, an admin approves it, and the merchant adds a branch, a service, a product and offers with percentage, fixed-amount and fixed-price discounts.
 3. The verified student finds the merchant by search and by category, sees the regular price, student price and saving, and saves the merchant as a favourite.
 4. The student books a bookable service; the merchant proposes another time; the student accepts; the booking shows as confirmed.
 5. At the branch, the student scans the printed QR code, picks the service, sees the server-calculated price, the merchant confirms, then the student confirms. The redemption appears in both histories, the student's savings grow by exactly the discount, the offer count goes up by one and the booking becomes completed.

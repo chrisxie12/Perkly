@@ -4,7 +4,7 @@
 
 |                     |                                                                                                                                                                                                                       |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status              | Draft for approval. Not implemented                                                                                                                                                                                   |
+| Status              | Approved 2026-11-14. Sign-in screens are being implemented (roadmap step 1.2)                                                                                                                                         |
 | Date                | 2026-11-14                                                                                                                                                                                                            |
 | Companion documents | [Product specification](./PERQLY_PRODUCT_SPECIFICATION.md) · [QR redemption](./PERQLY_QR_REDEMPTION_SPECIFICATION.md) · [Database](./PERQLY_DATABASE_ARCHITECTURE.md) · [Roadmap](./PERQLY_IMPLEMENTATION_ROADMAP.md) |
 
@@ -82,7 +82,7 @@ Until verified, the marketplace works but **Book** and **Scan** are replaced by 
 ### S5. Search and filters (`/student/search`)
 
 - One box matching merchant names, categories, services and products, with typo tolerance.
-- **Filters** (bottom sheet): category, distance (500 m, 1 km, 3 km, any), discount type (percentage, fixed), minimum discount, open now, takes bookings.
+- **Filters** (bottom sheet): category, distance (500 m, 1 km, 3 km, any), discount type (percentage, amount off, set student price), minimum discount, open now, takes bookings.
 - **Sort:** nearest, biggest saving, newest.
 - **Results:** merchant cards; matching items listed under each merchant ("Haircut and beard trim, GH₵80 → GH₵64").
 - **No results:** "No matches for '{query}'. Try a category instead." with category chips.
@@ -198,7 +198,7 @@ Tabs for **Services** (name, price, duration, bookable, branches) and **Products
 - **List:** tabs by status (Active, Drafts, In review, Paused, Ended), with redemptions and remaining cap.
 - **Builder** (one page, live preview of the student card on the side or below):
   1. Item: choose a service or product (or create one inline).
-  2. Discount: percentage or fixed amount; the preview shows regular price, student price and saving, calculated by the server as you type (debounced).
+  2. Discount: percentage, fixed amount off, or a set student price; the preview shows regular price, student price and saving, calculated by the server as you type (debounced).
   3. Validity: start, optional end.
   4. Branches: all or selected.
   5. Limits: uses per student per day, week, month or offer lifetime; optional total cap.

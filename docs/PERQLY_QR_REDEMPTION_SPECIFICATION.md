@@ -4,7 +4,7 @@
 
 |         |                                                                                                                                                                     |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status  | Draft for approval. Not implemented                                                                                                                                 |
+| Status  | Approved 2026-11-14. Not implemented yet (roadmap step 1.6)                                                                                                         |
 | Date    | 2026-11-14                                                                                                                                                          |
 | Storage | Tables `merchant_qr_codes`, `redemption_sessions`, `redemptions`, `student_savings`, `audit_logs` in the [database architecture](./PERQLY_DATABASE_ARCHITECTURE.md) |
 
@@ -203,13 +203,14 @@ If any step fails, the whole transaction rolls back and the session stays `await
 
 All amounts are GH₵, `numeric(12,2)`, rounded half away from zero. The calculation lives only in `private.price_offer`.
 
-| Offer                              | Regular price | Discount                        | Final price                   |
-| ---------------------------------- | ------------- | ------------------------------- | ----------------------------- |
-| 20% off "Haircut and beard trim"   | 80.00         | 80.00 × 20% = 16.00             | 64.00                         |
-| 15% off "Waakye with chicken"      | 35.00         | 35.00 × 15% = 5.25              | 29.75                         |
-| 12.5% off "Phone screen protector" | 45.00         | 45.00 × 12.5% = 5.625 → 5.63    | 39.37                         |
-| GH₵10 off "Dental check-up"        | 150.00        | 10.00                           | 140.00                        |
-| GH₵10 off an item now priced GH₵8  | 8.00          | Invalid: fixed discount ≥ price | Offer unavailable until fixed |
+| Offer                                          | Regular price | Discount                        | Final price                   |
+| ---------------------------------------------- | ------------- | ------------------------------- | ----------------------------- |
+| 20% off "Haircut and beard trim"               | 80.00         | 80.00 × 20% = 16.00             | 64.00                         |
+| 15% off "Waakye with chicken"                  | 35.00         | 35.00 × 15% = 5.25              | 29.75                         |
+| 12.5% off "Phone screen protector"             | 45.00         | 45.00 × 12.5% = 5.625 → 5.63    | 39.37                         |
+| GH₵10 off "Dental check-up"                    | 150.00        | 10.00                           | 140.00                        |
+| Student price GH₵25 for \"Printing, 50 pages\" | 30.00         | 30.00 − 25.00 = 5.00            | 25.00                         |
+| GH₵10 off an item now priced GH₵8              | 8.00          | Invalid: fixed discount ≥ price | Offer unavailable until fixed |
 
 The client renders these numbers; it never computes them for anything that's recorded.
 
@@ -221,7 +222,7 @@ An offer is redeemable by a student at a branch right now if all of these hold:
 - `offer_branches` is empty or contains the branch;
 - `institution_scope = 'all'`, or `offer_institutions` contains the student's institution;
 - its service or product is active (and, for a service, linked to the branch in `service_branches`);
-- for a fixed discount, the discount is below the item's current price;
+- for a fixed-amount or fixed-price offer, the value is below the item's current regular price;
 - `total_cap` is null or not reached;
 - the student has uses left in the current period.
 

@@ -4,7 +4,7 @@
 
 |                     |                                                                                                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status              | Draft for approval. Nothing here has been migrated                                                                                                                                                           |
+| Status              | Approved 2026-11-14. Migrations 0001–0003 are being implemented                                                                                                                                              |
 | Date                | 2026-11-14                                                                                                                                                                                                   |
 | Companion documents | [Product specification](./PERQLY_PRODUCT_SPECIFICATION.md) · [QR redemption](./PERQLY_QR_REDEMPTION_SPECIFICATION.md) · [User flows](./PERQLY_USER_FLOWS.md) · [Roadmap](./PERQLY_IMPLEMENTATION_ROADMAP.md) |
 
@@ -18,19 +18,19 @@ So Phase 1 creates the schema from nothing. The only thing to reconcile is the e
 
 ## 2. Conventions
 
-| Topic            | Rule                                                                                                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Primary keys     | `id uuid primary key default gen_random_uuid()`, except where noted (1:1 tables keyed by `user_id`, join tables with composite keys, `audit_logs` with a bigint identity) |
-| Timestamps       | `created_at timestamptz not null default now()`; `updated_at timestamptz not null default now()` kept current by a shared trigger `private.set_updated_at()`              |
-| Time zone        | Stored as `timestamptz` (UTC). Displayed in Africa/Accra (UTC+0, no daylight saving)                                                                                      |
-| Money            | `numeric(12,2)`, Ghana cedis. `currency` columns are `char(3)` defaulting to `'GHS'` for future-proofing                                                                  |
-| Status fields    | Postgres enums (section 3)                                                                                                                                                |
-| Text identifiers | `citext` for emails and domains; slugs are lower-case, unique and checked by `^[a-z0-9-]{2,64}$`                                                                          |
-| Locations        | `geography(Point, 4326)` (PostGIS) with GIST indexes                                                                                                                      |
-| Foreign keys     | Every foreign key column has an index. `on delete restrict` by default; `cascade` only where noted                                                                        |
-| Search           | Generated `tsvector` columns with GIN indexes, plus `pg_trgm` indexes on names for typo tolerance                                                                         |
-| Schemas          | `public` holds tables and the RPC functions the app may call. `private` holds helper functions and internal logic, and is **not** exposed by the Data API                 |
-| Extensions       | `pgcrypto`, `citext`, `postgis`, `pg_trgm`, `pg_cron`. All are available on Supabase's free plan                                                                          |
+| Topic            | Rule                                                                                                                                                                                                                                                                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Primary keys     | `id uuid primary key default gen_random_uuid()`, except where noted (1:1 tables keyed by `user_id`, join tables with composite keys, `audit_logs` with a bigint identity)                                                                                                                                                    |
+| Timestamps       | `created_at timestamptz not null default now()`; `updated_at timestamptz not null default now()` kept current by a shared trigger `private.set_updated_at()`                                                                                                                                                                 |
+| Time zone        | Stored as `timestamptz` (UTC). Displayed in Africa/Accra (UTC+0, no daylight saving)                                                                                                                                                                                                                                         |
+| Money            | `numeric(12,2)`, Ghana cedis. `currency` columns are `char(3)` defaulting to `'GHS'` for future-proofing                                                                                                                                                                                                                     |
+| Status fields    | Postgres enums (section 3)                                                                                                                                                                                                                                                                                                   |
+| Text identifiers | `citext` for emails and domains; slugs are lower-case, unique and checked by `^[a-z0-9-]{2,64}$`                                                                                                                                                                                                                             |
+| Locations        | `latitude` and `longitude` as `double precision` with range checks (both set or both null). Distances use a small haversine SQL function; at pilot scale (hundreds of branches) that's fast without a spatial index. Simpler than PostGIS and testable on plain Postgres; PostGIS can be added later if map features need it |
+| Foreign keys     | Every foreign key column has an index. `on delete restrict` by default; `cascade` only where noted                                                                                                                                                                                                                           |
+| Search           | Generated `tsvector` columns with GIN indexes, plus `pg_trgm` indexes on names for typo tolerance                                                                                                                                                                                                                            |
+| Schemas          | `public` holds tables and the RPC functions the app may call. `private` holds helper functions and internal logic, and is **not** exposed by the Data API                                                                                                                                                                    |
+| Extensions       | `pgcrypto`, `citext`, `pg_trgm`, and `pg_cron` (from the jobs migration), all in the `extensions` schema. All are available on Supabase's free plan                                                                                                                                                                          |
 
 ### Security model
 
@@ -55,7 +55,7 @@ So Phase 1 creates the schema from nothing. The only thing to reconcile is the e
 | `merchant_status`             | `draft`, `pending_review`, `approved`, `rejected`, `suspended`                                   |
 | `merchant_user_role`          | `owner`, `manager`, `cashier`                                                                    |
 | `offer_status`                | `draft`, `pending_review`, `active`, `paused`, `expired`, `rejected`, `archived`                 |
-| `discount_type`               | `percentage`, `fixed_amount`                                                                     |
+| `discount_type`               | `percentage`, `fixed_amount`, `fixed_price`                                                      |
 | `limit_period`                | `day`, `week`, `month`, `offer_lifetime`                                                         |
 | `institution_scope`           | `all`, `selected`                                                                                |
 | `booking_status`              | `pending`, `confirmed`, `reschedule_requested`, `cancelled`, `completed`, `no_show`              |
@@ -94,15 +94,16 @@ Entities from the brief are marked **(brief)**. The others are supporting tables
 
 Purpose: one row per Supabase Auth user, created by a trigger on `auth.users` insert.
 
-| Field              | Type                  | Notes                                                                               |
-| ------------------ | --------------------- | ----------------------------------------------------------------------------------- |
-| `id`               | uuid PK               | = `auth.users.id`, FK `on delete cascade`                                           |
-| `full_name`        | text                  | 2–120 chars                                                                         |
-| `first_name`       | text                  | Shown to merchants at redemption                                                    |
-| `avatar_path`      | text null             | Path in the private `avatars` bucket. Shown to merchants only during a live session |
-| `phone`            | text null             | E.164; never shown to merchants                                                     |
-| `is_suspended`     | boolean default false | Set only by `suspend_account()`                                                     |
-| `suspended_reason` | text null             |                                                                                     |
+| Field              | Type                  | Notes                                                                                |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------ |
+| `id`               | uuid PK               | = `auth.users.id`, FK `on delete cascade`                                            |
+| `full_name`        | text                  | 2–120 chars                                                                          |
+| `first_name`       | text                  | Shown to merchants at redemption                                                     |
+| `avatar_path`      | text null             | Path in the private `avatars` bucket. Shown to merchants only during a live session  |
+| `phone`            | text null             | E.164; never shown to merchants                                                      |
+| `signup_intent`    | text null             | `student` or `merchant`, from the sign-up form; only used to route the first sign-in |
+| `is_suspended`     | boolean default false | Set only by `set_account_suspension()`                                               |
+| `suspended_reason` | text null             |                                                                                      |
 
 Access: the owner reads and updates `full_name`, `first_name` and `avatar_path` (a trigger rejects changes to `is_suspended` and `suspended_reason` from non-function callers). Institution reviewers read name and avatar of their institution's applicants through the review function only. Support and above read all.
 
@@ -150,14 +151,14 @@ Access: authenticated users read active rows (needed to validate the school emai
 
 #### `campuses` (supporting)
 
-| Field             | Type             | Notes                                    |
-| ----------------- | ---------------- | ---------------------------------------- |
-| `id`              | uuid PK          |                                          |
-| `institution_id`  | uuid FK          |                                          |
-| `name`            | text             | e.g. Tesano                              |
-| `location`        | geography(Point) | Drives "near campus" sorting. GIST index |
-| `digital_address` | text null        | Ghana Post GPS                           |
-| `is_active`       | boolean          |                                          |
+| Field                   | Type                  | Notes                                              |
+| ----------------------- | --------------------- | -------------------------------------------------- |
+| `id`                    | uuid PK               |                                                    |
+| `institution_id`        | uuid FK               |                                                    |
+| `name`                  | text                  | e.g. Tesano                                        |
+| `latitude`, `longitude` | double precision null | Drives "near campus" sorting. Null until confirmed |
+| `digital_address`       | text null             | Ghana Post GPS                                     |
+| `is_active`             | boolean               |                                                    |
 
 Access: public read of active rows; admins write.
 
@@ -176,7 +177,7 @@ Purpose: links a user to the one institution whose students they review.
 | `removed_at`     | timestamptz null            |                                   |
 
 Constraints: unique `(institution_id, user_id)`. Indexes: `(user_id) where status = 'active'`.
-Access: reviewers read rows of their own institution; institution admins invite and remove reviewers via `manage_institution_reviewer()` (MFA); Perqly admins write all. Audited.
+Access: reviewers read rows of their own institution; institution admins appoint and remove reviewers via `appoint_institution_reviewer()` and `remove_institution_reviewer()` (MFA); Perqly admins write all. Audited.
 
 ### 5.3 Students
 
@@ -304,14 +305,14 @@ A trigger checks the branch belongs to the same merchant. Access as for `merchan
 | `name`                         | text                  | e.g. "Tesano, opposite GCTU main gate"                                           |
 | `address_line`, `area`, `city` | text                  |                                                                                  |
 | `digital_address`              | text null             |                                                                                  |
-| `location`                     | geography(Point)      | Required to go live                                                              |
+| `latitude`, `longitude`        | double precision null | Required before the branch can go live                                           |
 | `phone`                        | text null             |                                                                                  |
 | `opening_hours`                | jsonb                 | `{"mon":[{"open":"08:00","close":"18:00"}], ...}`, validated by a check function |
 | `accepts_bookings`             | boolean default false |                                                                                  |
 | `max_distance_m`               | int default 300       | Location signal threshold (not a blocker; product decision D3)                   |
 | `is_active`                    | boolean default true  |                                                                                  |
 
-Indexes: GIST `location`; `(merchant_id)`.
+Indexes: `(merchant_id)`; `(latitude, longitude)` for bounding-box pre-filters.
 Access: everyone signed in reads active branches of approved merchants; owners and managers write their own; admins deactivate.
 
 #### `merchant_documents` (supporting)
@@ -404,8 +405,9 @@ Constraints:
 - `check ((service_id is null) <> (product_id is null))`: exactly one item.
 - `check (discount_type <> 'percentage' or discount_value between 1 and 90)`.
 - `check (discount_type <> 'fixed_amount' or discount_value > 0)`.
+- `check (discount_type <> 'fixed_price' or discount_value > 0)` (the value is the student price).
 - `check (ends_at is null or ends_at > starts_at)`.
-- Trigger: the item belongs to the same merchant; for fixed discounts, `discount_value < regular_price` at save time. This is re-checked when a session prices the offer.
+- Trigger: the item belongs to the same merchant; for `fixed_amount` and `fixed_price`, `discount_value < regular_price` at save time. This is re-checked when a session prices the offer.
 
 Indexes: `(merchant_id, status)`; partial `(status, starts_at, ends_at) where status = 'active'`; `(service_id)`; `(product_id)`.
 Access: everyone signed in reads `active` offers of approved merchants whose institution scope includes their institution (through the `offer_listings` view, which computes the student price with `private.price_offer()`). Owners and managers create and edit drafts; status changes go through `submit_offer()`, `pause_offer()`, `archive_offer()` and `moderate_offer()` (staff). The first 3 offers of a merchant go to `pending_review`.
@@ -423,7 +425,9 @@ Access: everyone signed in reads `active` offers of approved merchants whose ins
 
 - `regular_price` = the linked service's or product's current `regular_price`.
 - Percentage: `discount_amount = round(regular_price * discount_value / 100, 2)` (half away from zero).
-- Fixed: `discount_amount = least(discount_value, regular_price)`. An offer whose fixed discount is no longer below the regular price is treated as unavailable until the merchant fixes it.
+- Fixed amount: `discount_amount = discount_value`.
+- Fixed price: `discount_amount = regular_price - discount_value` (so `final_price = discount_value`).
+- For both fixed types, an offer whose value is no longer below the item's current regular price is treated as unavailable until the merchant fixes it.
 - `final_price = regular_price - discount_amount`. Never negative.
 
 This is the only place prices are calculated. The client never sends a price.
@@ -648,7 +652,7 @@ Created through `create_review()`: the redemption must be the caller's, `complet
 | `before`, `after`               | jsonb null                             | Changed fields only; never ID images or OTPs                                                       |
 | `metadata`                      | jsonb                                  | Request ID, IP hash, user agent family                                                             |
 
-Append-only: no `update` or `delete` grant to any role, and a trigger raises on attempts. Written only by `private.write_audit()`.
+Append-only: no `update` or `delete` grant to any role, and a trigger raises on attempts. Written only by `private.write_audit()`. Implemented in migration 0001.
 Indexes: `(entity_type, entity_id, occurred_at)`; `(actor_id, occurred_at)`; `(institution_id, occurred_at) where institution_id is not null`; `(merchant_id, occurred_at) where merchant_id is not null`.
 Access: institution admins read rows with their `institution_id` (reviewer activity); merchant owners read rows with their `merchant_id`; admins read all. Retention: 24 months, then archived.
 
@@ -677,11 +681,11 @@ In-app notifications (booking updates, verification decisions, redemption comple
 
 #### `rate_limit_events` (supporting)
 
-Fields: `id bigint identity`, `subject` (user ID or IP hash), `action`, `created_at`. Index `(subject, action, created_at)`. No client access; written by `private.check_rate_limit()`. A daily job deletes rows older than 2 days.
+Lives in the `private` schema (not exposed by the Data API). Fields: `id bigint identity`, `subject` (user ID or IP hash), `action`, `created_at`. Index `(subject, action, created_at)`. No client access; written by `private.check_rate_limit()`. A daily job deletes rows older than 2 days.
 
 #### `app_settings` (supporting)
 
-Key-value settings read by functions: session windows, limits and thresholds. Fields: `key text PK`, `value jsonb`, `updated_by`. Admins write; functions read. Seeded values:
+Lives in the `private` schema; functions read it with `private.setting_int()`. Key-value settings read by functions: session windows, limits and thresholds. Fields: `key text PK`, `value jsonb`, `updated_by`. Admins write; functions read. Seeded values:
 
 | Key                                     | Default |
 | --------------------------------------- | ------- |
@@ -742,14 +746,14 @@ The app calls these with `supabase.rpc()` from Next.js Server Actions or Route H
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | Students     | `update_student_profile`, `start_verification`, `send_email_otp`, `confirm_email_otp`, `submit_verification`, `withdraw_verification`                                                                            | Student                                                |
 | Verification | `get_verification_queue`, `get_verification_document_url`, `decide_verification`                                                                                                                                 | Institution reviewer (or Perqly reviewer if delegated) |
-| Institutions | `upsert_institution`, `manage_institution_reviewer`                                                                                                                                                              | Admin, institution admin                               |
+| Institutions | `upsert_institution`, `appoint_institution_reviewer`, `remove_institution_reviewer`                                                                                                                              | Admin, institution admin                               |
 | Merchants    | `create_merchant`, `create_merchant_on_behalf`, `submit_merchant_for_review`, `decide_merchant`, `suspend_merchant`, `manage_merchant_user`, `accept_merchant_invite`                                            | Merchant owner, admin                                  |
 | Offers       | `submit_offer`, `pause_offer`, `archive_offer`, `moderate_offer`                                                                                                                                                 | Owner/manager, staff                                   |
 | Bookings     | `get_available_slots`, `request_booking`, `respond_to_booking`, `respond_to_reschedule`, `cancel_booking`, `mark_booking`                                                                                        | Student, merchant                                      |
 | QR           | `reissue_branch_qr`, `revoke_qr_code`                                                                                                                                                                            | Owner/manager, admin                                   |
 | Redemption   | `open_redemption_session`, `select_redemption_item`, `merchant_confirm_redemption`, `merchant_reject_redemption`, `student_confirm_redemption`, `cancel_redemption_session`, `record_payment`, `void_redemption` | See the QR specification                               |
 | Engagement   | `create_review`, `reply_to_review`, `open_dispute`, `resolve_dispute`                                                                                                                                            | Student, merchant, support                             |
-| Admin        | `suspend_account`, `restore_account`, `set_platform_role`                                                                                                                                                        | Admin, super admin (MFA)                               |
+| Admin        | `set_account_suspension`, `set_platform_role`; `get_my_context` (any signed-in user: routing data)                                                                                                               | Admin, super admin (MFA)                               |
 
 ## 8. Storage buckets
 
@@ -779,7 +783,7 @@ Expiry is also checked inside every function, so a late job never lets an expire
 ## 10. Migration plan and considerations
 
 1. **Projects:** create `perqly-staging` first, then `perqly-production`, both on the free plan. Free projects pause after 7 days of inactivity and have no automatic backups, so schedule a nightly `pg_dump` (a GitHub Action is enough) before the pilot.
-2. **Files:** one migration per domain, in dependency order, each shipping its tables, RLS policies, functions and pgTAP tests together:
+2. **Files:** one migration per domain, named `<timestamp>_<name>.sql` as the Supabase CLI expects (for example `20261114090001_foundation.sql`; the short numbers below are for reading), in dependency order, each shipping its tables, RLS policies, functions and pgTAP tests together:
    1. `0001_extensions_and_helpers.sql`: extensions, `private` schema, `set_updated_at`, `write_audit`, `check_rate_limit`, `audit_logs`, `rate_limit_events`, `app_settings`, enums
    2. `0002_identity.sql`: `profiles`, sign-up trigger, `platform_staff`, role helpers
    3. `0003_institutions.sql`: `institutions`, `institution_email_domains`, `campuses`, `institution_reviewers`
@@ -800,23 +804,23 @@ Expiry is also checked inside every function, so a late job never lets an expire
 
 The earlier plan's schema was never built. These are its tables and what replaces them:
 
-| Earlier plan                                                                                         | Phase 1                                                            | Change                                                                                                                                       |
-| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `profiles`, `platform_staff`                                                                         | Same                                                               | Unchanged                                                                                                                                    |
-| `institutions`, `institution_email_domains`, `campuses`                                              | Same                                                               | Unchanged                                                                                                                                    |
-| `institution_members`                                                                                | `institution_reviewers`                                            | Renamed to the brief's name                                                                                                                  |
-| `student_profiles`, `student_verifications`                                                          | Same                                                               | Status enum split into profile state and request status                                                                                      |
-| `categories`                                                                                         | `merchant_categories`                                              | Renamed; categorises merchants (and their offers through the merchant)                                                                       |
-| `merchant_members`                                                                                   | `merchant_users` (+ `merchant_user_branches`)                      | Renamed; cashiers can cover several branches                                                                                                 |
-| `merchant_branches`, `merchant_documents`                                                            | Same                                                               | QR fields moved to `merchant_qr_codes`                                                                                                       |
-| —                                                                                                    | `services`, `products`, `service_branches`                         | New                                                                                                                                          |
-| `offers`                                                                                             | `offers`                                                           | Now tied to one service or product; only percentage and fixed discounts; `min_spend`, `max_discount`, BOGO, freebie and custom types removed |
-| `offer_branches`, `offer_institutions`                                                               | Same                                                               | Unchanged                                                                                                                                    |
-| `saved_offers`                                                                                       | `favourites`                                                       | Saves merchants, not offers                                                                                                                  |
-| —                                                                                                    | `branch_availability_rules`, `availability_exceptions`, `bookings` | New                                                                                                                                          |
-| Branch QR key in Vault + `qr_key_version` on branches                                                | `merchant_qr_codes`                                                | One table, revocable, re-downloadable                                                                                                        |
-| `redemptions` (pass + record)                                                                        | `redemption_sessions` + `redemptions` + `student_savings`          | Pending and final are separated; savings totals are kept                                                                                     |
-| `reports`                                                                                            | `disputes`                                                         | Narrowed to redemption and booking disputes for now                                                                                          |
-| `audit_logs`                                                                                         | Same                                                               | Adds institution and merchant scoping columns                                                                                                |
-| `plans`, `merchant_subscriptions`, `invoices`, `payment_events`, `promotions`                        | Not in Phase 1                                                     | Merchant billing comes after the pilot                                                                                                       |
-| `offer_events`, `offer_stats_daily`, `fraud_flags`, `push_subscriptions`, `notification_preferences` | Not in Phase 1 schema                                              | Added when analytics, fraud rules and web push are built                                                                                     |
+| Earlier plan                                                                                         | Phase 1                                                            | Change                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `profiles`, `platform_staff`                                                                         | Same                                                               | Unchanged                                                                                                                                                   |
+| `institutions`, `institution_email_domains`, `campuses`                                              | Same                                                               | Unchanged                                                                                                                                                   |
+| `institution_members`                                                                                | `institution_reviewers`                                            | Renamed to the brief's name                                                                                                                                 |
+| `student_profiles`, `student_verifications`                                                          | Same                                                               | Status enum split into profile state and request status                                                                                                     |
+| `categories`                                                                                         | `merchant_categories`                                              | Renamed; categorises merchants (and their offers through the merchant)                                                                                      |
+| `merchant_members`                                                                                   | `merchant_users` (+ `merchant_user_branches`)                      | Renamed; cashiers can cover several branches                                                                                                                |
+| `merchant_branches`, `merchant_documents`                                                            | Same                                                               | QR fields moved to `merchant_qr_codes`                                                                                                                      |
+| —                                                                                                    | `services`, `products`, `service_branches`                         | New                                                                                                                                                         |
+| `offers`                                                                                             | `offers`                                                           | Now tied to one service or product; percentage, fixed-amount and fixed-price discounts; `min_spend`, `max_discount`, BOGO, freebie and custom types removed |
+| `offer_branches`, `offer_institutions`                                                               | Same                                                               | Unchanged                                                                                                                                                   |
+| `saved_offers`                                                                                       | `favourites`                                                       | Saves merchants, not offers                                                                                                                                 |
+| —                                                                                                    | `branch_availability_rules`, `availability_exceptions`, `bookings` | New                                                                                                                                                         |
+| Branch QR key in Vault + `qr_key_version` on branches                                                | `merchant_qr_codes`                                                | One table, revocable, re-downloadable                                                                                                                       |
+| `redemptions` (pass + record)                                                                        | `redemption_sessions` + `redemptions` + `student_savings`          | Pending and final are separated; savings totals are kept                                                                                                    |
+| `reports`                                                                                            | `disputes`                                                         | Narrowed to redemption and booking disputes for now                                                                                                         |
+| `audit_logs`                                                                                         | Same                                                               | Adds institution and merchant scoping columns                                                                                                               |
+| `plans`, `merchant_subscriptions`, `invoices`, `payment_events`, `promotions`                        | Not in Phase 1                                                     | Merchant billing comes after the pilot                                                                                                                      |
+| `offer_events`, `offer_stats_daily`, `fraud_flags`, `push_subscriptions`, `notification_preferences` | Not in Phase 1 schema                                              | Added when analytics, fraud rules and web push are built                                                                                                    |
