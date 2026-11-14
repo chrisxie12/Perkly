@@ -55,3 +55,11 @@ describe("offerSchema", () => {
     expect(offerSchema.safeParse({ ...base, startsAt: "2026-12-01T10:00", endsAt: "2026-11-01T10:00" }).success).toBe(false);
   });
 });
+
+describe("merchant agreement", () => {
+  it("names agreement errors plainly", async () => {
+    const { merchantErrorMessage } = await import("@/features/merchants/schemas");
+    expect(merchantErrorMessage("agreement_required")).toMatch(/sign/);
+    expect(offerErrorMessage("agreement_required")).toMatch(/agreement/);
+  });
+});

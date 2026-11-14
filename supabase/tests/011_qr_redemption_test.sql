@@ -75,7 +75,8 @@ select public.upsert_offer(:'m', null, 'service', :'cut', 'fixed_amount', 5, 'TU
   array[:'testu']::uuid[]) as o4 \gset
 select tests.as_postgres();
 select is((select count(*)::int from public.merchant_qr_codes where merchant_id = :'m'), 0, 'a business gets no codes before approval');
-select tests.as_user(:'owner', 'aal2'); select public.submit_merchant_for_review(:'m');
+select tests.as_user(:'owner', 'aal2'); select public.sign_merchant_agreement(:'m', 1, 'Abena Owner', 'Owner', 'Fresh Fade Ltd', true);
+select public.submit_merchant_for_review(:'m');
 select tests.as_user(:'padmin', 'aal2'); select public.decide_merchant(:'m', 'approve');
 select tests.as_user(:'owner', 'aal2');
 select public.submit_offer(:'o1'); select public.submit_offer(:'o2'); select public.submit_offer(:'o3'); select public.submit_offer(:'o4');

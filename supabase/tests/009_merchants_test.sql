@@ -89,6 +89,7 @@ select throws_ok(format('select public.submit_merchant_for_review(%L)', :'m'), '
 
 -- 4. Review ------------------------------------------------------------------------
 select tests.as_user(:'owner', 'aal2');
+select public.sign_merchant_agreement(:'m', 1, 'Abena Owner', 'Owner', 'Fresh Fade Ltd', true);
 select lives_ok(format('select public.submit_merchant_for_review(%L)', :'m'), 'the owner submits with a branch in place');
 select throws_ok(format('select public.submit_merchant_for_review(%L)', :'m'), 'P0001', 'merchant_not_editable', 'it cannot be submitted twice');
 select throws_ok(format('select public.decide_merchant(%L, %L)', :'m', 'approve'), 'P0001', 'forbidden', 'the owner cannot approve their own business');

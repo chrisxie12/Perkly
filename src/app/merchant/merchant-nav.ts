@@ -14,6 +14,7 @@ export function merchantNavFor(membership: MerchantMembership | null) {
       { href: "/merchant/branches", label: "Branches" },
       ...(membership.status === "approved" ? [{ href: "/merchant/codes", label: "QR codes" }] : []),
       { href: "/merchant/team", label: "Team" },
+      { href: "/merchant/agreement", label: "Agreement" },
       { href: "/merchant/profile", label: "Profile" },
     );
   }

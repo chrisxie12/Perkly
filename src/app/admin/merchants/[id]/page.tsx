@@ -11,6 +11,7 @@ import { MerchantDecisionForm } from "@/features/merchants/components/decision-f
 import { getBranches, getCategories, getMerchant, getTeam } from "@/features/merchants/queries";
 import { MERCHANT_STATUS_LABEL } from "@/features/merchants/schemas";
 import { formatDate } from "@/features/students/components/status-card";
+import { getAgreementState } from "@/features/agreements/queries";
 import { adminNav } from "../../admin-nav";
 
 export const metadata: Metadata = { title: "Business", robots: { index: false, follow: false } };
@@ -29,7 +30,7 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const [merchant, ctx] = await Promise.all([getMerchant(id), getUserContext()]);
   if (!merchant) notFound();
-  const [branches, team, categories] = await Promise.all([getBranches(id), getTeam(id), getCategories()]);
+  const [branches, team, categories, agreement] = await Promise.all([getBranches(id), getTeam(id), getCategories(), getAgreementState(id)]);
   const category = categories.find((c) => c.id === merchant.category_id)?.name ?? "Unknown";
 
   return (
@@ -54,6 +55,20 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
               <Row label="Website">{merchant.website ?? "Not given"}</Row>
               {merchant.status_reason && <Row label="Last note">{merchant.status_reason}</Row>}
             </dl>
+          </Card>
+          <Card>
+            <CardTitle>Agreement</CardTitle>
+            {agreement.signature ? (
+              <p className="mt-2 text-ink-700">
+                Version {agreement.signature.version} signed by {agreement.signature.signer_name} ({agreement.signature.signer_role}) for{" "}
+                {agreement.signature.business_legal_name} on {formatDate(agreement.signature.signed_at)}.
+              </p>
+            ) : (
+              <p className="mt-2 text-ink-700">
+                Not signed{agreement.current ? ` (current version ${agreement.current.version})` : ""}. The business can&apos;t be submitted or
+                add offers until the owner signs.
+              </p>
+            )}
           </Card>
           <Card>
             <CardTitle>Branches</CardTitle>

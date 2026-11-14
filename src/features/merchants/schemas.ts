@@ -100,6 +100,8 @@ export function merchantErrorMessage(code: string | undefined): string {
       return "This business is already in review or live.";
     case "branch_required":
       return "Add at least one branch first.";
+    case "agreement_required":
+      return "The owner must sign the student discount agreement first.";
     case "branch_name_invalid":
       return "Name the branch, for example Tesano.";
     case "branch_name_in_use":

@@ -184,6 +184,7 @@ describe("merchant roles", () => {
       "Branches",
       "QR codes",
       "Team",
+      "Agreement",
       "Profile",
     ]);
   });

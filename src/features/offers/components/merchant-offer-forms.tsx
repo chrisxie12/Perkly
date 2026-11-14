@@ -72,7 +72,7 @@ export function CatalogueItemForm({
           <Field id={id("name")} label="Name" error={e.name}>
             <Input id={id("name")} name="name" defaultValue={item?.name} invalid={Boolean(e.name)} />
           </Field>
-          <Field id={id("regularPrice")} label="Regular price (GH₵)" error={e.regularPrice}>
+          <Field id={id("regularPrice")} label="Original price (GH₵)" hint="What you normally charge the public." error={e.regularPrice}>
             <Input
               id={id("regularPrice")}
               name="regularPrice"
@@ -135,7 +135,7 @@ export function OfferForm({
   const e = state.fieldErrors ?? {};
   const initialItem = offer ? (offer.service_id ? `service:${offer.service_id}` : `product:${offer.product_id}`) : "";
   const [item, setItem] = useState(initialItem);
-  const [type, setType] = useState<DiscountType>(offer?.discount_type ?? "percentage");
+  const [type, setType] = useState<DiscountType>(offer?.discount_type ?? "fixed_price");
   const [value, setValue] = useState(offer ? String(offer.discount_value) : "");
   const selected = catalogue.find((c) => `${c.kind}:${c.id}` === item);
   const preview = useMemo(
@@ -165,22 +165,29 @@ export function OfferForm({
         </NativeSelect>
       </Field>
 
+      {selected && (
+        <p className="rounded-xl bg-white p-4 text-ink-900 ring-1 ring-ink-200">
+          Original price: <strong>{money(selected.regular_price)}</strong>
+          <span className="block text-sm text-ink-600">To change it, edit the item in your catalogue.</span>
+        </p>
+      )}
+
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field id="discountType" label="Discount">
+        <Field id="discountType" label="How do you want to set the student price?">
           <NativeSelect
             id="discountType"
             name="discountType"
             value={type}
             onChange={(event) => setType(event.target.value as DiscountType)}
           >
-            <option value="percentage">Percentage off</option>
-            <option value="fixed_amount">Amount off (GH₵)</option>
-            <option value="fixed_price">Fixed student price (GH₵)</option>
+            <option value="fixed_price">Enter the student price</option>
+            <option value="percentage">Percentage off the original price</option>
+            <option value="fixed_amount">Amount off the original price</option>
           </NativeSelect>
         </Field>
         <Field
           id="discountValue"
-          label={type === "percentage" ? "Percent (1 to 90)" : type === "fixed_amount" ? "GH₵ off" : "Student price (GH₵)"}
+          label={type === "percentage" ? "Percent off (1 to 90)" : type === "fixed_amount" ? "GH₵ off" : "Student price (GH₵)"}
           error={e.discountValue}
         >
           <Input
@@ -197,12 +204,12 @@ export function OfferForm({
       <div aria-live="polite" className="rounded-xl bg-ink-50 p-4 text-[0.9375rem]">
         {selected && preview ? (
           <p className="text-ink-900">
-            Students pay <strong>{money(preview.final)}</strong> instead of {money(preview.regular)} ({discountLabel(type, Number(value))},
-            saving {money(preview.discount)}).
+            Original price {money(preview.regular)}, student price <strong>{money(preview.final)}</strong> (
+            {discountLabel(type, Number(value))}, saving {money(preview.discount)}).
             <span className="mt-1 block text-sm text-ink-600">Preview. Perqly calculates the final price when a student redeems.</span>
           </p>
         ) : (
-          <p className="text-ink-600">Choose an item and a discount to see what students pay.</p>
+          <p className="text-ink-600">Choose an item and set the student price. It must be below the original price.</p>
         )}
       </div>
 

@@ -59,6 +59,7 @@ select tests.as_user(:'owner', 'aal2');
 select public.register_merchant('Fresh Fade Barbers', :'beauty') as m \gset
 select public.upsert_merchant_branch(:'m', null, 'Tesano') as b1 \gset
 select public.upsert_merchant_branch(:'m', null, 'Madina') as b2 \gset
+select public.sign_merchant_agreement(:'m', 1, 'Abena Owner', 'Owner', 'Fresh Fade Ltd', true);
 select public.submit_merchant_for_review(:'m');
 select tests.as_user(:'padmin', 'aal2'); select public.decide_merchant(:'m', 'approve');
 

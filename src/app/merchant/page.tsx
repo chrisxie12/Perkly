@@ -12,6 +12,7 @@ import { RegisterMerchantForm } from "@/features/merchants/components/merchant-f
 import { getActiveMembership, getBranches, getCategories, getMerchant } from "@/features/merchants/queries";
 import { MERCHANT_STATUS_LABEL, merchantErrorMessage } from "@/features/merchants/schemas";
 import { getMerchantMetrics } from "@/features/admin/insights";
+import { getAgreementState } from "@/features/agreements/queries";
 import { money } from "@/features/offers/schemas";
 import { canManage, merchantNavFor } from "./merchant-nav";
 
@@ -51,11 +52,13 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
     );
   }
 
-  const [merchant, branches, metrics] = await Promise.all([
+  const [merchant, branches, metrics, agreement] = await Promise.all([
     getMerchant(membership.merchantId),
     getBranches(membership.merchantId),
     membership.status === "approved" && canManage(membership) ? getMerchantMetrics(membership.merchantId) : Promise.resolve(null),
+    getAgreementState(membership.merchantId),
   ]);
+  const signed = Boolean(agreement.signature);
   if (!merchant) {
     return (
       <AreaShell area="Business" nav={merchantNavFor(membership)}>
@@ -138,12 +141,21 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
                   Add at least one branch
                 </Link>
               </Step>
+              <Step done={signed}>
+                <Link href="/merchant/agreement" className="underline underline-offset-2">
+                  Sign the student discount agreement (owner)
+                </Link>
+              </Step>
             </ol>
             {canSubmit ? (
               <form action={submitForReview} className="mt-6">
                 <input type="hidden" name="merchantId" value={merchant.id} />
-                <SubmitButton disabled={activeBranches.length === 0}>Send for review</SubmitButton>
-                {activeBranches.length === 0 && <p className="mt-2 text-sm text-ink-600">Add a branch first.</p>}
+                <SubmitButton disabled={activeBranches.length === 0 || !signed}>Send for review</SubmitButton>
+                {(activeBranches.length === 0 || !signed) && (
+                  <p className="mt-2 text-sm text-ink-600">
+                    {activeBranches.length === 0 ? "Add a branch first." : "Sign the agreement first."}
+                  </p>
+                )}
               </form>
             ) : (
               <p className="mt-6 text-sm text-ink-600">Only the owner can send the business for review.</p>

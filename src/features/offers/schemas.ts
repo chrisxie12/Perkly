@@ -106,6 +106,8 @@ export function offerErrorMessage(code: string | undefined): string {
       return "This business is suspended, so it can't be changed.";
     case "merchant_not_approved":
       return "Your business must be live before offers can go live.";
+    case "agreement_required":
+      return "The owner must sign the current student discount agreement before offers can be submitted.";
     case "item_not_found":
       return "Choose one of your own catalogue items.";
     case "item_kind_invalid":
