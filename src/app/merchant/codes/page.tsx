@@ -50,7 +50,9 @@ export default async function CodesPage() {
                     <p className="font-semibold text-ink-700">{c.branch_name}</p>
                     <p className="mt-3 font-semibold text-blue-700">Student? Scan with Perqly</p>
                     <div className="mx-auto mt-2 w-56" dangerouslySetInnerHTML={{ __html: c.svg }} />
-                    <p className="font-mono text-2xl font-bold tracking-widest text-ink-900">{c.short_code}</p>
+                    <p className="font-mono text-2xl font-bold tracking-widest text-ink-900">
+                      {c.short_code ? `${c.short_code.slice(0, 4)}-${c.short_code.slice(4)}` : ""}
+                    </p>
                     <p className="mt-2 text-xs text-ink-600">Perqly never takes payment. Pay the business directly.</p>
                   </div>
                   <div className="space-y-4">

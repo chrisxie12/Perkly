@@ -45,6 +45,8 @@ export type NavItem = {
   /** Paths that count as inside this item. A trailing "*" matches the prefix; otherwise the path must be equal. */
   match: string[];
   badge?: "dot" | "lock";
+  /** Drawn as the raised round button in the middle of the phone tab bar. */
+  emphasis?: boolean;
 };
 
 export type NavGroup = { label: string | null; items: NavItem[] };
@@ -143,12 +145,16 @@ function studentNav(n: NavContext): AreaNav {
   const view = n.verification ?? null;
   const verified = view === "verified";
   const needsAction = view !== null && ["needs_profile", "apply", "resubmit", "rejected", "expired"].includes(view);
+  const scan = {
+    ...item("scan", "Scan", "/student/scan", "scan", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
+    emphasis: true,
+  };
   const tabs = [
-    item("home", "Home", "/student", "home", ["/student", "/student/history*"]),
-    item("explore", "Explore", "/student/explore", "compass", ["/student/explore*", "/student/offers*", "/student/merchants*"]),
+    item("deals", "Deals", "/student", "tag", ["/student", "/student/offers*", "/student/merchants*"]),
     item("saved", "Saved", "/student/favourites", "heart", ["/student/favourites*"]),
-    item("qr", "My QR", "/student/scan", "qr", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
-    item("profile", "Profile", "/student/profile", "user", ["/student/profile*", "/student/verify*"], needsAction ? "dot" : undefined),
+    scan,
+    item("savings", "Savings", "/student/history", "piggy", ["/student/history*"]),
+    item("me", "Me", "/student/me", "user", ["/student/me*", "/student/profile*", "/student/verify*"], needsAction ? "dot" : undefined),
   ];
   return {
     area: "student",
@@ -158,10 +164,10 @@ function studentNav(n: NavContext): AreaNav {
     groups: [
       { label: null, items: tabs },
       {
-        label: "Your account",
+        label: "You",
         items: [
-          item("savings", "Savings", "/student/history", "piggy"),
-          item("verify", "Verification", "/student/verify", "badge", ["/student/verify"]),
+          item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
+          item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
         ],
       },
     ],

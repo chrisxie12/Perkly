@@ -132,6 +132,26 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
         {nav.tabs.slice(0, nav.more.length > 0 ? 4 : 5).map((it) => {
           const Icon = ICONS[it.icon];
           const current = active === it.key;
+          if (it.emphasis) {
+            return (
+              <li key={it.key} className="flex-1">
+                <Link
+                  href={it.href}
+                  aria-current={current ? "page" : undefined}
+                  className="flex flex-col items-center gap-1 px-1 pb-1.5 text-[0.6875rem] font-bold text-ink-900"
+                >
+                  <span className="relative -mt-7 grid size-14 place-items-center rounded-full bg-blue-500 text-white shadow-[0_8px_20px_rgba(0,102,255,0.35)] ring-4 ring-white">
+                    <Icon className="size-7" aria-hidden />
+                    <Badge badge={it.badge} />
+                  </span>
+                  <span>
+                    {it.label}
+                    <span className="sr-only">{badgeText(it.badge)}</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          }
           return (
             <li key={it.key} className="flex-1">
               <Link

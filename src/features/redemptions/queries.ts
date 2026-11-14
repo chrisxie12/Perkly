@@ -199,3 +199,19 @@ export async function getNotifications() {
     created_at: string;
   }[];
 }
+
+export type SavingsSummary = {
+  total_saved: number;
+  redemptions: number;
+  shops: number;
+  best: number | null;
+  first_at: string | null;
+  by_month: { month: string; saved: number }[];
+};
+
+export async function getSavingsSummary() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("my_savings_summary");
+  if (error) throw new Error(`Could not load your savings (${error.code ?? "unknown"})`);
+  return (data as SavingsSummary | null) ?? { total_saved: 0, redemptions: 0, shops: 0, best: null, first_at: null, by_month: [] };
+}

@@ -50,8 +50,10 @@ export async function openSession(input: { token?: string; shortCode?: string })
 
 export async function enterShortCode(formData: FormData): Promise<void> {
   const code = normaliseShortCode(String(formData.get("code") ?? ""));
-  if (!SHORT_CODE.test(code)) redirect("/student/scan?error=code_format");
-  redirect(await openSession({ shortCode: code }));
+  if (!SHORT_CODE.test(code)) redirect("/student/scan/code?error=code_format");
+  const next = await openSession({ shortCode: code });
+  // Errors return to the code screen, not the camera.
+  redirect(next.startsWith("/student/scan?") ? next.replace("/student/scan?", "/student/scan/code?") : next);
 }
 
 async function sessionCall(fn: string, args: Record<string, unknown>) {

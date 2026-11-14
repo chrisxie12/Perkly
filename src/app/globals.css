@@ -237,3 +237,65 @@
     transform-origin: top center;
   }
 }
+
+/* Student app (scanner, live pass, results). */
+@keyframes scanline {
+  from {
+    top: 1.25rem;
+  }
+  to {
+    top: calc(100% - 1.25rem);
+  }
+}
+@keyframes pass-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pass-slide {
+  to {
+    background-position: 62px 0;
+  }
+}
+@keyframes live-ping {
+  70% {
+    box-shadow: 0 0 0 10px rgb(52 211 153 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(52 211 153 / 0);
+  }
+}
+.pass-bg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1500px;
+  height: 1500px;
+  margin: -750px 0 0 -750px;
+  background: conic-gradient(from 0deg at 50% 50%, #0066ff, #00a3ff, #0047b3, #2b7bff, #0066ff);
+  animation: pass-spin 9s linear infinite;
+}
+.pass-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(115deg, rgb(255 255 255 / 0.06) 0 14px, transparent 14px 28px);
+  animation: pass-slide 3s linear infinite;
+}
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 0 0 rgb(52 211 153 / 0.7);
+  animation: live-ping 1.6s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Slowed, not stopped: the moving background is what makes a screenshot easy to spot. */
+  .pass-bg {
+    animation-duration: 30s;
+  }
+  .pass-bg::after {
+    animation-duration: 9s;
+  }
+}

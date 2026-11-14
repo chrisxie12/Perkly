@@ -221,3 +221,41 @@ export async function listOffersForStaff() {
   const rows = (data ?? []) as unknown as Row[];
   return rows.sort((a, b) => Number(b.status === "pending_review") - Number(a.status === "pending_review"));
 }
+
+export type Deal = {
+  offer_id: string;
+  title: string;
+  item_name: string;
+  merchant_id: string;
+  merchant_slug: string;
+  merchant_name: string;
+  category_slug: string;
+  category_name: string;
+  category_icon: string;
+  regular_price: number;
+  discount_amount: number;
+  final_price: number;
+  discount_type: DiscountType;
+  discount_value: number;
+  per_student_limit: number;
+  per_student_period: LimitPeriod;
+  is_favourite: boolean;
+  branch_name: string | null;
+  branch_area: string | null;
+  opening_hours: string | null;
+  distance_m: number | null;
+  campus_name: string | null;
+};
+
+/** Live deals with the nearest branch and its distance from the student's campus. */
+export async function listDeals(params: { query?: string; category?: string; merchantId?: string } = {}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_deals", {
+    p_query: params.query ?? null,
+    p_category: params.category ?? null,
+    p_merchant_id: params.merchantId ?? null,
+    p_limit: 60,
+  });
+  if (error) throw new Error(`Could not load deals (${error.code ?? "unknown"})`);
+  return (data ?? []) as Deal[];
+}

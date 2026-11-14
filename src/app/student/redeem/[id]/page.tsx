@@ -1,83 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CircleCheck, Clock, ScanLine, TimerOff, X } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
-import { Card, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/features/auth/components/submit-button";
-import { discountLabel, limitLabel, money } from "@/features/offers/schemas";
+import { limitLabel, money } from "@/features/offers/schemas";
 import { cancelSession, confirmAsStudent, selectItem } from "@/features/redemptions/actions";
 import { AutoRefresh } from "@/features/redemptions/components/auto-refresh";
 import { LivePass } from "@/features/redemptions/components/live-pass";
-import { getRedemptionSession, type RedemptionSession } from "@/features/redemptions/queries";
-import { REJECT_REASONS, payLine, redemptionErrorMessage } from "@/features/redemptions/schemas";
+import { getRedemptionSession } from "@/features/redemptions/queries";
+import { REJECT_REASONS, redemptionErrorMessage } from "@/features/redemptions/schemas";
+import { MerchantAvatar } from "@/features/students/app/bits";
 
 export const metadata: Metadata = { title: "Redeem", robots: { index: false } };
 
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
-const timeFormat = new Intl.DateTimeFormat("en-GH", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Accra" });
+const when = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Accra" });
 
-function Amounts({ s }: { s: RedemptionSession }) {
+function ErrorNote({ text }: { text: string | null }) {
+  if (!text) return null;
   return (
-    <dl className="divide-y divide-ink-200">
-      <div className="flex justify-between gap-4 py-3">
-        <dt className="text-ink-700">{s.item_name}</dt>
-        <dd className="font-medium text-ink-900">{money(s.regular_price)}</dd>
-      </div>
-      <div className="flex justify-between gap-4 py-3">
-        <dt className="text-ink-700">
-          Student discount{s.discount_type ? `, ${discountLabel(s.discount_type, s.discount_value ?? 0)}` : ""}
-        </dt>
-        <dd className="font-medium text-success">−{money(s.discount_amount)}</dd>
-      </div>
-      <div className="flex items-baseline justify-between gap-4 py-3">
-        <dt className="font-semibold text-ink-900">Amount to pay the business</dt>
-        <dd className="font-display text-3xl font-extrabold text-ink-900">{money(s.final_price)}</dd>
-      </div>
-    </dl>
+    <p role="alert" className="mt-3 rounded-xl bg-white p-3 text-[0.9375rem] font-medium text-ink-900 ring-1 ring-orange-200">
+      {text}
+    </p>
   );
 }
 
-function CancelButton({ id, label = "Cancel" }: { id: string; label?: string }) {
+function CancelForm({ id, label, light }: { id: string; label: string; light?: boolean }) {
   return (
-    <form action={cancelSession}>
+    <form action={cancelSession} className="mt-auto flex justify-center pt-3">
       <input type="hidden" name="sessionId" value={id} />
-      <SubmitButton variant="ghost">{label}</SubmitButton>
+      <SubmitButton variant="ghost" className={light ? "text-white hover:bg-white/10" : undefined}>
+        {label}
+      </SubmitButton>
     </form>
-  );
-}
-
-function OfferChoices({ s }: { s: RedemptionSession }) {
-  return (
-    <ul className="space-y-3">
-      {s.offers.map((o) => (
-        <li key={o.offer_id} className="rounded-xl bg-white p-4 ring-1 ring-ink-200">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-semibold text-ink-900">{o.title}</p>
-              <p className="text-sm text-ink-600">
-                {discountLabel(o.discount_type, o.discount_value)}: {money(o.final_price)} instead of {money(o.regular_price)}
-              </p>
-              <p className="mt-1 text-sm text-ink-600">{o.conditions}</p>
-            </div>
-            {o.uses_left > 0 ? (
-              <form action={selectItem}>
-                <input type="hidden" name="sessionId" value={s.id} />
-                <input type="hidden" name="offerId" value={o.offer_id} />
-                <SubmitButton size="sm" variant={s.offer_id === o.offer_id ? "secondary" : "primary"}>
-                  {s.offer_id === o.offer_id ? "Selected" : "I bought this"}
-                </SubmitButton>
-              </form>
-            ) : (
-              <p className="text-sm font-medium text-ink-700">
-                Used: {limitLabel(o.per_student_limit, o.per_student_period).toLowerCase()}
-                {o.resets_at ? `. Resets ${timeFormat.format(new Date(o.resets_at))}` : ""}
-              </p>
-            )}
-          </div>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -91,128 +48,214 @@ export default async function RedeemPage({ params, searchParams }: PageProps<"/s
     ? redemptionErrorMessage(error, { limit: Number(query.limit) || undefined, period: str(query.period), resets_at: str(query.resets) })
     : null;
   const live = s.status === "open" || s.status === "awaiting_merchant" || s.status === "awaiting_student";
+  const place = `${s.merchant_name}, ${s.branch_name}`;
+  const refresh = live ? <AutoRefresh filter={`id=eq.${s.id}`} /> : null;
 
-  return (
-    <AreaShell area="student">
-      {live && <AutoRefresh filter={`id=eq.${s.id}`} />}
-      <div className="mx-auto max-w-xl space-y-6">
-        <div>
-          <p className="font-semibold text-blue-700">{s.branch_name}</p>
-          <h1 className="font-display text-display-md font-extrabold">{s.merchant_name}</h1>
+  // 1. Pick what you bought ------------------------------------------------------------
+  if (s.status === "open") {
+    const first = s.offers.find((o) => o.uses_left > 0)?.offer_id;
+    return (
+      <AreaShell area="student" immersive>
+        {refresh}
+        <div className="flex min-h-dvh flex-col bg-ink-900/60">
+          <div className="flex-1" />
+          <form action={selectItem} className="pb-safe rounded-t-3xl bg-white px-5 pt-2.5 pb-6">
+            <div className="mx-auto mb-3.5 h-1.5 w-10 rounded-full bg-ink-300" aria-hidden />
+            <input type="hidden" name="sessionId" value={s.id} />
+            <div className="mb-4 flex items-center gap-3">
+              <MerchantAvatar name={s.merchant_name} category={null} />
+              <div>
+                <h1 className="font-display text-[1.375rem] leading-tight font-bold">You&apos;re at {s.merchant_name}</h1>
+                <p className="text-[0.9375rem] text-ink-600">{s.branch_name} branch. Pick what you bought.</p>
+              </div>
+            </div>
+            <ErrorNote text={errorText} />
+            <fieldset className="my-4 space-y-2.5">
+              <legend className="sr-only">Deals at this shop</legend>
+              {s.offers.map((o) =>
+                o.uses_left > 0 ? (
+                  <label
+                    key={o.offer_id}
+                    className="flex cursor-pointer items-center gap-3.5 rounded-2xl border-2 border-ink-200 p-3.5 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
+                  >
+                    <input
+                      type="radio"
+                      name="offerId"
+                      value={o.offer_id}
+                      defaultChecked={o.offer_id === first}
+                      className="size-5 accent-blue-500"
+                    />
+                    <span>
+                      <b className="block">{o.title}</b>
+                      <span className="text-sm text-ink-600">
+                        {money(o.final_price)} instead of {money(o.regular_price)}. {limitLabel(o.per_student_limit, o.per_student_period)}.
+                      </span>
+                    </span>
+                  </label>
+                ) : (
+                  <div
+                    key={o.offer_id}
+                    className="flex items-center gap-3.5 rounded-2xl border-2 border-ink-200 bg-ink-50 p-3.5 opacity-70"
+                  >
+                    <span className="size-5 rounded-full border-2 border-ink-300" aria-hidden />
+                    <span>
+                      <b className="block">{o.title}</b>
+                      <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-orange-700">
+                        <Clock className="size-3.5" aria-hidden /> Used{" "}
+                        {limitLabel(o.per_student_limit, o.per_student_period).toLowerCase()}
+                        {o.resets_at ? `. Resets ${when.format(new Date(o.resets_at))}` : ""}
+                      </span>
+                    </span>
+                  </div>
+                ),
+              )}
+            </fieldset>
+            {first ? (
+              <SubmitButton size="lg" className="w-full">
+                Show my pass
+              </SubmitButton>
+            ) : (
+              <p className="text-center text-ink-700">You&apos;ve used every deal here for now.</p>
+            )}
+          </form>
+          <form action={cancelSession} className="pb-safe bg-white px-5 pb-4 text-center">
+            <input type="hidden" name="sessionId" value={s.id} />
+            <SubmitButton variant="ghost">Cancel</SubmitButton>
+          </form>
         </div>
-        {errorText && (
-          <div role="alert" className="rounded-xl bg-orange-50 p-4 font-medium text-ink-900 ring-1 ring-orange-200">
-            {errorText}
+      </AreaShell>
+    );
+  }
+
+  // 2. Live pass, waiting for the cashier, then for the student --------------------------
+  if (s.status === "awaiting_merchant" || s.status === "awaiting_student") {
+    return (
+      <AreaShell area="student" immersive>
+        {refresh}
+        <LivePass
+          firstName={s.first_name ?? "Student"}
+          institution={s.institution}
+          offerTitle={s.item_name ?? ""}
+          place={place}
+          passCode={s.status === "awaiting_merchant" ? s.pass_code : null}
+          publicRef={s.public_ref}
+          expiresAt={s.expires_at}
+        >
+          <ErrorNote text={errorText} />
+          {s.status === "awaiting_merchant" ? (
+            <>
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-3.5 flex items-center justify-center gap-2.5 rounded-xl bg-white/15 p-3 font-semibold backdrop-blur"
+              >
+                <span
+                  className="size-4.5 animate-spin rounded-full border-[2.5px] border-white/35 border-t-white motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Waiting for the cashier to confirm
+              </div>
+              <p className="mt-2 text-center text-sm opacity-85">
+                You&apos;ll pay {money(s.final_price)} instead of {money(s.regular_price)}.
+              </p>
+              <CancelForm id={s.id} label="Cancel pass" light />
+            </>
+          ) : (
+            <>
+              <div className="mt-3.5 rounded-2xl bg-white p-4 text-ink-900">
+                <p className="flex items-center gap-2 font-semibold text-emerald-700">
+                  <CircleCheck className="size-5" aria-hidden /> The cashier confirmed
+                </p>
+                <p className="mt-1 text-[0.9375rem]">
+                  Confirm you&apos;re paying <b>{money(s.final_price)}</b> for {s.item_name}. You save {money(s.discount_amount)}.
+                </p>
+                <form action={confirmAsStudent} className="mt-3">
+                  <input type="hidden" name="sessionId" value={s.id} />
+                  <SubmitButton size="lg" className="w-full">
+                    Confirm
+                  </SubmitButton>
+                </form>
+              </div>
+              <CancelForm id={s.id} label="Cancel, I'm not buying this" light />
+            </>
+          )}
+        </LivePass>
+      </AreaShell>
+    );
+  }
+
+  // 3. Results ---------------------------------------------------------------------------
+  const tone = s.status === "completed" ? "bg-emerald-700" : s.status === "rejected" ? "bg-red-700" : "bg-slate-700";
+  return (
+    <AreaShell area="student" immersive>
+      <div className={`pt-safe pb-safe flex min-h-dvh flex-col px-5 pb-5 text-white ${tone}`}>
+        <div className="flex flex-col items-center pt-10 pb-5 text-center">
+          <span className="grid size-26 place-items-center rounded-full bg-white">
+            {s.status === "completed" ? (
+              <CircleCheck className="size-14 text-emerald-700" aria-hidden />
+            ) : s.status === "rejected" ? (
+              <X className="size-14 text-red-700" aria-hidden />
+            ) : (
+              <TimerOff className="size-13 text-slate-700" aria-hidden />
+            )}
+          </span>
+          <h1 className="mt-5 font-display text-[2rem] leading-tight font-extrabold tracking-tight">
+            {s.status === "completed"
+              ? "Discount redeemed"
+              : s.status === "rejected"
+                ? "Pass not accepted"
+                : s.status === "cancelled"
+                  ? "Pass cancelled"
+                  : "Pass expired"}
+          </h1>
+          <p className="mt-1.5 max-w-[30ch] opacity-90">
+            {s.status === "completed"
+              ? `Pay ${s.merchant_name} the student price directly. Perqly doesn't take payments.`
+              : s.status === "rejected"
+                ? `${s.merchant_name} said: ${s.rejected_reason ? REJECT_REASONS[s.rejected_reason] : "no reason given"}${s.rejected_note ? ` (${s.rejected_note})` : ""}. Have a word with them, then try again.`
+                : s.status === "cancelled"
+                  ? "Nothing was recorded."
+                  : "Passes don't last long, so nobody can reuse a screenshot. Scan again when you're at the counter."}
+          </p>
+        </div>
+        {s.status === "completed" && s.final_price !== null && (
+          <div className="rounded-3xl bg-white p-4.5 text-ink-900">
+            <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3.5 py-3 font-bold text-emerald-800">
+              <span>You saved</span>
+              <b className="font-display text-2xl tabular-nums">{money(s.discount_amount)}</b>
+            </div>
+            <dl className="mt-3 space-y-1.5 text-[0.9375rem]">
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-700">{s.item_name}</dt>
+                <dd>{money(s.regular_price)}</dd>
+              </div>
+              <div className="flex justify-between gap-3 font-semibold">
+                <dt>Amount to pay the shop</dt>
+                <dd>{money(s.final_price)}</dd>
+              </div>
+            </dl>
+            <p className="mt-2 text-xs text-ink-600">
+              {s.public_ref}
+              {s.completed_at ? `, ${when.format(new Date(s.completed_at))}` : ""}
+            </p>
           </div>
         )}
-
-        {s.status === "open" && (
-          <section aria-labelledby="choose" className="space-y-4">
-            <h2 id="choose" className="font-display text-xl font-bold">
-              What did you buy?
-            </h2>
-            <OfferChoices s={s} />
-            <CancelButton id={s.id} />
-          </section>
-        )}
-
-        {s.status === "awaiting_merchant" && (
-          <>
-            <LivePass
-              firstName={s.first_name ?? "Student"}
-              institution={s.institution}
-              passCode={s.pass_code}
-              publicRef={s.public_ref}
-              expiresAt={s.expires_at}
-            />
-            <Card>
-              <Amounts s={s} />
-              <p className="mt-4 flex items-center gap-2 font-semibold text-ink-900" role="status">
-                <Clock className="size-5 text-orange-500" aria-hidden /> Waiting for the cashier to confirm. Show them this screen.
-              </p>
-              <button type="button" disabled className="mt-4 w-full rounded-xl bg-ink-100 px-4 py-3 font-semibold text-ink-600">
-                Waiting for the merchant to confirm
-              </button>
-            </Card>
-            <details className="rounded-xl bg-white p-4 ring-1 ring-ink-200">
-              <summary className="cursor-pointer font-semibold text-blue-600">Picked the wrong item?</summary>
-              <div className="mt-4">
-                <OfferChoices s={s} />
-              </div>
-            </details>
-            <CancelButton id={s.id} />
-          </>
-        )}
-
-        {s.status === "awaiting_student" && s.final_price !== null && s.item_name && (
-          <>
-            <LivePass
-              firstName={s.first_name ?? "Student"}
-              institution={s.institution}
-              passCode={null}
-              publicRef={s.public_ref}
-              expiresAt={s.expires_at}
-            />
-            <Card>
-              <p className="flex items-center gap-2 font-semibold text-success">
-                <CheckCircle2 className="size-5" aria-hidden /> The cashier confirmed.
-              </p>
-              <Amounts s={s} />
-              <p className="mt-2 font-semibold text-ink-900">{payLine(s.final_price, s.item_name)}</p>
-              <form action={confirmAsStudent} className="mt-4">
-                <input type="hidden" name="sessionId" value={s.id} />
-                <SubmitButton size="lg" className="w-full">
-                  Confirm
-                </SubmitButton>
-              </form>
-            </Card>
-            <CancelButton id={s.id} label="Cancel, I'm not buying this" />
-          </>
-        )}
-
-        {s.status === "completed" && (
-          <Card>
-            <p className="flex items-center gap-2 font-display text-xl font-bold text-success">
-              <CheckCircle2 className="size-6" aria-hidden /> Discount redeemed
-            </p>
-            <p className="mt-1 text-ink-700">Pay the business directly. Perqly doesn&apos;t take payments.</p>
-            <div className="mt-4">
-              <Amounts s={s} />
-            </div>
-            <p className="mt-3 text-sm text-ink-600">
-              {s.public_ref}
-              {s.completed_at ? `, ${timeFormat.format(new Date(s.completed_at))}` : ""}
-            </p>
-            <Link href="/student/history" className="mt-4 inline-block font-semibold text-blue-600 underline underline-offset-2">
-              See your savings
+        <div className="mt-auto flex flex-col gap-2.5 pt-6">
+          {s.status === "completed" ? (
+            <Link href="/student/history" className={`${buttonVariants({ size: "lg" })} w-full !bg-white !text-ink-900`}>
+              Done
             </Link>
-          </Card>
-        )}
-
-        {s.status === "rejected" && (
-          <Card>
-            <p className="flex items-center gap-2 font-display text-xl font-bold text-ink-900">
-              <XCircle className="size-6 text-orange-500" aria-hidden /> {s.merchant_name} declined this redemption
-            </p>
-            <p className="mt-2 text-ink-700">
-              {s.rejected_reason ? REJECT_REASONS[s.rejected_reason] : "No reason given"}
-              {s.rejected_note ? `: ${s.rejected_note}` : "."}
-            </p>
-            <p className="mt-3 text-sm text-ink-600">Think this is wrong? Email support with the reference {s.public_ref}.</p>
-          </Card>
-        )}
-
-        {(s.status === "cancelled" || s.status === "expired") && (
-          <Card>
-            <CardTitle>{s.status === "cancelled" ? "Cancelled" : "This redemption timed out"}</CardTitle>
-            <p className="mt-2 text-ink-700">
-              {s.status === "cancelled" ? "Nothing was recorded." : redemptionErrorMessage("session_expired")}
-            </p>
-            <Link href="/student/scan" className="mt-4 inline-block font-semibold text-blue-600 underline underline-offset-2">
-              Scan again
-            </Link>
-          </Card>
-        )}
+          ) : (
+            <>
+              <Link href="/student/scan" className={`${buttonVariants({ size: "lg" })} w-full !bg-white !text-ink-900`}>
+                <ScanLine aria-hidden /> Scan again
+              </Link>
+              <Link href="/student" className="py-2 text-center font-semibold text-white/90">
+                Back to deals
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </AreaShell>
   );

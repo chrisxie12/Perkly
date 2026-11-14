@@ -19,7 +19,7 @@ export default async function MerchantPublicPage({ params }: PageProps<"/student
 
   return (
     <AreaShell area="student">
-      <Link href="/student/explore" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
+      <Link href="/student" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
         <ArrowLeft className="size-4" aria-hidden /> All offers
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">

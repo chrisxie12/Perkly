@@ -27,11 +27,22 @@ async function navContext(area: NavArea): Promise<NavContext | null> {
  * on every page load, that the user may open this page; the menus and the check
  * come from the same rules in src/lib/navigation/config.ts.
  */
-export async function AreaShell({ area, children }: { area: NavArea; children: React.ReactNode }) {
+export async function AreaShell({
+  area,
+  immersive = false,
+  children,
+}: {
+  area: NavArea;
+  /** Full-screen flows (scanner, live pass): no top bar or tabs, the page draws everything. */
+  immersive?: boolean;
+  children: React.ReactNode;
+}) {
   const [n, h] = await Promise.all([navContext(area), headers()]);
   const path = h.get(PATH_HEADER) ?? "";
   const nav = n ? navFor(area, n) : null;
   const decision = n && path ? routeAccess(path, n) : { kind: "allow" as const };
+
+  if (immersive && decision.kind === "allow") return <div className="flex min-h-dvh flex-col">{children}</div>;
 
   return (
     <div className="flex min-h-dvh flex-col bg-paper">

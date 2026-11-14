@@ -35,16 +35,17 @@ const instAdmin: NavContext = { ctx: ctx({ institutionRoles: [{ institutionId: "
 const staff = (platformRole: UserContext["platformRole"]): NavContext => ({ ctx: ctx({ platformRole }) });
 
 describe("menus by role", () => {
-  it("gives students Home, Explore, Saved, My QR and Profile", () => {
-    expect(labels("student", student)).toEqual(["Home", "Explore", "Saved", "My QR", "Profile"]);
+  it("gives students Deals, Saved, Scan, Savings and Me, with Scan as the raised middle button", () => {
+    expect(labels("student", student)).toEqual(["Deals", "Saved", "Scan", "Savings", "Me"]);
+    expect(navFor("student", student).tabs.find((t) => t.emphasis)?.key).toBe("scan");
   });
 
-  it("marks My QR locked and Profile needing attention until the student is verified", () => {
+  it("marks Scan locked and Me needing attention until the student is verified", () => {
     const tabs = navFor("student", { ctx: ctx(), verification: "apply" }).tabs;
-    expect(tabs.find((t) => t.key === "qr")?.badge).toBe("lock");
-    expect(tabs.find((t) => t.key === "profile")?.badge).toBe("dot");
+    expect(tabs.find((t) => t.key === "scan")?.badge).toBe("lock");
+    expect(tabs.find((t) => t.key === "me")?.badge).toBe("dot");
     const pending = navFor("student", { ctx: ctx(), verification: "pending" }).tabs;
-    expect(pending.find((t) => t.key === "profile")?.badge).toBeUndefined();
+    expect(pending.find((t) => t.key === "me")?.badge).toBeUndefined();
     expect(navFor("student", student).tabs.every((t) => !t.badge)).toBe(true);
   });
 
@@ -103,12 +104,14 @@ describe("menus by role", () => {
 describe("active tab", () => {
   it("highlights the parent tab on nested pages", () => {
     const s = navFor("student", student).tabs;
-    expect(activeIn(s, "/student")).toBe("home");
-    expect(activeIn(s, "/student/offers/123")).toBe("explore");
-    expect(activeIn(s, "/student/merchants/fresh-fade")).toBe("explore");
-    expect(activeIn(s, "/student/redeem/abc")).toBe("qr");
-    expect(activeIn(s, "/student/verify")).toBe("profile");
-    expect(activeIn(s, "/student/history")).toBe("home");
+    expect(activeIn(s, "/student")).toBe("deals");
+    expect(activeIn(s, "/student/offers/123")).toBe("deals");
+    expect(activeIn(s, "/student/merchants/fresh-fade")).toBe("deals");
+    expect(activeIn(s, "/student/redeem/abc")).toBe("scan");
+    expect(activeIn(s, "/student/scan/code")).toBe("scan");
+    expect(activeIn(s, "/student/verify")).toBe("me");
+    expect(activeIn(s, "/student/profile")).toBe("me");
+    expect(activeIn(s, "/student/history")).toBe("savings");
     const m = navFor("merchant", owner).tabs;
     expect(activeIn(m, "/merchant")).toBe("overview");
     expect(activeIn(m, "/merchant/catalogue")).toBe("offers");
@@ -123,7 +126,7 @@ describe("active tab", () => {
   });
 
   it("doesn't confuse similar prefixes", () => {
-    expect(activeIn(navFor("student", student).tabs, "/student/explorer")).toBeNull();
+    expect(activeIn(navFor("student", student).tabs, "/student/offersx")).toBeNull();
   });
 });
 
