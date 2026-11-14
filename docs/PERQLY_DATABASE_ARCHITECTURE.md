@@ -181,7 +181,7 @@ Access: reviewers read rows of their own institution; institution admins appoint
 
 ### 5.3 Students
 
-Implemented in migration 0004 (`20261114090004_students.sql`). Rules:
+Implemented in migration 0004 (`20261114090004_students.sql`), security-audited on 2026-11-14 (see the audit notes at the end of this section). Rules:
 
 - Students sign up and sign in with a **personal email** (Supabase Auth, `auth.users`). That identity never changes for verification.
 - An **institutional email is optional**. It lives on `student_profiles`, separately from the sign-in email, with its own confirmation state. A confirmed institutional email, or one whose domain is on the institution's list, **never** verifies a student by itself.
@@ -207,7 +207,7 @@ Purpose: the student side of an account, the optional institutional email, and t
 
 Constraints: partial unique `(institution_id, student_id_hash)` (one Perqly account per student ID per institution); institutional email confirmation requires an address; `verified` requires both dates.
 Indexes: `(institution_id, verification_status)`, `(campus_id)`, `(current_verification_id)`.
-Access: students read their own row; **no direct writes for anyone**. Changes go through `upsert_student_profile()` and `set_institutional_email()`. Reviewers read profiles of students who applied to their institution. Support and above read all.
+Access: students read their own row; **no direct writes for anyone**. Changes go through `upsert_student_profile()` and `set_institutional_email()`. Reviewers do **not** read this table (the application carries a snapshot) and get applicants' names only through `get_verification_applicant_names()`. Support and above (with two-factor, not suspended) read all.
 
 Codes that confirm an institutional email live in `private.institutional_email_codes` (hashed, 10-minute expiry, 5 attempts, 3 sends an hour). They're issued by `issue_institutional_email_code()`, which only the **service role** may call: the server checks who the user is, issues the code with the secret key and emails it through Resend. Students confirm with `confirm_institutional_email_code()`.
 
@@ -236,9 +236,13 @@ Purpose: one row per verification application; history is kept.
 
 Constraints: partial unique `(student_id) where status in ('draft','submitted','resubmission_requested')` (one open application at a time).
 Indexes: `(institution_id, status, submitted_at)` for the queue; `(student_id, created_at desc)`; `(decided_by)`.
-Access: no direct writes for anyone. Students use `start_verification_application()`, `submit_verification_application()`, `withdraw_verification_application()` and read their state through `get_my_student_status()`, which never returns the reviewer's identity. Reviewers read their institution's non-draft applications and decide with `decide_verification()`: institution reviewers, institution admins **with two-factor**, or Perqly reviewers only where `review_mode = 'delegated'`. Nobody can decide their own application. `get_verification_document_paths()` audits each reviewer view; the app then creates 5-minute signed URLs, which Storage only issues to readers its policies allow.
+Access: no direct writes for anyone. Students use `start_verification_application()`, `submit_verification_application()`, `withdraw_verification_application()` and read their state through `get_my_student_status()`, which never returns the reviewer's identity. Reviewers read their institution's non-draft applications and decide with `decide_verification()`: institution reviewers, institution admins **with two-factor**, or Perqly reviewers only where `review_mode = 'delegated'`. Nobody can decide their own application. `get_verification_document_paths()` audits each reviewer view; the app then creates 5-minute signed URLs. Storage's read policy lets a reviewer read a document only within 10 minutes of their own audited view, so going to Storage directly can't skip the log, and nobody can read documents once `documents_deleted_at` is set.
 
 Expiry: `public.expire_student_verifications()` (service role, scheduled with the jobs in roadmap 1.8) marks lapsed verifications `expired`. Until it runs, `private.student_state()` already treats them as expired.
+
+#### Audit notes (2026-11-14)
+
+Migration 0004 was reviewed before being applied anywhere. Changes made as a result: the student ID hash keys HMAC with the decoded pepper bytes and refuses to run without it; storage paths are validated before any UUID cast; document reads require a recent audited view and stop once documents are deleted; reviewers no longer read `profiles` or `student_profiles` rows (names come from a dedicated function); `private.is_staff()` now also requires the account not to be suspended (a fix-forward of migration 0002's helper); concurrent starts and approvals return clean errors; and academic year ends on short months are handled. Tests: `supabase/tests/005_students_security_test.sql`.
 
 ### 5.4 Merchants
 
@@ -717,7 +721,7 @@ R = read, W = direct write allowed by RLS, F = only through a function, – = no
 | institution_email_domains                          | –          | R (active)                                                       | –                                                                    | R own                                                  | R; F admin                             |
 | institution_reviewers                              | –          | –                                                                | –                                                                    | R own institution; F institution admin                 | R; F admin                             |
 | profiles                                           | –          | R own; W own name/photo                                          | First name + photo of students in a live session at their branch (F) | Applicants' name + photo (F)                           | R support+                             |
-| student_profiles                                   | –          | R own; F (incl. optional institutional email)                    | –                                                                    | R applicants to own institution                        | R support+                             |
+| student_profiles                                   | –          | R own; F (incl. optional institutional email)                    | –                                                                    | – (names via `get_verification_applicant_names()`)     | R support+                             |
 | student_verifications                              | –          | Own, through `get_my_student_status()` (no reviewer identity); F | –                                                                    | R + decide F, own institution (admins with two-factor) | R support+; decide F only if delegated |
 | merchants, merchant_branches                       | –          | R approved                                                       | R own; W owner/manager; status F                                     | R approved                                             | R; status F                            |
 | merchant_users, merchant_user_branches             | –          | –                                                                | R own merchant; F                                                    | –                                                      | R; F admin                             |

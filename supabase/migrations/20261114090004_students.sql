@@ -100,19 +100,44 @@ values ('verification.student_id_pepper', to_jsonb(encode(extensions.gen_random_
 on conflict (key) do nothing;
 
 -- Helpers ------------------------------------------------------------------
+-- HMAC-SHA256 over "institution:NORMALISEDNUMBER", keyed with the 32-byte pepper
+-- (stored hex-encoded, decoded to bytea here). Raises instead of returning null, so a
+-- missing pepper or number can never silently disable the one-account-per-student-ID rule.
 create function private.student_id_hash(p_institution_id uuid, p_number text)
 returns text
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_pepper_hex text := (select value #>> '{}' from private.app_settings where key = 'verification.student_id_pepper');
+  v_normalised text := upper(regexp_replace(coalesce(p_number, ''), '[\s./-]', '', 'g'));
+begin
+  if v_pepper_hex is null or v_pepper_hex !~ '^[0-9a-f]{64}$' then
+    raise exception 'student_id_pepper_missing' using errcode = 'P0001';
+  end if;
+  if p_institution_id is null or v_normalised = '' then
+    raise exception 'student_id_invalid' using errcode = 'P0001';
+  end if;
+  return encode(
+    extensions.hmac(convert_to(p_institution_id::text || ':' || v_normalised, 'UTF8'), decode(v_pepper_hex, 'hex'), 'sha256'),
+    'hex');
+end;
+$$;
+
+-- Fix-forward of migration 0002: a suspended staff account loses its staff powers.
+-- Same signature, so existing grants and every policy that calls it are kept.
+create or replace function private.is_staff(p_min public.platform_role)
+returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select encode(
-    extensions.hmac(
-      p_institution_id::text || ':' || upper(regexp_replace(p_number, '[\s./-]', '', 'g')),
-      (select value #>> '{}' from private.app_settings where key = 'verification.student_id_pepper'),
-      'sha256'),
-    'hex');
+  select coalesce((select private.platform_role()) >= p_min, false)
+     and (select private.has_mfa())
+     and not (select private.is_suspended());
 $$;
 
 -- Can the caller review applications for this institution right now?
@@ -200,12 +225,8 @@ grant select on table public.student_profiles, public.student_verifications to a
 create policy "students read their own student profile" on public.student_profiles
   for select to authenticated
   using (user_id = (select auth.uid()));
-create policy "reviewers read applicants to their institution" on public.student_profiles
-  for select to authenticated
-  using (
-    (select private.can_review_institution(institution_id))
-    and exists (select 1 from public.student_verifications v where v.student_id = student_profiles.user_id and v.institution_id = student_profiles.institution_id)
-  );
+-- Reviewers don't read student_profiles: everything they need is on the application
+-- (snapshot) and applicants' names come from get_verification_applicant_names().
 create policy "support reads all student profiles" on public.student_profiles
   for select to authenticated
   using ((select private.is_staff('support')));
@@ -218,9 +239,8 @@ create policy "support reads all applications" on public.student_verifications
   for select to authenticated
   using ((select private.is_staff('support')));
 
-create policy "reviewers read applicants' names" on public.profiles
-  for select to authenticated
-  using (exists (select 1 from public.student_verifications v where v.student_id = profiles.id));
+-- No new policy on public.profiles: reviewers get applicants' names (and nothing else
+-- from their profile) through get_verification_applicant_names() below.
 
 -- Private document storage --------------------------------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -228,18 +248,34 @@ values ('verification-documents', 'verification-documents', false, 5242880, arra
 on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 -- Path rule: {student_id}/{application_id}/{id-card|selfie}.{webp|jpg|jpeg|png}
+-- Returns no row for anything that isn't exactly that shape. Validation happens in
+-- procedural order before any ::uuid cast, so malformed names can never raise a cast
+-- error inside a storage policy (SQL gives no guarantee about WHERE vs SELECT order).
 create function private.verification_document_parts(p_name text)
 returns table (student_id uuid, application_id uuid, kind text)
-language sql
+language plpgsql
 immutable
 set search_path = ''
 as $$
-  select parts[1]::uuid, parts[2]::uuid, split_part(parts[3], '.', 1)
-  from (select string_to_array(p_name, '/') as parts) s
-  where array_length(parts, 1) = 3
-    and parts[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and parts[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    and parts[3] ~ '^(id-card|selfie)\.(webp|jpg|jpeg|png)$';
+declare
+  v_parts text[];
+  v_uuid constant text := '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+begin
+  if p_name is null or char_length(p_name) > 200 then
+    return;
+  end if;
+  v_parts := string_to_array(p_name, '/');
+  if coalesce(array_length(v_parts, 1), 0) <> 3
+     or not coalesce(v_parts[1] ~ v_uuid, false)
+     or not coalesce(v_parts[2] ~ v_uuid, false)
+     or not coalesce(v_parts[3] ~ '^(id-card|selfie)\.(webp|jpg|jpeg|png)$', false) then
+    return;
+  end if;
+  student_id := v_parts[1]::uuid;
+  application_id := v_parts[2]::uuid;
+  kind := split_part(v_parts[3], '.', 1);
+  return next;
+end;
 $$;
 
 -- Students may write only to their own open (draft or resubmission) application's folder.
@@ -260,7 +296,12 @@ as $$
   );
 $$;
 
--- The student who uploaded, or an authorised reviewer of the application's institution.
+-- Who may read a document (and so get a signed URL for it):
+-- * the student who uploaded it; or
+-- * an authorised reviewer of the application's institution, for a submitted or
+--   decided application, and only within 10 minutes of an audited view recorded by
+--   get_verification_document_paths(). Calling Storage directly can't skip the log.
+-- Nobody, once documents_deleted_at is set.
 create function private.can_read_verification_document(p_name text)
 returns boolean
 language sql
@@ -272,8 +313,22 @@ as $$
     select 1
     from private.verification_document_parts(p_name) d
     join public.student_verifications v on v.id = d.application_id and v.student_id = d.student_id
-    where d.student_id = (select auth.uid())
-       or (v.status <> 'draft' and (select private.can_review_institution(v.institution_id)))
+    where v.documents_deleted_at is null
+      and (
+        d.student_id = (select auth.uid())
+        or (
+          v.status in ('submitted', 'approved', 'rejected', 'resubmission_requested')
+          and (select private.can_review_institution(v.institution_id))
+          and exists (
+            select 1 from public.audit_logs a
+            where a.entity_type = 'student_verification'
+              and a.entity_id = v.id
+              and a.action = 'verification.documents_viewed'
+              and a.actor_id = (select auth.uid())
+              and a.occurred_at > now() - interval '10 minutes'
+          )
+        )
+      )
   );
 $$;
 
@@ -324,7 +379,7 @@ begin
 
   select * into v_existing from public.student_profiles where user_id = v_uid for update;
   v_state := (select private.student_state(v_uid));
-  if found and v_existing.institution_id <> p_institution_id
+  if v_existing.user_id is not null and v_existing.institution_id <> p_institution_id
      and (v_state in ('pending', 'verified') or exists (
        select 1 from public.student_verifications where student_id = v_uid and status in ('draft', 'submitted', 'resubmission_requested'))) then
     raise exception 'institution_locked' using errcode = 'P0001', hint = 'Withdraw your open application before changing school.';
@@ -355,6 +410,7 @@ declare
   v_current extensions.citext;
 begin
   if v_uid is null then raise exception 'not_authenticated' using errcode = 'P0001'; end if;
+  if (select private.is_suspended()) then raise exception 'account_suspended' using errcode = 'P0001'; end if;
   select institutional_email into v_current from public.student_profiles where user_id = v_uid for update;
   if not found then raise exception 'profile_required' using errcode = 'P0001'; end if;
   if v_email is not distinct from v_current::text then return; end if;
@@ -379,6 +435,9 @@ declare
   v_email extensions.citext;
   v_code text;
 begin
+  if exists (select 1 from public.profiles where id = p_user_id and is_suspended) then
+    raise exception 'account_suspended' using errcode = 'P0001';
+  end if;
   select institutional_email into v_email from public.student_profiles where user_id = p_user_id;
   if v_email is null then raise exception 'institutional_email_missing' using errcode = 'P0001'; end if;
   perform private.check_rate_limit('student.institutional_email_code', private.setting_int('verification.otp_max_per_hour', 3), interval '1 hour', p_user_id::text);
@@ -406,6 +465,7 @@ declare
   v_current extensions.citext;
 begin
   if v_uid is null then raise exception 'not_authenticated' using errcode = 'P0001'; end if;
+  if (select private.is_suspended()) then raise exception 'account_suspended' using errcode = 'P0001'; end if;
   select institutional_email into v_current from public.student_profiles where user_id = v_uid;
   select * into v_row from private.institutional_email_codes where student_id = v_uid for update;
   if v_row.student_id is null or v_row.email is distinct from v_current or v_row.expires_at <= now() or v_row.attempts >= 5 then
@@ -446,9 +506,15 @@ begin
     raise exception 'already_verified' using errcode = 'P0001';
   end if;
 
-  insert into public.student_verifications (student_id, institution_id)
-  values (v_uid, v_profile.institution_id)
-  returning id into v_id;
+  begin
+    insert into public.student_verifications (student_id, institution_id)
+    values (v_uid, v_profile.institution_id)
+    returning id into v_id;
+  exception when unique_violation then
+    -- A concurrent call opened it first; return that one.
+    select id into v_id from public.student_verifications
+    where student_id = v_uid and status in ('draft', 'submitted', 'resubmission_requested');
+  end;
   return v_id;
 end;
 $$;
@@ -571,6 +637,8 @@ declare
   v_hash text;
   v_until timestamptz;
   v_year_end date;
+  v_year int;
+  v_month_start date;
   v_note text := nullif(btrim(coalesce(p_note, '')), '');
 begin
   if v_uid is null then raise exception 'not_authenticated' using errcode = 'P0001'; end if;
@@ -592,6 +660,9 @@ begin
   v_decider := case when v_role is not null then 'institution'::public.decider_type else 'perqly'::public.decider_type end;
 
   if p_decision = 'approve' then
+    if v_app.student_id_number is null or v_app.id_card_path is null or v_app.selfie_path is null then
+      raise exception 'application_incomplete' using errcode = 'P0001';
+    end if;
     v_hash := private.student_id_hash(v_app.institution_id, v_app.student_id_number);
     if exists (
       select 1 from public.student_profiles
@@ -601,9 +672,15 @@ begin
     end if;
 
     if v_inst.academic_year_end_month is not null then
-      v_year_end := make_date(extract(year from now())::int, v_inst.academic_year_end_month, least(v_inst.academic_year_end_day, 28));
-      while v_year_end < (now() + interval '30 days')::date loop
-        v_year_end := (v_year_end + interval '1 year')::date;
+      -- The next academic year end at least 30 days away. Day 31 in a 30-day month
+      -- (or 29 February in other years) falls back to that month's last day.
+      v_year := extract(year from now())::int;
+      loop
+        v_month_start := make_date(v_year, v_inst.academic_year_end_month, 1);
+        v_year_end := v_month_start + (least(v_inst.academic_year_end_day,
+          extract(day from (v_month_start + interval '1 month' - interval '1 day'))::int) - 1);
+        exit when v_year_end >= (now() + interval '30 days')::date;
+        v_year := v_year + 1;
       end loop;
       v_until := v_year_end::timestamptz + interval '1 day' - interval '1 second';
     else
@@ -614,10 +691,15 @@ begin
     set status = 'approved', decided_by = v_uid, decided_by_type = v_decider, decided_at = now(),
         decision_reason = null, reviewer_note = v_note
     where id = p_application_id;
-    update public.student_profiles
-    set verification_status = 'verified', verified_at = now(), verified_until = v_until,
-        student_id_hash = v_hash, current_verification_id = p_application_id
-    where user_id = v_app.student_id;
+    begin
+      update public.student_profiles
+      set verification_status = 'verified', verified_at = now(), verified_until = v_until,
+          student_id_hash = v_hash, current_verification_id = p_application_id
+      where user_id = v_app.student_id;
+    exception when unique_violation then
+      -- Another reviewer approved the same student ID on another account at the same moment.
+      raise exception 'student_id_in_use' using errcode = 'P0001', hint = 'Another Perqly account already holds this student ID.';
+    end;
 
   elsif p_decision = 'reject' then
     if p_reason is null or p_reason not in ('not_enrolled', 'id_mismatch', 'photo_mismatch', 'unreadable_documents', 'duplicate_account', 'other') then
@@ -670,9 +752,13 @@ begin
   select * into v_app from public.student_verifications where id = p_application_id;
   if not found then raise exception 'application_not_found' using errcode = 'P0001'; end if;
   if v_app.student_id = (select auth.uid()) then
+    if v_app.documents_deleted_at is not null then
+      return jsonb_build_object('id_card', null, 'selfie', null, 'deleted_at', v_app.documents_deleted_at);
+    end if;
     return jsonb_build_object('id_card', v_app.id_card_path, 'selfie', v_app.selfie_path);
   end if;
-  if v_app.status = 'draft' or not (select private.can_review_institution(v_app.institution_id)) then
+  if v_app.status not in ('submitted', 'approved', 'rejected', 'resubmission_requested')
+     or not (select private.can_review_institution(v_app.institution_id)) then
     raise exception 'forbidden' using errcode = 'P0001';
   end if;
   if v_app.documents_deleted_at is not null then
@@ -683,6 +769,24 @@ begin
     'student_verification', p_application_id, null, null, '{}'::jsonb, v_app.institution_id);
   return jsonb_build_object('id_card', v_app.id_card_path, 'selfie', v_app.selfie_path);
 end;
+$$;
+
+-- Applicants' names for the reviewer queue: only for applications the caller may
+-- review, and only the name. Replaces any direct read of public.profiles.
+create function public.get_verification_applicant_names(p_application_ids uuid[])
+returns table (application_id uuid, student_id uuid, full_name text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select v.id, v.student_id, p.full_name
+  from public.student_verifications v
+  join public.profiles p on p.id = v.student_id
+  where v.id = any (p_application_ids)
+    and cardinality(p_application_ids) <= 500
+    and v.status <> 'draft'
+    and (select private.can_review_institution(v.institution_id));
 $$;
 
 -- Everything the student area needs about the caller's verification, without reviewer identities.
@@ -769,6 +873,7 @@ revoke execute on function
   public.withdraw_verification_application(uuid),
   public.decide_verification(uuid, text, text, text),
   public.get_verification_document_paths(uuid),
+  public.get_verification_applicant_names(uuid[]),
   public.get_my_student_status(),
   public.get_student_benefit_access(),
   public.expire_student_verifications()
@@ -783,6 +888,7 @@ grant execute on function
   public.withdraw_verification_application(uuid),
   public.decide_verification(uuid, text, text, text),
   public.get_verification_document_paths(uuid),
+  public.get_verification_applicant_names(uuid[]),
   public.get_my_student_status(),
   public.get_student_benefit_access()
   to authenticated;
@@ -790,4 +896,14 @@ grant execute on function
 -- Server-only: the app calls these with the secret key after checking the user.
 grant execute on function public.issue_institutional_email_code(uuid), public.expire_student_verifications() to service_role;
 
-grant execute on function private.require_verified_student(), private.student_state(uuid) to authenticated, service_role;
+-- The gate is callable by signed-in users (it only ever checks the caller).
+-- student_state(uuid) accepts any user id, so it stays internal to definer functions.
+grant execute on function private.require_verified_student() to authenticated, service_role;
+revoke execute on function private.student_state(uuid), private.student_id_hash(uuid, text) from public, anon, authenticated, service_role;
+
+-- Postgres gives EXECUTE on every new function to PUBLIC. Migration 0001's
+-- per-schema ALTER DEFAULT PRIVILEGES cannot remove that built-in default, so the
+-- private helpers created in 0002–0004 were callable by PUBLIC. They are not reachable
+-- through the Data API (the private schema isn't exposed), but close it anyway and
+-- keep only the explicit grants above and in 0002/0003 (which RLS policies rely on).
+revoke execute on all functions in schema private from public;

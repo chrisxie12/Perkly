@@ -24,11 +24,17 @@ export type ApplicationRow = {
 const COLUMNS =
   "id, student_id, institution_id, status, student_id_number, programme, level, grad_year, institutional_email, institutional_email_confirmed, institutional_email_domain_listed, submitted_at, decided_at, decided_by, decision_reason, reviewer_note, documents_deleted_at";
 
-async function namesFor(ids: string[]): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
+/** Applicants' names, through a function that only returns them for applications the caller may review. */
+async function namesFor(applicationIds: string[]): Promise<Map<string, string>> {
+  if (applicationIds.length === 0) return new Map();
   const supabase = await createClient();
-  const { data } = await supabase.from("profiles").select("id, full_name").in("id", ids);
-  return new Map((data ?? []).map((row: { id: string; full_name: string | null }) => [row.id, row.full_name ?? "Name not given"]));
+  const { data } = await supabase.rpc("get_verification_applicant_names", { p_application_ids: applicationIds });
+  return new Map(
+    ((data ?? []) as { application_id: string; full_name: string | null }[]).map((row) => [
+      row.application_id,
+      row.full_name ?? "Name not given",
+    ]),
+  );
 }
 
 /** Applications visible to the signed-in reviewer (RLS limits them to their institutions). */
@@ -42,8 +48,8 @@ export async function getQueue() {
     .limit(200);
   if (error) throw new Error(`Could not load the queue (${error.code})`);
   const rows = (data ?? []) as ApplicationRow[];
-  const names = await namesFor(rows.map((row) => row.student_id));
-  return rows.map((row) => ({ ...row, full_name: names.get(row.student_id) ?? "Name not given" }));
+  const names = await namesFor(rows.map((row) => row.id));
+  return rows.map((row) => ({ ...row, full_name: names.get(row.id) ?? "Name not given" }));
 }
 
 export async function getDecided(limit = 100) {
@@ -56,8 +62,8 @@ export async function getDecided(limit = 100) {
     .limit(limit);
   if (error) throw new Error(`Could not load decisions (${error.code})`);
   const rows = (data ?? []) as ApplicationRow[];
-  const names = await namesFor(rows.map((row) => row.student_id));
-  return rows.map((row) => ({ ...row, full_name: names.get(row.student_id) ?? "Name not given" }));
+  const names = await namesFor(rows.map((row) => row.id));
+  return rows.map((row) => ({ ...row, full_name: names.get(row.id) ?? "Name not given" }));
 }
 
 export async function getApplication(id: string) {
@@ -66,7 +72,7 @@ export async function getApplication(id: string) {
   if (!data) return null;
   const row = data as ApplicationRow;
   const [names, institution, history] = await Promise.all([
-    namesFor([row.student_id]),
+    namesFor([row.id]),
     supabase.from("institutions").select("short_name").eq("id", row.institution_id).maybeSingle(),
     supabase
       .from("student_verifications")
@@ -77,7 +83,7 @@ export async function getApplication(id: string) {
   ]);
   return {
     ...row,
-    full_name: names.get(row.student_id) ?? "Name not given",
+    full_name: names.get(row.id) ?? "Name not given",
     institution_short_name: (institution.data as { short_name: string } | null)?.short_name ?? "",
     history: (history.data ?? []) as { id: string; status: string; decided_at: string | null; decision_reason: string | null }[],
   };
