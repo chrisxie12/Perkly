@@ -8,7 +8,17 @@ Perqly is a student-exclusive discounts and benefits platform for Ghanaian terti
 
 Perqly is **one installable Progressive Web App**. There are no native Android or iOS apps. Students, merchants, institution reviewers and Perqly staff all use the same web app.
 
-The full product and technical plan is the source of truth for decisions: <https://claude.ai/artifact/GaKkF97JCKtAc1XJFENVEL>
+**Specifications.** Phase 1 is specified in [`docs/`](./docs):
+
+| Document                                                                                | Covers                                                                   |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`PERQLY_PRODUCT_SPECIFICATION.md`](./docs/PERQLY_PRODUCT_SPECIFICATION.md)             | Vision, confirmed decisions, features by role, conflicts, open decisions |
+| [`PERQLY_DATABASE_ARCHITECTURE.md`](./docs/PERQLY_DATABASE_ARCHITECTURE.md)             | Tables, RLS, database functions, migrations                              |
+| [`PERQLY_USER_FLOWS.md`](./docs/PERQLY_USER_FLOWS.md)                                   | Screen-by-screen flows for every role                                    |
+| [`PERQLY_QR_REDEMPTION_SPECIFICATION.md`](./docs/PERQLY_QR_REDEMPTION_SPECIFICATION.md) | QR codes, redemption sessions, security controls                         |
+| [`PERQLY_IMPLEMENTATION_ROADMAP.md`](./docs/PERQLY_IMPLEMENTATION_ROADMAP.md)           | Build order, dependencies, acceptance criteria                           |
+
+The earlier product and technical plan (<https://claude.ai/artifact/GaKkF97JCKtAc1XJFENVEL>) still covers revenue, compliance and later phases. Where it disagrees with `docs/`, the documents in `docs/` win.
 
 ---
 
@@ -22,7 +32,7 @@ The full product and technical plan is the source of truth for decisions: <https
 | PWA baseline: manifest, icons, Serwist service worker, offline page, update prompt      | Done (device install tests pending, see `PWA_TESTING.md`)    |
 | Supabase browser/server clients, session refresh in `proxy.ts`, env validation          | Done; no Supabase project connected yet                      |
 | `/student`, `/merchant`, `/institution`, `/admin`                                       | "Coming soon" shells only, with no data and no fake features |
-| Authentication, verification, offers, redemption, dashboards, payments, database schema | Not started (later steps)                                    |
+| Authentication, verification, offers, bookings, redemption, dashboards, database schema | Specified in `docs/`; not started                            |
 
 ---
 
@@ -192,9 +202,4 @@ Live-pass "colour of the day" (Sun→Sat): `#7C3AED`, `#0066FF`, `#FF6B35`, `#15
 
 ## Upcoming steps
 
-1. ~~Foundation, design system, landing page, PWA baseline~~ (this step)
-2. Public student experience: deeper "how it works" and offer previews
-3. Authentication screens wired to real Supabase Auth, plus route protection
-4. Merchant and institution entry points
-5. Install experience polish (one-tap install button on Android, iPhone guide)
-6. Backend integration and dashboards (schema, RLS, verification queue, redemption)
+Phase 1 (student marketplace, merchant bookings and QR redemption) is planned step by step in [`docs/PERQLY_IMPLEMENTATION_ROADMAP.md`](./docs/PERQLY_IMPLEMENTATION_ROADMAP.md). It replaces the earlier list of Phase 0 steps 2–6. Implementation starts only after the specifications are approved.
