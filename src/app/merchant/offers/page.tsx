@@ -13,7 +13,7 @@ import { getCatalogue, getMerchantOffers } from "@/features/offers/queries";
 import { OFFER_STATUS_LABEL, discountLabel, limitLabel, offerErrorMessage } from "@/features/offers/schemas";
 import { getActiveMembership, getMerchant } from "@/features/merchants/queries";
 import { formatDate } from "@/features/students/components/status-card";
-import { canManage, merchantNavFor } from "../merchant-nav";
+import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Offers", robots: { index: false } };
 
@@ -43,7 +43,7 @@ export default async function MerchantOffersPage({ searchParams }: PageProps<"/m
   const error = typeof query.error === "string" ? query.error : undefined;
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageTitle
           title="Offers"

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAuthPage, isPrivatePath, loginPath } from "@/lib/auth/paths";
+import { PATH_HEADER } from "@/lib/navigation/path-header";
 
 /**
  * Refreshes the Supabase session cookie on every request and does the coarse
@@ -9,8 +10,10 @@ import { isAuthPage, isPrivatePath, loginPath } from "@/lib/auth/paths";
  * on the server and RLS enforces access in the database.
  */
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
   const { pathname, search } = request.nextUrl;
+  // The page path, for the per-page access check in AreaShell. Any client-sent value is replaced.
+  request.headers.set(PATH_HEADER, pathname);
+  let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 

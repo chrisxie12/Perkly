@@ -7,7 +7,6 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/states";
 import { FavouriteButton, OfferCard } from "@/features/offers/components/marketplace";
 import { getMerchantPage, listOffers } from "@/features/offers/queries";
-import { studentNav } from "../../student-nav";
 
 export const metadata: Metadata = { title: "Business", robots: { index: false } };
 
@@ -19,8 +18,8 @@ export default async function MerchantPublicPage({ params }: PageProps<"/student
   const offers = await listOffers({ merchantId: merchant.id });
 
   return (
-    <AreaShell area="Student" nav={studentNav}>
-      <Link href="/student" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
+    <AreaShell area="student">
+      <Link href="/student/explore" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
         <ArrowLeft className="size-4" aria-hidden /> All offers
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-4">

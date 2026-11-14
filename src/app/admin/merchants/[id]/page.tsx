@@ -12,7 +12,6 @@ import { getBranches, getCategories, getMerchant, getTeam } from "@/features/mer
 import { MERCHANT_STATUS_LABEL } from "@/features/merchants/schemas";
 import { formatDate } from "@/features/students/components/status-card";
 import { getAgreementState } from "@/features/agreements/queries";
-import { adminNav } from "../../admin-nav";
 
 export const metadata: Metadata = { title: "Business", robots: { index: false, follow: false } };
 
@@ -34,7 +33,7 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
   const category = categories.find((c) => c.id === merchant.category_id)?.name ?? "Unknown";
 
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <Link href="/admin/merchants" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
         <ArrowLeft className="size-4" aria-hidden /> Businesses
       </Link>

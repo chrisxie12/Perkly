@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import { BranchForm } from "@/features/merchants/components/merchant-forms";
 import { getActiveMembership, getBranches, getMerchant } from "@/features/merchants/queries";
-import { canManage, merchantNavFor } from "../merchant-nav";
+import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Branches", robots: { index: false } };
 
@@ -17,7 +17,7 @@ export default async function MerchantBranchesPage({ searchParams }: PageProps<"
   const readOnly = !canManage(membership) || merchant.status === "suspended";
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title="Branches"
         description="Each branch gets its own QR code for the counter. Closed branches are hidden from students."

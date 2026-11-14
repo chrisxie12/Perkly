@@ -11,7 +11,6 @@ import { AutoRefresh } from "@/features/redemptions/components/auto-refresh";
 import { LivePass } from "@/features/redemptions/components/live-pass";
 import { getRedemptionSession, type RedemptionSession } from "@/features/redemptions/queries";
 import { REJECT_REASONS, payLine, redemptionErrorMessage } from "@/features/redemptions/schemas";
-import { studentNav } from "../../student-nav";
 
 export const metadata: Metadata = { title: "Redeem", robots: { index: false } };
 
@@ -94,7 +93,7 @@ export default async function RedeemPage({ params, searchParams }: PageProps<"/s
   const live = s.status === "open" || s.status === "awaiting_merchant" || s.status === "awaiting_student";
 
   return (
-    <AreaShell area="Student" nav={studentNav}>
+    <AreaShell area="student">
       {live && <AutoRefresh filter={`id=eq.${s.id}`} />}
       <div className="mx-auto max-w-xl space-y-6">
         <div>

@@ -133,3 +133,72 @@ export async function getDocumentLinks(
   const [idCard, selfie] = await Promise.all([sign(paths.id_card), sign(paths.selfie)]);
   return { idCard, selfie, deleted: false };
 }
+
+export type InstitutionOverviewRow = {
+  institution_id: string;
+  short_name: string;
+  name: string;
+  via: "institution" | "delegated";
+  waiting: number;
+  oldest_waiting_at: string | null;
+  decided_7d: number;
+  verified: number;
+  expiring_30d: number;
+};
+
+export async function getInstitutionOverview() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("institution_overview");
+  if (error) throw new Error(`Could not load the overview (${error.code})`);
+  return (data ?? []) as InstitutionOverviewRow[];
+}
+
+export type InstitutionStudent = {
+  student_id: string;
+  full_name: string | null;
+  programme: string | null;
+  level: string | null;
+  grad_year: number | null;
+  campus: string | null;
+  state: "verified" | "expired";
+  verified_at: string | null;
+  verified_until: string | null;
+};
+
+export async function getInstitutionStudents(institutionId: string, query?: string, state: "verified" | "expired" | "all" = "verified") {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("institution_students", {
+    p_institution_id: institutionId,
+    p_query: query ?? null,
+    p_state: state,
+  });
+  if (error) throw new Error(`Could not load students (${error.code})`);
+  return (data ?? []) as InstitutionStudent[];
+}
+
+export async function getInstitutionSettings(institutionId: string) {
+  const supabase = await createClient();
+  const [inst, domains, campuses] = await Promise.all([
+    supabase
+      .from("institutions")
+      .select("id, name, short_name, status, review_mode, review_delegated_at, academic_year_end_month, academic_year_end_day")
+      .eq("id", institutionId)
+      .maybeSingle(),
+    supabase.from("institution_email_domains").select("id, domain, is_active").eq("institution_id", institutionId).order("domain"),
+    supabase.from("campuses").select("id, name, digital_address, is_active").eq("institution_id", institutionId).order("name"),
+  ]);
+  return {
+    institution: inst.data as {
+      id: string;
+      name: string;
+      short_name: string;
+      status: string;
+      review_mode: "institution" | "delegated";
+      review_delegated_at: string | null;
+      academic_year_end_month: number | null;
+      academic_year_end_day: number | null;
+    } | null,
+    domains: (domains.data ?? []) as { id: string; domain: string; is_active: boolean }[],
+    campuses: (campuses.data ?? []) as { id: string; name: string; digital_address: string | null; is_active: boolean }[],
+  };
+}

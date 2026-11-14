@@ -10,7 +10,6 @@ import { discountLabel, limitLabel, money } from "@/features/offers/schemas";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
-import { studentNav } from "../../student-nav";
 
 export const metadata: Metadata = { title: "Offer", robots: { index: false } };
 
@@ -22,8 +21,8 @@ export default async function OfferPage({ params }: PageProps<"/student/offers/[
   const verified = verificationView(status) === "verified";
 
   return (
-    <AreaShell area="Student" nav={studentNav}>
-      <Link href="/student" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
+    <AreaShell area="student">
+      <Link href="/student/explore" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
         <ArrowLeft className="size-4" aria-hidden /> All offers
       </Link>
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-start">

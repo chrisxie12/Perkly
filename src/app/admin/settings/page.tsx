@@ -1,0 +1,68 @@
+import type { Metadata } from "next";
+import { AreaShell, PageTitle } from "@/components/layout/area-shell";
+import { getUserContext } from "@/lib/auth/session";
+import { canManagePlatform } from "@/lib/auth/roles";
+import { SettingForm } from "@/features/admin/components/platform-forms";
+import { getPlatformSettings } from "@/features/admin/insights";
+import { formatDate } from "@/features/students/components/status-card";
+
+export const metadata: Metadata = { title: "Platform settings", robots: { index: false, follow: false } };
+
+const LABELS: Record<string, string> = {
+  "redemption.select_window_seconds": "Seconds a student has to pick an item after scanning",
+  "redemption.confirm_window_seconds": "Seconds to confirm after picking an item",
+  "redemption.max_sessions_per_hour": "Redemptions a student can start per hour",
+  "redemption.max_selects_per_session": "Times a student can change item in one redemption",
+  "redemption.merchant_actions_per_minute": "Confirms or declines per cashier per minute",
+  "redemption.payment_records_per_hour": "Payment notes per staff member per hour",
+  "redemption.payment_record_days": "Days a business can record how a student paid",
+  "redemption.near_metres": "Metres from a branch that count as near",
+  "qr.max_scans_per_minute": "Scans per student per minute",
+  "qr.max_short_code_attempts_per_10_min": "Typed codes per student per 10 minutes",
+  "qr.max_reissues_per_day": "New QR codes per branch per day",
+  "booking.max_open_per_student": "Open bookings per student (bookings aren't built yet)",
+  "verification.otp_max_per_hour": "School-email codes per student per hour",
+  "verification.document_retention_days": "Days verification photos are kept after a decision",
+};
+
+export default async function SettingsPage() {
+  const ctx = await getUserContext();
+  if (!ctx || !canManagePlatform(ctx)) {
+    return (
+      <AreaShell area="admin">
+        <PageTitle title="Not available" description="Only Perqly admins see platform settings." />
+      </AreaShell>
+    );
+  }
+  const settings = await getPlatformSettings();
+  const superAdmin = ctx.platformRole === "super_admin";
+  return (
+    <AreaShell area="admin">
+      <PageTitle
+        title="Settings"
+        description={
+          superAdmin
+            ? "Limits and time windows. Changes take effect immediately and are logged."
+            : "Limits and time windows. Only super admins change them."
+        }
+      />
+      <ul className="divide-y divide-ink-200 overflow-hidden rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70">
+        {settings.map((s) => (
+          <li key={s.key} className="flex flex-wrap items-center justify-between gap-4 p-5">
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink-900">{LABELS[s.key] ?? s.key}</span>
+              <span className="font-mono text-xs text-ink-600">
+                {s.key}, changed {formatDate(s.updated_at)}
+              </span>
+            </span>
+            {superAdmin ? (
+              <SettingForm settingKey={s.key} value={s.value} />
+            ) : (
+              <span className="font-display text-xl font-bold text-ink-900">{s.value}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </AreaShell>
+  );
+}

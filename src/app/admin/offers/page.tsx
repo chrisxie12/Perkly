@@ -8,7 +8,6 @@ import { OfferModerationForm } from "@/features/offers/components/moderation-for
 import { listOffersForStaff } from "@/features/offers/queries";
 import { OFFER_STATUS_LABEL, discountLabel, money } from "@/features/offers/schemas";
 import { formatDate } from "@/features/students/components/status-card";
-import { adminNav } from "../admin-nav";
 
 export const metadata: Metadata = { title: "Offers", robots: { index: false, follow: false } };
 
@@ -16,7 +15,7 @@ export default async function AdminOffersPage() {
   const offers = await listOffersForStaff();
   const waiting = offers.filter((o) => o.status === "pending_review").length;
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <PageTitle
         title="Offers"
         description={

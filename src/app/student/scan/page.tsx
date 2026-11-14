@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -11,7 +12,6 @@ import { getMyLiveSession } from "@/features/redemptions/queries";
 import { redemptionErrorMessage } from "@/features/redemptions/schemas";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
-import { studentNav } from "../student-nav";
 
 export const metadata: Metadata = { title: "Scan to redeem", robots: { index: false } };
 
@@ -22,6 +22,8 @@ export default async function ScanPage({ searchParams }: PageProps<"/student/sca
   const [status, live] = await Promise.all([getMyStudentStatus(), getMyLiveSession()]);
   const verified = verificationView(status) === "verified";
   const error = str(params.error);
+  // "My QR": with a redemption open, the live pass is the screen to show.
+  if (live && !error) redirect(`/student/redeem/${live}`);
   const message =
     error === "code_format"
       ? "Codes are 8 letters and numbers, printed under the QR."
@@ -35,7 +37,7 @@ export default async function ScanPage({ searchParams }: PageProps<"/student/sca
   const otherSession = str(params.session);
 
   return (
-    <AreaShell area="Student" nav={studentNav}>
+    <AreaShell area="student">
       <PageTitle
         title="Scan to redeem"
         description="Scan the Perqly code at the counter after you've been served. Pay the business directly; Perqly never takes payment."

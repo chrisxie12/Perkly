@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/states";
 import { money } from "@/features/offers/schemas";
 import { getMyHistory } from "@/features/redemptions/queries";
-import { studentNav } from "../student-nav";
 
 export const metadata: Metadata = { title: "Your savings", robots: { index: false } };
 
@@ -15,7 +14,7 @@ const when = new Intl.DateTimeFormat("en-GH", { dateStyle: "medium", timeStyle: 
 export default async function HistoryPage() {
   const { redemptions, savings } = await getMyHistory();
   return (
-    <AreaShell area="Student" nav={studentNav}>
+    <AreaShell area="student">
       <PageTitle
         title="Your savings"
         description="Every discount you've redeemed. Perqly records the discount; you pay the business directly."
@@ -36,7 +35,7 @@ export default async function HistoryPage() {
           title="No redemptions yet"
           description="Scan the Perqly code at a business after you're served, and your savings show up here."
           action={
-            <Link href="/student" className="font-semibold text-blue-600 underline underline-offset-2">
+            <Link href="/student/explore" className="font-semibold text-blue-600 underline underline-offset-2">
               Find an offer
             </Link>
           }

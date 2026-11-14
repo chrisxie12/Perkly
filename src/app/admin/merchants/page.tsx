@@ -7,7 +7,6 @@ import { EmptyState } from "@/components/shared/states";
 import { listMerchantsForStaff } from "@/features/merchants/queries";
 import { MERCHANT_STATUS_LABEL } from "@/features/merchants/schemas";
 import { formatDate } from "@/features/students/components/status-card";
-import { adminNav } from "../admin-nav";
 
 export const metadata: Metadata = { title: "Businesses", robots: { index: false, follow: false } };
 
@@ -15,7 +14,7 @@ export default async function AdminMerchantsPage() {
   const merchants = await listMerchantsForStaff();
   const waiting = merchants.filter((m) => m.status === "pending_review").length;
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <PageTitle
         title="Businesses"
         description={waiting === 0 ? "No businesses are waiting for review." : `${waiting} waiting for review, listed first.`}

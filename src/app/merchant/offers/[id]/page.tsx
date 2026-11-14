@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { OfferForm } from "@/features/offers/components/merchant-offer-forms";
 import { getCatalogue, getListedInstitutions, getMerchantOffer } from "@/features/offers/queries";
 import { getActiveMembership, getBranches } from "@/features/merchants/queries";
-import { canManage, merchantNavFor } from "../../merchant-nav";
+import { canManage } from "../../merchant-nav";
 
 export const metadata: Metadata = { title: "Edit offer", robots: { index: false } };
 
@@ -23,7 +23,7 @@ export default async function EditOfferPage({ params }: PageProps<"/merchant/off
   if (!offer) notFound();
   if (!["draft", "rejected", "paused"].includes(offer.status)) redirect("/merchant/offers");
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title="Edit offer"
         description={

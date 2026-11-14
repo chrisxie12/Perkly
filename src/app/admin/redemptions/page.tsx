@@ -9,7 +9,6 @@ import { EmptyState } from "@/components/shared/states";
 import { money } from "@/features/offers/schemas";
 import { VoidForm } from "@/features/redemptions/components/void-form";
 import { getRedemptionsForStaff } from "@/features/redemptions/queries";
-import { adminNav } from "../admin-nav";
 
 export const metadata: Metadata = { title: "Redemptions", robots: { index: false, follow: false } };
 
@@ -21,7 +20,7 @@ export default async function AdminRedemptionsPage({ searchParams }: PageProps<"
   const ref = /^PQ-[0-9A-Z]{8}$/.test(raw) ? raw : undefined;
   const rows = await getRedemptionsForStaff(ref);
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <PageTitle
         title="Redemptions"
         description="The latest 100 completed redemptions. Void one only after a dispute; the student's savings and the offer count are reversed and the void is audited."

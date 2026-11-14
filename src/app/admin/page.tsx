@@ -7,7 +7,6 @@ import { getPlatformMetrics, getRedemptionFlags } from "@/features/admin/insight
 import { listInstitutions } from "@/features/admin/queries";
 import { money } from "@/features/offers/schemas";
 import { listMerchantsForStaff } from "@/features/merchants/queries";
-import { adminNav } from "./admin-nav";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 
@@ -26,7 +25,7 @@ export default async function AdminPage() {
   );
 
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <PageTitle title="Perqly staff" description="How Perqly is doing, and what needs attention." />
       {metrics && (
         <section aria-label="Platform numbers" className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

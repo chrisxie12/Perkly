@@ -5,14 +5,13 @@ import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { EmptyState } from "@/components/shared/states";
 import { CategoryIcon } from "@/features/offers/components/marketplace";
 import { listFavourites } from "@/features/offers/queries";
-import { studentNav } from "../student-nav";
 
 export const metadata: Metadata = { title: "Saved businesses", robots: { index: false } };
 
 export default async function FavouritesPage() {
   const favourites = await listFavourites();
   return (
-    <AreaShell area="Student" nav={studentNav}>
+    <AreaShell area="student">
       <PageTitle title="Saved businesses" description="Businesses you've saved. Businesses that leave Perqly disappear from this list." />
       {favourites.length === 0 ? (
         <EmptyState
@@ -20,7 +19,7 @@ export default async function FavouritesPage() {
           title="Nothing saved yet"
           description="Tap Save on a business or offer to keep it here."
           action={
-            <Link href="/student" className="font-semibold text-blue-600 underline underline-offset-2">
+            <Link href="/student/explore" className="font-semibold text-blue-600 underline underline-offset-2">
               Browse offers
             </Link>
           }

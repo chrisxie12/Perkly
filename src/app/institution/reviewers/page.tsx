@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 import { AppointForm } from "@/features/admin/components/inline-forms";
 import { RemoveReviewerButton } from "@/features/admin/components/remove-reviewer-button";
 import { formatDate } from "@/features/students/components/status-card";
-import { institutionNavFor } from "../institution-nav";
 
 export const metadata: Metadata = { title: "Reviewers", robots: { index: false } };
 
@@ -20,7 +19,7 @@ export default async function InstitutionReviewersPage() {
 
   if (!ctx || institutions.length === 0) {
     return (
-      <AreaShell area="Institution reviewer" nav={institutionNavFor(ctx)}>
+      <AreaShell area="institution">
         <PageTitle title="Reviewers" description="Only institution admins can manage reviewers. Ask your institution admin or Perqly." />
       </AreaShell>
     );
@@ -35,7 +34,7 @@ export default async function InstitutionReviewersPage() {
   );
 
   return (
-    <AreaShell area="Institution reviewer" nav={institutionNavFor(ctx)}>
+    <AreaShell area="institution">
       <PageTitle
         title="Reviewers"
         description="The people who approve or reject your students. Appoint someone by the email they use for Perqly, and remove them when they leave."

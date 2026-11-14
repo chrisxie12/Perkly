@@ -8,7 +8,6 @@ import { getUserContext } from "@/lib/auth/session";
 import { getApplication, getDocumentLinks } from "@/features/institutions/queries";
 import { DecisionForm } from "@/features/institutions/components/decision-form";
 import { formatDate } from "@/features/students/components/status-card";
-import { institutionNavFor } from "../../institution-nav";
 
 export const metadata: Metadata = { title: "Review application", robots: { index: false } };
 
@@ -31,8 +30,8 @@ export default async function ReviewPage({ params }: PageProps<"/institution/req
   const docs = application.status === "submitted" && !isOwn ? await getDocumentLinks(id) : null;
 
   return (
-    <AreaShell area="Institution reviewer" nav={institutionNavFor(ctx)}>
-      <Link href="/institution" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
+    <AreaShell area="institution">
+      <Link href="/institution/reviews" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
         <ArrowLeft className="size-4" aria-hidden /> Back to queue
       </Link>
       <PageTitle

@@ -9,7 +9,6 @@ import { getAgreementState } from "@/features/agreements/queries";
 import { AgreementText } from "@/features/agreements/components/agreement-text";
 import { PrintAgreementButton } from "@/features/agreements/components/print-button";
 import { SignAgreementForm } from "@/features/agreements/components/sign-form";
-import { merchantNavFor } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Agreement", robots: { index: false } };
 
@@ -24,7 +23,7 @@ export default async function AgreementPage() {
   const isOwner = membership.role === "owner";
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title={current.title}
         description={`Version ${current.version}. ${signature ? "Signed for your business." : "The owner signs this once before Perqly reviews your business or your offers."}`}

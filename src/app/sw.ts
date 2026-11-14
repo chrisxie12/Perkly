@@ -15,7 +15,7 @@ declare const self: ServiceWorkerGlobalScope;
  * auth and every API route. Offline, they fall back to /offline.
  */
 // Keep in step with src/lib/auth/paths.ts. "/r" is the merchant QR link (docs/PERQLY_QR_REDEMPTION_SPECIFICATION.md §2.3).
-const PRIVATE_PREFIXES = ["/student", "/merchant", "/institution", "/admin", "/r", "/api", "/auth", "/login", "/register"];
+const PRIVATE_PREFIXES = ["/student", "/merchant", "/institution", "/admin", "/account", "/r", "/api", "/auth", "/login", "/register"];
 
 const isPrivatePath = (pathname: string) => PRIVATE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 

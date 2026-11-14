@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/shared/states";
 import { getAuditLog } from "@/features/admin/insights";
 import { getUserContext } from "@/lib/auth/session";
 import { canManagePlatform } from "@/lib/auth/roles";
-import { adminNav } from "../admin-nav";
 
 export const metadata: Metadata = { title: "Audit log", robots: { index: false, follow: false } };
 
@@ -26,7 +25,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
   const ctx = await getUserContext();
   if (!ctx || !canManagePlatform(ctx)) {
     return (
-      <AreaShell area="Perqly staff" nav={adminNav}>
+      <AreaShell area="admin">
         <PageTitle title="Not available" description="Only Perqly admins can read the audit log." />
       </AreaShell>
     );
@@ -39,7 +38,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
   const base = new URLSearchParams({ ...(action ? { action } : {}), ...(entityId ? { id: entityId } : {}) });
 
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <PageTitle title="Audit log" description="Every sensitive change, newest first. Entries can't be edited or deleted." />
       <form className="mb-6 grid max-w-2xl gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div>

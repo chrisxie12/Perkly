@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/shared/states";
 import { listInstitutions } from "@/features/admin/queries";
 import { getUserContext } from "@/lib/auth/session";
 import { canManagePlatform } from "@/lib/auth/roles";
-import { adminNav } from "../admin-nav";
 
 export const metadata: Metadata = { title: "Institutions", robots: { index: false, follow: false } };
 
@@ -23,7 +22,7 @@ export default async function InstitutionsPage() {
   const canManage = Boolean(ctx && canManagePlatform(ctx));
 
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageTitle title="Institutions" description="Students can only choose institutions marked Pilot or Active." />
         {canManage && (

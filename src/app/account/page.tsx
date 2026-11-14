@@ -12,7 +12,6 @@ import { SubmitButton } from "@/features/auth/components/submit-button";
 import { cancelDeletion, requestDeletion } from "@/features/account/actions";
 import { NameForm } from "@/features/account/components/name-form";
 import { formatDate } from "@/features/students/components/status-card";
-import { accountNavFor } from "./account-nav";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false } };
 
@@ -30,7 +29,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
   const message = typeof query.deletion === "string" ? MESSAGES[query.deletion] : undefined;
 
   return (
-    <AreaShell area="Account" nav={accountNavFor(ctx)}>
+    <AreaShell area="account">
       <PageTitle title="Your account" description="Your name, your data, and leaving Perqly." />
       {message && (
         <div role="status" className="mb-6 rounded-xl bg-blue-50 p-4 font-medium text-ink-900 ring-1 ring-blue-200">

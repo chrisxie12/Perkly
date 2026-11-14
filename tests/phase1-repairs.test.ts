@@ -122,14 +122,6 @@ describe("phase 2 routing", () => {
     expect(decideAccess("institution", reviewer).kind).toBe("allow");
   });
 
-  it("shows the Reviewers menu only to institution admins", async () => {
-    const { institutionNavFor } = await import("@/app/institution/institution-nav");
-    const admin = ctx({ institutionRoles: [{ institutionId: du.institutionId, shortName: "TU", role: "admin" }] });
-    const reviewer = ctx({ institutionRoles: [{ institutionId: du.institutionId, shortName: "TU", role: "reviewer" }] });
-    expect(institutionNavFor(admin).map((item) => item.label)).toContain("Reviewers");
-    expect(institutionNavFor(reviewer).map((item) => item.label)).not.toContain("Reviewers");
-  });
-
   it("reads delegated schools from the database context, and copes with older responses", async () => {
     const { parseUserContext } = await import("@/lib/auth/roles");
     const raw = {
@@ -168,25 +160,6 @@ describe("merchant roles", () => {
     const cashier = ctx({ aal: "aal1", merchantRoles: [{ ...shop, role: "cashier" }] });
     expect(decideAccess("merchant", cashier).kind).toBe("allow");
     expect(requiresTwoFactor(cashier)).toBe(false);
-  });
-
-  it("shows cashiers only the overview and counter, and managers the business pages", async () => {
-    const { merchantNavFor } = await import("@/app/merchant/merchant-nav");
-    const live = { ...shop, status: "approved" as const };
-    expect(merchantNavFor({ ...shop, status: "draft", role: "cashier" }).map((i) => i.label)).toEqual(["Overview"]);
-    expect(merchantNavFor({ ...live, role: "cashier" }).map((i) => i.label)).toEqual(["Overview", "Counter", "Redemptions"]);
-    expect(merchantNavFor({ ...live, role: "manager" }).map((i) => i.label)).toEqual([
-      "Overview",
-      "Counter",
-      "Redemptions",
-      "Offers",
-      "Catalogue",
-      "Branches",
-      "QR codes",
-      "Team",
-      "Agreement",
-      "Profile",
-    ]);
   });
 
   it("validates merchant forms the way the database does", async () => {

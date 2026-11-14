@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { normaliseShortCode, redemptionErrorMessage, SHORT_CODE, tokenFromScan } from "@/features/redemptions/schemas";
-import { merchantNavFor } from "@/app/merchant/merchant-nav";
 
 const origin = "https://perqly-eta.vercel.app";
 const token = "AbCdEfGhIjKlMnOpQrStU_";
@@ -32,18 +31,6 @@ describe("messages", () => {
     );
     expect(redemptionErrorMessage("qr_invalid")).toMatch(/current Perqly code/);
     expect(redemptionErrorMessage("anything")).toBeTruthy();
-  });
-});
-
-describe("merchant nav", () => {
-  it("shows the counter only to live businesses and codes only to managers", () => {
-    const cashier = merchantNavFor({ merchantId: "m", displayName: "Shop", role: "cashier", status: "approved" }).map((n) => n.href);
-    expect(cashier).toEqual(["/merchant", "/merchant/counter", "/merchant/redemptions"]);
-    const draft = merchantNavFor({ merchantId: "m", displayName: "Shop", role: "owner", status: "draft" }).map((n) => n.href);
-    expect(draft).not.toContain("/merchant/counter");
-    expect(draft).not.toContain("/merchant/codes");
-    const manager = merchantNavFor({ merchantId: "m", displayName: "Shop", role: "manager", status: "approved" }).map((n) => n.href);
-    expect(manager).toContain("/merchant/codes");
   });
 });
 

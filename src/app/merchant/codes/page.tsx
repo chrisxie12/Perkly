@@ -8,7 +8,7 @@ import { getPublicEnv } from "@/lib/env";
 import { getActiveMembership, getMerchant } from "@/features/merchants/queries";
 import { PrintPosterButton, ReissueForm } from "@/features/redemptions/components/code-tools";
 import { getBranchCodes } from "@/features/redemptions/queries";
-import { canManage, merchantNavFor } from "../merchant-nav";
+import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "QR codes", robots: { index: false } };
 
@@ -30,7 +30,7 @@ export default async function CodesPage() {
   );
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title="QR codes"
         description="Each branch has one code. Print the poster and put it where students pay. The code only identifies the branch; your cashier still confirms every discount."

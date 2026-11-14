@@ -9,7 +9,6 @@ import { getUserContext } from "@/lib/auth/session";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { markNotificationsRead } from "@/features/account/actions";
 import { getNotifications } from "@/features/redemptions/queries";
-import { accountNavFor } from "../account-nav";
 
 export const metadata: Metadata = { title: "Notifications", robots: { index: false } };
 
@@ -21,7 +20,7 @@ export default async function NotificationsPage() {
   const items = await getNotifications();
   const unread = items.filter((n) => !n.read_at).length;
   return (
-    <AreaShell area="Account" nav={accountNavFor(ctx)}>
+    <AreaShell area="account">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageTitle title="Notifications" description={unread === 0 ? "You're up to date." : `${unread} new.`} />
         {unread > 0 && (

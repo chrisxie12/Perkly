@@ -126,3 +126,51 @@ export async function getMerchantMetrics(merchantId: string) {
   if (error) return null;
   return data as MerchantMetrics;
 }
+
+export type ReportRow = { name: string; redemptions: number; students?: number; saved: number };
+export type PlatformReport = {
+  days: number;
+  since: string;
+  totals: { redemptions: number; students: number; businesses: number; saved: number; student_sales: number };
+  voided: number;
+  new_students_verified: number;
+  new_businesses: number;
+  by_institution: ReportRow[];
+  by_business: ReportRow[];
+  by_category: ReportRow[];
+  by_day: { day: string; redemptions: number; saved: number }[];
+};
+
+export const REPORT_PERIODS = [7, 30, 90, 365] as const;
+
+export async function getPlatformReport(days: number) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_report", { p_days: days });
+  if (error) throw new Error(`Could not load the report (${error.code})`);
+  return data as PlatformReport;
+}
+
+export type StaffMember = {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  granted_by_name: string | null;
+  since: string;
+};
+
+export async function getStaff() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_list_staff");
+  if (error) throw new Error(`Could not load staff (${error.code})`);
+  return (data ?? []) as StaffMember[];
+}
+
+export type PlatformSetting = { key: string; value: number; updated_at: string };
+
+export async function getPlatformSettings() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_list_settings");
+  if (error) throw new Error(`Could not load settings (${error.code})`);
+  return (data ?? []) as PlatformSetting[];
+}

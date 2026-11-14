@@ -11,7 +11,6 @@ import { findUsers, getOpenDeletionRequests } from "@/features/admin/insights";
 import { formatDate } from "@/features/students/components/status-card";
 import { getUserContext } from "@/lib/auth/session";
 import { canManagePlatform, canSupport } from "@/lib/auth/roles";
-import { adminNav } from "../admin-nav";
 
 export const metadata: Metadata = { title: "Users", robots: { index: false, follow: false } };
 
@@ -20,7 +19,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
   const ctx = await getUserContext();
   if (!ctx || !canSupport(ctx)) {
     return (
-      <AreaShell area="Perqly staff" nav={adminNav}>
+      <AreaShell area="admin">
         <PageTitle title="Not available" description="Only Perqly support and admins can look up accounts." />
       </AreaShell>
     );
@@ -29,7 +28,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
   const [users, requests] = await Promise.all([q.length >= 3 ? findUsers(q) : Promise.resolve([]), getOpenDeletionRequests()]);
 
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <PageTitle title="Users" description="Find an account by email or name, suspend or restore it, and handle deletion requests." />
       {requests.length > 0 && canManagePlatform(ctx) && (
         <Card className="mb-8">

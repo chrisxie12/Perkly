@@ -4,7 +4,7 @@ import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { Card } from "@/components/ui/card";
 import { MerchantProfileForm } from "@/features/merchants/components/merchant-forms";
 import { getActiveMembership, getCategories, getMerchant } from "@/features/merchants/queries";
-import { canManage, merchantNavFor } from "../merchant-nav";
+import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Business profile", robots: { index: false } };
 
@@ -16,7 +16,7 @@ export default async function MerchantProfilePage() {
   const readOnly = !canManage(membership) || merchant.status === "suspended";
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title="Business profile"
         description={

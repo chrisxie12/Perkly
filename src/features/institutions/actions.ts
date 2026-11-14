@@ -58,7 +58,7 @@ export async function decideApplication(_prev: FormState, formData: FormData): P
   }
 
   revalidatePath("/institution", "layout");
-  redirect(`/institution?decided=${parsed.data.decision}`);
+  redirect(`/institution/reviews?decided=${parsed.data.decision}`);
 }
 
 /**

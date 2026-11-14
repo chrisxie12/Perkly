@@ -12,7 +12,6 @@ import { confirmAtCounter, rejectAtCounter } from "@/features/redemptions/action
 import { AutoRefresh } from "@/features/redemptions/components/auto-refresh";
 import { getCounterSessions } from "@/features/redemptions/queries";
 import { REJECT_REASONS, redemptionErrorMessage } from "@/features/redemptions/schemas";
-import { merchantNavFor } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Counter", robots: { index: false } };
 
@@ -33,7 +32,7 @@ export default async function CounterPage({ searchParams }: PageProps<"/merchant
         : null;
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <AutoRefresh />
       <PageTitle
         title="Counter"

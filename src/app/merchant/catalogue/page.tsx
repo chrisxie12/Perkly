@@ -7,7 +7,7 @@ import { CatalogueItemForm } from "@/features/offers/components/merchant-offer-f
 import { getCatalogue } from "@/features/offers/queries";
 import { money } from "@/features/offers/schemas";
 import { getActiveMembership, getMerchant } from "@/features/merchants/queries";
-import { canManage, merchantNavFor } from "../merchant-nav";
+import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Catalogue", robots: { index: false } };
 
@@ -20,7 +20,7 @@ export default async function CataloguePage() {
   const readOnly = merchant.status === "suspended";
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title="Catalogue"
         description="What you sell, at your regular prices. Every student offer is a discount on one of these items."

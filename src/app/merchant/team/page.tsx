@@ -7,7 +7,7 @@ import { getUserContext } from "@/lib/auth/session";
 import { AddTeamMemberForm } from "@/features/merchants/components/merchant-forms";
 import { RemoveMemberButton } from "@/features/merchants/components/remove-member-button";
 import { getActiveMembership, getBranches, getTeam } from "@/features/merchants/queries";
-import { canManage, merchantNavFor } from "../merchant-nav";
+import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Team", robots: { index: false } };
 
@@ -18,7 +18,7 @@ export default async function MerchantTeamPage() {
   if (!membership) redirect("/merchant");
   if (!canManage(membership)) {
     return (
-      <AreaShell area="Business" nav={merchantNavFor(membership)}>
+      <AreaShell area="merchant">
         <PageTitle title="Team" description="Only owners and managers can see and change the team." />
       </AreaShell>
     );
@@ -28,7 +28,7 @@ export default async function MerchantTeamPage() {
   const isOwner = membership.role === "owner";
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle title="Team" description="People who can act for your business. Each person signs in with their own Perqly account." />
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <Card>

@@ -14,7 +14,6 @@ import { getInstitutionDetail } from "@/features/admin/queries";
 import { formatDate } from "@/features/students/components/status-card";
 import { getUserContext } from "@/lib/auth/session";
 import { canManagePlatform } from "@/lib/auth/roles";
-import { adminNav } from "../../admin-nav";
 
 export const metadata: Metadata = { title: "Institution", robots: { index: false, follow: false } };
 
@@ -81,7 +80,7 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
   const { institution, domains, campuses, reviewers } = detail;
 
   return (
-    <AreaShell area="Perqly staff" nav={adminNav}>
+    <AreaShell area="admin">
       <Link href="/admin/institutions" className="mb-6 inline-flex items-center gap-2 font-semibold text-blue-600">
         <ArrowLeft className="size-4" aria-hidden /> Institutions
       </Link>

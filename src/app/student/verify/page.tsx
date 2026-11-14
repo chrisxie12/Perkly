@@ -9,7 +9,6 @@ import { REJECTION_REASONS, studentErrorMessage, verificationView, withdrawableA
 import { WithdrawCard } from "@/features/students/components/withdraw-card";
 import { VerificationStatusCard, formatDate } from "@/features/students/components/status-card";
 import { VerificationForm } from "@/features/students/components/verification-form";
-import { studentNav } from "../student-nav";
 
 export const metadata: Metadata = { title: "Student verification", robots: { index: false } };
 
@@ -23,7 +22,7 @@ export default async function VerifyPage({ searchParams }: PageProps<"/student/v
   const canEdit = app && (app.status === "draft" || app.status === "resubmission_requested");
 
   return (
-    <AreaShell area="Student" nav={studentNav}>
+    <AreaShell area="student">
       <PageTitle
         title="Get verified"
         description={`${school}'s appointed reviewers confirm you're a student. You'll need your student ID number, a photo of your student ID card and a selfie.`}

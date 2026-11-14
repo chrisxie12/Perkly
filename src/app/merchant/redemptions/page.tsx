@@ -9,7 +9,6 @@ import { money } from "@/features/offers/schemas";
 import { PaymentForm } from "@/features/redemptions/components/payment-form";
 import { getMerchantRedemptions } from "@/features/redemptions/queries";
 import { PAYMENT_METHODS, redemptionErrorMessage } from "@/features/redemptions/schemas";
-import { merchantNavFor } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Redemptions", robots: { index: false } };
 
@@ -27,7 +26,7 @@ export default async function MerchantRedemptionsPage({ searchParams }: PageProp
   const cutoff = new Date().getTime() - WEEK;
 
   return (
-    <AreaShell area="Business" nav={merchantNavFor(membership)}>
+    <AreaShell area="merchant">
       <PageTitle
         title="Redemptions"
         description={
