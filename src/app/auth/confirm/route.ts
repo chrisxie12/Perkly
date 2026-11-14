@@ -1,22 +1,29 @@
-import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { parseConfirmParams } from "@/lib/auth/confirm-params";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
-const ALLOWED_TYPES: EmailOtpType[] = ["email", "magiclink", "signup"];
-
-/** Backup for the code: the link in the sign-in email lands here. */
+/**
+ * Backup for the code: the link in the sign-in email lands here.
+ *
+ * Two link formats arrive:
+ * - Perqly's own templates link here with `token_hash` and `type`.
+ * - Supabase's default templates (used until custom SMTP is set up, which is
+ *   what unlocks template editing) go through Supabase first, which then
+ *   redirects here with a one-time `code`. Exchanging it needs the PKCE
+ *   verifier cookie set when the code was requested, so this only works in the
+ *   browser that asked for the email.
+ */
 export async function GET(request: NextRequest) {
-  const tokenHash = request.nextUrl.searchParams.get("token_hash");
-  const type = request.nextUrl.searchParams.get("type") as EmailOtpType | null;
   const failed = new URL("/login?link=expired", request.url);
-
-  if (!hasSupabaseEnv() || !tokenHash || !type || !ALLOWED_TYPES.includes(type) || tokenHash.length > 512) {
-    return NextResponse.redirect(failed);
-  }
+  const params = parseConfirmParams(request.nextUrl.searchParams);
+  if (!hasSupabaseEnv() || !params) return NextResponse.redirect(failed);
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+  const { error } =
+    params.kind === "token_hash"
+      ? await supabase.auth.verifyOtp({ token_hash: params.tokenHash, type: params.type })
+      : await supabase.auth.exchangeCodeForSession(params.code);
   if (error) return NextResponse.redirect(failed);
 
   const response = NextResponse.redirect(new URL("/auth/continue", request.url));
