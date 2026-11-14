@@ -1,0 +1,3 @@
+# offers
+
+Feature module for offers. Not implemented yet; see the plan for the phase it arrives in.

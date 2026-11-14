@@ -1,0 +1,3 @@
+# students
+
+Feature module for students. Not implemented yet; see the plan for the phase it arrives in.

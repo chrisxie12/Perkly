@@ -1,0 +1,2 @@
+-- Seed data for local development.
+-- Intentionally empty in Phase 0: the schema arrives in Phase 1.
