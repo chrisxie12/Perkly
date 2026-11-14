@@ -25,7 +25,7 @@ export function Hero() {
         <div className="mt-10 grid grid-cols-1 items-start gap-14 lg:mt-12 lg:grid-cols-[1fr_auto] lg:gap-10">
           <div className="lg:max-w-xl lg:pt-6">
             <p className="animate-rise text-lg leading-relaxed text-ink-700 [animation-delay:320ms] md:text-xl">
-              Perkly gets verified students real discounts at food spots, print shops and services around campus. Your school confirms
+              Perqly gets verified students real discounts at food spots, print shops and services around campus. Your school confirms
               you&apos;re a student. Merchants pay for the deals. You just show up.
             </p>
 
@@ -73,10 +73,10 @@ export function Hero() {
               className="absolute top-24 right-0 hidden w-48 rotate-[6deg] animate-rise rounded-2xl bg-white p-4 shadow-lift ring-1 ring-ink-200 [animation-delay:500ms] sm:block"
             >
               <div className="flex items-center gap-2 text-xs font-bold text-ink-900">
-                <ScanLine className="size-4 text-blue-500" /> Scan with Perkly
+                <ScanLine className="size-4 text-blue-500" /> Scan with Perqly
               </div>
               <QrArt className="mt-3 w-full text-ink-900" seed={11} />
-              <p className="mt-3 text-[0.6875rem] leading-snug font-semibold text-ink-600">Auntie Esi&apos;s Waakye, counter 1</p>
+              <p className="mt-3 text-[0.6875rem] leading-snug font-semibold text-ink-600">Example shop QR, not a real business</p>
             </div>
           </div>
         </div>

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Perkly design tokens.
+ * Perqly design tokens.
  *
- * Brand: Perkly Blue #0066FF, Perk Orange #FF6B35, Ink #1F2937,
+ * Brand: Perqly Blue #0066FF, Perk Orange #FF6B35, Ink #1F2937,
  * Paper #F8FAFC, White #FFFFFF.
  *
  * Contrast rules (WCAG 2.2 AA):
@@ -18,7 +18,7 @@
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 
-  /* Perkly Blue */
+  /* Perqly Blue */
   --color-blue-50: #ebf3ff;
   --color-blue-100: #d6e6ff;
   --color-blue-200: #adcdff;
@@ -75,7 +75,7 @@
   --radius-xl: 1.75rem;
   --radius-2xl: 2.25rem;
 
-  /* Shadows tinted toward Perkly Blue, never flat grey */
+  /* Shadows tinted toward Perqly Blue, never flat grey */
   --shadow-soft: 0 1px 2px rgb(0 31 82 / 0.06), 0 4px 16px -4px rgb(0 31 82 / 0.08);
   --shadow-lift: 0 2px 4px rgb(0 31 82 / 0.06), 0 18px 40px -12px rgb(0 31 82 / 0.22);
   --shadow-phone: 0 40px 80px -24px rgb(0 20 58 / 0.45), 0 12px 24px -8px rgb(0 20 58 / 0.18);

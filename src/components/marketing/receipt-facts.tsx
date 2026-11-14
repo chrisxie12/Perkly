@@ -28,7 +28,7 @@ export function ReceiptFacts() {
         <div className="mx-auto w-full max-w-lg">
           <div className="relative bg-white px-7 pt-8 pb-12 shadow-lift [clip-path:polygon(0_0,100%_0,100%_calc(100%-14px),95%_100%,90%_calc(100%-14px),85%_100%,80%_calc(100%-14px),75%_100%,70%_calc(100%-14px),65%_100%,60%_calc(100%-14px),55%_100%,50%_calc(100%-14px),45%_100%,40%_calc(100%-14px),35%_100%,30%_calc(100%-14px),25%_100%,20%_calc(100%-14px),15%_100%,10%_calc(100%-14px),5%_100%,0_calc(100%-14px))] sm:px-10">
             <div className="flex items-baseline justify-between border-b-2 border-dashed border-ink-300 pb-5">
-              <p className="font-display text-2xl font-extrabold tracking-tight">perkly</p>
+              <p className="font-display text-2xl font-extrabold tracking-tight">perqly</p>
               <p className="text-sm font-medium text-ink-600">Receipt</p>
             </div>
             <dl className="divide-y divide-dashed divide-ink-200">

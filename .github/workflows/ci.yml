@@ -32,4 +32,4 @@ jobs:
       - run: npm run build
         env:
           # The public site builds without Supabase; no secrets are used in CI.
-          NEXT_PUBLIC_SITE_URL: https://perkly.example
+          NEXT_PUBLIC_SITE_URL: https://perqly.example

@@ -6,7 +6,7 @@ import { useSerwist } from "@serwist/turbopack/react";
 import { Button } from "@/components/ui/button";
 
 /**
- * When a new version of Perkly is deployed, the new service worker waits.
+ * When a new version of Perqly is deployed, the new service worker waits.
  * We tell the user and let them choose when to refresh, so nothing they're
  * doing is interrupted.
  */
@@ -37,7 +37,7 @@ export function UpdatePrompt() {
     <div role="status" className="pb-safe fixed inset-x-3 bottom-3 z-50 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-96">
       <div className="flex items-center gap-3 rounded-xl bg-ink-900 p-4 text-white shadow-lift">
         <p className="flex-1 text-sm leading-snug">
-          <span className="font-semibold">A new version of Perkly is ready.</span> Refresh to update.
+          <span className="font-semibold">A new version of Perqly is ready.</span> Refresh to update.
         </p>
         <Button
           size="sm"

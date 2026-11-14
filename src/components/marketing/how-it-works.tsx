@@ -23,27 +23,30 @@ function VerifyVignette() {
 
 function NearbyVignette() {
   const deals = [
-    { name: "Inkwell Print Hub", deal: "GH₵1 off every 10 pages", distance: "250 m" },
+    { name: "Paperclip Print Corner", deal: "GH₵1 off every 10 pages", distance: "250 m" },
     { name: "Sip Spot Juice Bar", deal: "Second smoothie half price", distance: "600 m" },
   ];
   return (
-    <ul className="space-y-2">
-      {deals.map((d) => (
-        <li key={d.name} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-soft ring-1 ring-ink-200">
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-blue-50 font-display font-extrabold text-blue-700">
-            {d.name[0]}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-bold">{d.deal}</span>
-            <span className="block truncate text-xs text-ink-600">{d.name}</span>
-          </span>
-          <span className="flex items-center gap-1 text-xs font-semibold text-ink-700">
-            <MapPin className="size-3.5" aria-hidden />
-            {d.distance}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <p className="mb-2 text-xs font-semibold text-ink-600">Example deals, not real businesses</p>
+      <ul className="space-y-2">
+        {deals.map((d) => (
+          <li key={d.name} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-soft ring-1 ring-ink-200">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-blue-50 font-display font-extrabold text-blue-700">
+              {d.name[0]}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-bold">{d.deal}</span>
+              <span className="block truncate text-xs text-ink-600">{d.name}</span>
+            </span>
+            <span className="flex items-center gap-1 text-xs font-semibold text-ink-700">
+              <MapPin className="size-3.5" aria-hidden />
+              {d.distance}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -74,7 +77,7 @@ const steps = [
   },
   {
     title: "Scan the QR at the counter",
-    body: "Every partner shop has a Perkly QR. Scan it, choose your deal and show the live pass on your phone. That's it.",
+    body: "Every partner shop has a Perqly QR. Scan it, choose your deal and show the live pass on your phone. That's it.",
     vignette: <ScanVignette />,
   },
 ];

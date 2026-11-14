@@ -8,7 +8,7 @@ export default function InstitutionPage() {
     <ComingSoonShell
       area="Institutions"
       title="Where your reviewers approve your students."
-      description="Each partner institution appoints reviewers who approve or reject their own students' verification requests here. Access is set up for each school after it signs an agreement with Perkly."
+      description="Each partner institution appoints reviewers who approve or reject their own students' verification requests here. Access is set up for each school after it signs an agreement with Perqly."
       points={[
         "A queue of your institution's requests only",
         "Approve, reject or ask for more information",

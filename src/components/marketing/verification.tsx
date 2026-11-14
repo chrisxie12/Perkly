@@ -16,7 +16,7 @@ export function Verification() {
             Your school says you&apos;re a student. Not us.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
-            Reviewers appointed by your institution approve every verification request. Perkly collects the details they need and keeps a
+            Reviewers appointed by your institution approve every verification request. Perqly collects the details they need and keeps a
             record of every decision.
           </p>
           <ul className="mt-10 space-y-6">

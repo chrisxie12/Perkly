@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { QrArt } from "@/components/marketing/qr-art";
 
 const benefits = [
-  { icon: Users, title: "Reach verified students", body: "Every Perkly customer has been approved by their school." },
+  { icon: Users, title: "Reach verified students", body: "Every Perqly customer has been approved by their school." },
   { icon: Printer, title: "No scanner needed", body: "Print your branch QR and put it on the counter. That's the setup." },
   { icon: Smartphone, title: "Confirm from any phone", body: "Passes show up on your counter screen. Tap to confirm." },
   { icon: BarChart3, title: "See what's working", body: "Views, redemptions and repeat students for every offer." },
@@ -20,7 +20,7 @@ export function Merchants() {
             More students through your door. Free to join for the pilot.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-300">
-            You choose the discount and the limits. Perkly brings you verified students from the campus next door and shows you the results.
+            You choose the discount and the limits. Perqly brings you verified students from the campus next door and shows you the results.
           </p>
           <ul className="mt-10 grid gap-6 sm:grid-cols-2">
             {benefits.map(({ icon: Icon, title, body }) => (
@@ -33,7 +33,7 @@ export function Merchants() {
           </ul>
           <div className="mt-12 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" variant="accent">
-              <Link href="/merchant">Partner with Perkly</Link>
+              <Link href="/merchant">Partner with Perqly</Link>
             </Button>
           </div>
         </div>
@@ -42,11 +42,11 @@ export function Merchants() {
         <div
           className="relative mx-auto w-full max-w-md"
           role="img"
-          aria-label="Example: a printed Perkly QR stand next to the merchant's counter screen"
+          aria-label="Example: a printed Perqly QR stand next to the merchant's counter screen"
         >
           <div className="rounded-2xl bg-white p-6 text-ink-900 shadow-phone">
             <div className="rounded-xl bg-blue-500 p-5 text-white">
-              <p className="font-display text-xl font-extrabold">Student? Scan with Perkly</p>
+              <p className="font-display text-xl font-extrabold">Student? Scan with Perqly</p>
               <p className="mt-1 text-sm text-white">Verified students get today&apos;s deal</p>
               <div className="mt-4 rounded-lg bg-white p-3">
                 <QrArt className="mx-auto w-40" seed={23} />

@@ -25,7 +25,7 @@ export function ComingSoonShell({
     <div className="flex min-h-dvh flex-col bg-paper">
       <header className="pt-safe border-b border-ink-200 bg-white">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link href="/" aria-label="Perkly home">
+          <Link href="/" aria-label="Perqly home">
             <Logo />
           </Link>
           <span className="rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700">{area}</span>

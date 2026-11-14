@@ -27,7 +27,7 @@ export type PublicEnv = z.infer<typeof publicEnvSchema>;
 export class MissingEnvError extends Error {
   constructor(issues: string[]) {
     super(
-      `Perkly is missing or has invalid environment variables:\n- ${issues.join("\n- ")}\nSee .env.example and README.md → Environment variables.`,
+      `Perqly is missing or has invalid environment variables:\n- ${issues.join("\n- ")}\nSee .env.example and README.md → Environment variables.`,
     );
     this.name = "MissingEnvError";
   }

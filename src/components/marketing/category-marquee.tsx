@@ -29,7 +29,7 @@ function Row({ hidden = false }: { hidden?: boolean }) {
   );
 }
 
-/** The kinds of places Perkly covers. Pauses on hover and for reduced motion. */
+/** The kinds of places Perqly covers. Pauses on hover and for reduced motion. */
 export function CategoryMarquee() {
   return (
     <section aria-label="Deal categories" className="relative py-6">

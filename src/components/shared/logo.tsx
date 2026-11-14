@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The Perkly mark: a lowercase "p" on Perkly Blue, with an orange dot
+ * The Perqly mark: a lowercase "p" on Perqly Blue, with an orange dot
  * for the perk. The same geometry is used for the PWA icons
  * (scripts/generate-icons.mjs), so keep the two in sync.
  */
@@ -29,7 +29,7 @@ export function Logo({ className, inverse = false }: { className?: string; inver
       <span
         className={cn("font-display text-[1.6rem] leading-none font-extrabold tracking-[-0.04em]", inverse ? "text-white" : "text-ink-900")}
       >
-        perkly
+        perqly
       </span>
     </span>
   );

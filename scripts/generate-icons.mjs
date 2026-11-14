@@ -1,4 +1,4 @@
-// Generates the PWA and Apple icons from the Perkly mark.
+// Generates the PWA and Apple icons from the Perqly mark.
 // Run: npm run icons
 // Keep the geometry in sync with src/components/shared/logo.tsx.
 import { mkdir, writeFile } from "node:fs/promises";

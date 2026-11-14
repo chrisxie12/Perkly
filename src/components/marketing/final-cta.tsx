@@ -12,7 +12,7 @@ export function FinalCta() {
               Your student price is waiting.
             </h2>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white md:text-xl">
-              Get ready for the GCTU pilot. Install Perkly now and you&apos;ll be first in line when sign-up opens.
+              Get ready for the GCTU pilot. Install Perqly now and you&apos;ll be first in line when sign-up opens.
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row md:flex-col lg:flex-row">

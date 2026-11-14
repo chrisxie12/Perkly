@@ -14,7 +14,7 @@ const offers: { merchant: string; deal: string; detail: string; category: string
     band: "bg-orange-500 text-ink-900",
   },
   {
-    merchant: "Inkwell Print Hub",
+    merchant: "Paperclip Print Corner",
     deal: "GH₵1 off every 10 pages",
     detail: "Printing, binding, photocopies",
     category: "Printing",
@@ -63,7 +63,7 @@ export function ExampleOffers() {
           <SectionHeading
             id="offers-title"
             title="The kind of deals you'll find."
-            intro="These are examples to show how Perkly works. Real offers from real GCTU-area businesses appear when the pilot opens."
+            intro="These are examples to show how Perqly works. Real offers from real GCTU-area businesses appear when the pilot opens."
           />
           <Badge variant="outline" className="self-start md:self-auto">
             Example offers, not real businesses
@@ -97,6 +97,10 @@ export function ExampleOffers() {
             </li>
           ))}
         </ul>
+        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-ink-600">
+          The businesses and discounts above are invented to illustrate Perqly. They are not Perqly partners, and no partnership or offer
+          with them exists.
+        </p>
       </PageContainer>
     </section>
   );

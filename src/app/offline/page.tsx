@@ -18,7 +18,7 @@ export default function OfflinePage() {
       </div>
       <h1 className="mt-8 font-display text-display-md font-extrabold">You&apos;re offline.</h1>
       <p className="mt-4 max-w-sm text-lg leading-relaxed text-ink-600">
-        Perkly needs a connection to load this page. Check your data or Wi-Fi, then try again.
+        Perqly needs a connection to load this page. Check your data or Wi-Fi, then try again.
       </p>
       <RetryButton />
       <p className="mt-6 max-w-sm text-sm text-ink-600">

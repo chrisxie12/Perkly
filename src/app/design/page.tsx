@@ -14,7 +14,7 @@ import { DAY_COLOURS } from "@/lib/day-colour";
 export const metadata: Metadata = { title: "Design system", robots: { index: false, follow: false } };
 
 const swatches = [
-  { name: "Perkly Blue", value: "#0066FF", className: "bg-blue-500", text: "text-white" },
+  { name: "Perqly Blue", value: "#0066FF", className: "bg-blue-500", text: "text-white" },
   { name: "Perk Orange", value: "#FF6B35", className: "bg-orange-500", text: "text-ink-900" },
   { name: "Ink", value: "#1F2937", className: "bg-ink-900", text: "text-white" },
   { name: "Paper", value: "#F8FAFC", className: "bg-paper ring-1 ring-ink-200", text: "text-ink-900" },
@@ -30,13 +30,13 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-/** Internal reference for the Perkly design system. Not linked anywhere. */
+/** Internal reference for the Perqly design system. Not linked anywhere. */
 export default function DesignPage() {
   return (
     <main className="py-16">
       <PageContainer>
         <Logo />
-        <h1 className="mt-8 font-display text-display-lg font-extrabold">Perkly design system</h1>
+        <h1 className="mt-8 font-display text-display-lg font-extrabold">Perqly design system</h1>
 
         <Block title="Colour">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">

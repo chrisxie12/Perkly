@@ -7,11 +7,11 @@ export default function PrivacyPage() {
   return (
     <DraftLegalPage title="Privacy">
       <p>
-        Perkly&apos;s privacy policy is being prepared ahead of the GCTU pilot, together with registration with Ghana&apos;s Data Protection
+        Perqly&apos;s privacy policy is being prepared ahead of the GCTU pilot, together with registration with Ghana&apos;s Data Protection
         Commission under the Data Protection Act, 2012 (Act 843).
       </p>
       <p>
-        Perkly does not collect any personal information yet. Sign-up and verification are not open, and this site sets no tracking cookies.
+        Perqly does not collect any personal information yet. Sign-up and verification are not open, and this site sets no tracking cookies.
       </p>
     </DraftLegalPage>
   );

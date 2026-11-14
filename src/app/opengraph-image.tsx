@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Perkly: show your pass, pay the student price.";
+export const alt = "Perqly: show your pass, pay the student price.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -35,7 +35,7 @@ export default function OpengraphImage() {
         >
           p
         </div>
-        <div style={{ fontSize: 56, fontWeight: 800, letterSpacing: -2 }}>perkly</div>
+        <div style={{ fontSize: 56, fontWeight: 800, letterSpacing: -2 }}>perqly</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ fontSize: 92, fontWeight: 800, lineHeight: 1, letterSpacing: -3 }}>Show your pass.</div>

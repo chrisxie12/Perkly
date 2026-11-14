@@ -15,12 +15,12 @@ const smallCards = [
   {
     icon: Smartphone,
     title: "Any phone, any browser",
-    body: "Android or iPhone. Perkly runs in your browser and stays light on data.",
+    body: "Android or iPhone. Perqly runs in your browser and stays light on data.",
   },
   {
     icon: Download,
     title: "Installs like an app",
-    body: "Add Perkly to your home screen in two taps. No Play Store, no App Store, no big download.",
+    body: "Add Perqly to your home screen in two taps. No Play Store, no App Store, no big download.",
   },
 ];
 
@@ -34,12 +34,12 @@ export function StudentBenefits() {
           <div className="grain relative overflow-hidden rounded-2xl bg-blue-500 p-8 text-white md:col-span-3 md:row-span-2 md:p-10">
             <p className="font-display text-display-lg font-extrabold">Free for students. Always.</p>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white">
-              You never pay to use Perkly. Businesses pay to reach verified students, and that pays for the platform.
+              You never pay to use Perqly. Businesses pay to reach verified students, and that pays for the platform.
             </p>
             <div className="mt-10 flex items-center gap-4 rounded-xl bg-white/12 p-4 ring-1 ring-white/20 md:mt-16">
               <PiggyBank className="size-9 shrink-0 text-orange-300" aria-hidden />
               <p className="text-[0.9375rem] leading-snug">
-                <span className="font-semibold text-white">Your savings, counted.</span> Perkly keeps a running total of what you&apos;ve
+                <span className="font-semibold text-white">Your savings, counted.</span> Perqly keeps a running total of what you&apos;ve
                 saved this semester.
               </p>
             </div>

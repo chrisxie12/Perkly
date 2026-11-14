@@ -19,7 +19,7 @@ export default function StudentPage() {
       ]}
       action={
         <Button asChild>
-          <Link href="/install">Install Perkly now</Link>
+          <Link href="/install">Install Perqly now</Link>
         </Button>
       }
     />

@@ -27,7 +27,7 @@ export function SiteHeader() {
       )}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-8 md:h-20 lg:px-10">
-        <Link href="/" aria-label="Perkly home" className="rounded-lg">
+        <Link href="/" aria-label="Perqly home" className="rounded-lg">
           <Logo />
         </Link>
 

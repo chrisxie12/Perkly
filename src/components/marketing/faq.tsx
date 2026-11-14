@@ -3,12 +3,12 @@ import { PageContainer } from "@/components/layout/page-container";
 
 export const faqs = [
   {
-    q: "Is Perkly free for students?",
-    a: "Yes. Students never pay to use Perkly. Businesses pay to reach verified students, and that keeps it free for you.",
+    q: "Is Perqly free for students?",
+    a: "Yes. Students never pay to use Perqly. Businesses pay to reach verified students, and that keeps it free for you.",
   },
   {
     q: "Who can join?",
-    a: "Students at institutions that partner with Perkly. We're launching first at GCTU and will add more Ghanaian tertiary institutions after the pilot.",
+    a: "Students at institutions that partner with Perqly. We're launching first at GCTU and will add more Ghanaian tertiary institutions after the pilot.",
   },
   {
     q: "How does verification work?",
@@ -16,15 +16,15 @@ export const faqs = [
   },
   {
     q: "Do I need to download an app?",
-    a: "No. Perkly runs in your phone's browser. You can add it to your home screen in two taps so it opens like an app, without the Play Store or App Store.",
+    a: "No. Perqly runs in your phone's browser. You can add it to your home screen in two taps so it opens like an app, without the Play Store or App Store.",
   },
   {
     q: "How do I use a discount at a shop?",
-    a: "Open Perkly, scan the Perkly QR at the counter, pick the deal and show the live pass on your screen. The cashier checks your photo and code, confirms it, and you pay the student price.",
+    a: "Open Perqly, scan the Perqly QR at the counter, pick the deal and show the live pass on your screen. The cashier checks your photo and code, confirms it, and you pay the student price.",
   },
   {
-    q: "My school isn't on Perkly yet. What can I do?",
-    a: "We're starting with GCTU so we can get it right, then adding schools one by one. Install Perkly now and you'll be ready when your school joins.",
+    q: "My school isn't on Perqly yet. What can I do?",
+    a: "We're starting with GCTU so we can get it right, then adding schools one by one. Install Perqly now and you'll be ready when your school joins.",
   },
   {
     q: "How do businesses join?",

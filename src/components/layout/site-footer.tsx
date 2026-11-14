@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/page-container";
 
 const columns = [
   {
-    title: "Perkly",
+    title: "Perqly",
     links: [
       { href: "/#how-it-works", label: "How it works" },
       { href: "/#students", label: "For students" },
@@ -64,7 +64,7 @@ export async function SiteFooter() {
         ))}
       </PageContainer>
       <PageContainer className="mt-14 flex flex-col gap-2 border-t border-white/10 pt-8 text-sm sm:flex-row sm:justify-between">
-        <p>© {year} Perkly. All rights reserved.</p>
+        <p>© {year} Perqly. All rights reserved.</p>
         <p>Made in Accra, Ghana</p>
       </PageContainer>
     </footer>

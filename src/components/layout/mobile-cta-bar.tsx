@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Sticky "Get Perkly" bar on phones. It appears after the hero and hides
+ * Sticky "Get Perqly" bar on phones. It appears after the hero and hides
  * again when the footer comes into view, so it never covers footer links.
  */
 export function MobileCtaBar() {
@@ -48,7 +48,7 @@ export function MobileCtaBar() {
           <span className="font-semibold text-ink-900">Free for students.</span> Launching at GCTU.
         </p>
         <Button asChild>
-          <Link href="/student">Get Perkly</Link>
+          <Link href="/student">Get Perqly</Link>
         </Button>
       </div>
     </div>
