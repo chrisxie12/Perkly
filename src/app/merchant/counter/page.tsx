@@ -33,7 +33,7 @@ export default async function CounterPage({ searchParams }: PageProps<"/merchant
         : null;
 
   return (
-    <AreaShell area="Merchant" nav={merchantNavFor(membership)}>
+    <AreaShell area="Business" nav={merchantNavFor(membership)}>
       <AutoRefresh />
       <PageTitle
         title="Counter"

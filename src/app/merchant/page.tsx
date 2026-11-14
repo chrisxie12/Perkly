@@ -11,6 +11,8 @@ import { chooseMerchant, submitForReview } from "@/features/merchants/actions";
 import { RegisterMerchantForm } from "@/features/merchants/components/merchant-forms";
 import { getActiveMembership, getBranches, getCategories, getMerchant } from "@/features/merchants/queries";
 import { MERCHANT_STATUS_LABEL, merchantErrorMessage } from "@/features/merchants/schemas";
+import { getMerchantMetrics } from "@/features/admin/insights";
+import { money } from "@/features/offers/schemas";
 import { canManage, merchantNavFor } from "./merchant-nav";
 
 export const metadata: Metadata = { title: "Your business", robots: { index: false } };
@@ -49,7 +51,11 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
     );
   }
 
-  const [merchant, branches] = await Promise.all([getMerchant(membership.merchantId), getBranches(membership.merchantId)]);
+  const [merchant, branches, metrics] = await Promise.all([
+    getMerchant(membership.merchantId),
+    getBranches(membership.merchantId),
+    membership.status === "approved" && canManage(membership) ? getMerchantMetrics(membership.merchantId) : Promise.resolve(null),
+  ]);
   if (!merchant) {
     return (
       <AreaShell area="Business" nav={merchantNavFor(membership)}>
@@ -168,6 +174,43 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
                 </>
               )}
             </div>
+          </Card>
+        )}
+
+        {metrics && (
+          <Card>
+            <CardTitle>Last 30 days</CardTitle>
+            <dl className="mt-4 grid grid-cols-2 gap-4">
+              {[
+                ["Redemptions", `${metrics.redemptions_30d}`],
+                ["Students", `${metrics.students_30d}`],
+                ["Discounts given", money(metrics.discounts_30d)],
+                ["Student sales", money(metrics.student_sales_30d)],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-sm text-ink-600">{label}</dt>
+                  <dd className="font-display text-2xl font-extrabold text-ink-900">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-4 text-sm text-ink-600">
+              {metrics.redemptions_7d} this week. {metrics.saves} student{metrics.saves === 1 ? " has" : "s have"} saved your business.
+              {metrics.confirmed_not_completed_30d > 0
+                ? ` ${metrics.confirmed_not_completed_30d} confirmed at the counter but not finished by the student.`
+                : ""}
+            </p>
+            {metrics.top_offers.length > 0 && (
+              <>
+                <p className="mt-4 text-sm font-semibold text-ink-900">Most redeemed</p>
+                <ul className="mt-1 text-ink-700">
+                  {metrics.top_offers.map((o) => (
+                    <li key={o.offer_id}>
+                      {o.title}: {o.redemptions}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </Card>
         )}
 

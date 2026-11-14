@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { colourOfDay } from "../schemas";
+import { dayColourFor } from "@/lib/day-colour";
 
 const clock = new Intl.DateTimeFormat("en-GH", {
   hour: "2-digit",
@@ -34,10 +34,10 @@ export function LivePass({
       window.clearInterval(timer);
     };
   }, []);
-  const colour = colourOfDay(now ?? new Date(expiresAt));
+  const colour = dayColourFor(now ?? new Date(expiresAt));
   const left = now ? Math.max(0, Math.floor((new Date(expiresAt).getTime() - now.getTime()) / 1000)) : null;
   return (
-    <div className="overflow-hidden rounded-2xl text-white shadow-soft" style={{ backgroundColor: colour }}>
+    <div className="overflow-hidden rounded-2xl shadow-soft" style={{ backgroundColor: colour.hex, color: colour.ink }}>
       <div className="flex items-start justify-between gap-4 p-5">
         <div>
           <p className="text-sm font-semibold opacity-90">Perqly student pass</p>

@@ -16,7 +16,7 @@ export const AREA_LABEL: Record<Area, string> = {
 };
 
 /** Paths that need a signed-in user. Also NetworkOnly in the service worker. */
-export const PRIVATE_PREFIXES = ["/student", "/merchant", "/institution", "/admin", "/r"] as const;
+export const PRIVATE_PREFIXES = ["/student", "/merchant", "/institution", "/admin", "/account", "/r"] as const;
 
 /** Sign-in pages: signed-in users are sent on from these. */
 export const AUTH_PAGES = ["/login", "/register"] as const;

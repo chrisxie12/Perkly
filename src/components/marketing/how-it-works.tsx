@@ -23,8 +23,8 @@ function VerifyVignette() {
 
 function NearbyVignette() {
   const deals = [
-    { name: "Paperclip Print Corner", deal: "GH₵1 off every 10 pages", distance: "250 m" },
-    { name: "Sip Spot Juice Bar", deal: "Second smoothie half price", distance: "600 m" },
+    { name: "Paperclip Print Corner", deal: "GH₵1 off every 10 pages", distance: "Tesano" },
+    { name: "Sip Spot Juice Bar", deal: "Second smoothie half price", distance: "Abelemkpe" },
   ];
   return (
     <div>
@@ -72,12 +72,12 @@ const steps = [
   },
   {
     title: "Find a deal near campus",
-    body: "Browse discounts from food spots, print shops, barbers and more, sorted by how close they are to your campus.",
+    body: "Browse student prices from food spots, print shops, barbers and more near campus. Search, filter by category and save your favourites.",
     vignette: <NearbyVignette />,
   },
   {
     title: "Scan the QR at the counter",
-    body: "Every partner shop has a Perqly QR. Scan it, choose your deal and show the live pass on your phone. That's it.",
+    body: "After you're served, scan the shop's Perqly QR and pick what you bought. The cashier confirms, you confirm, and you pay the shop the student price directly.",
     vignette: <ScanVignette />,
   },
 ];

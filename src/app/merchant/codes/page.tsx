@@ -30,7 +30,7 @@ export default async function CodesPage() {
   );
 
   return (
-    <AreaShell area="Merchant" nav={merchantNavFor(membership)}>
+    <AreaShell area="Business" nav={merchantNavFor(membership)}>
       <PageTitle
         title="QR codes"
         description="Each branch has one code. Print the poster and put it where students pay. The code only identifies the branch; your cashier still confirms every discount."

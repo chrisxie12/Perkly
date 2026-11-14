@@ -14,6 +14,8 @@ Phase 0, step 1 is done and live at https://perqly-eta.vercel.app/: the Next.js 
 
 This roadmap **replaces** two earlier lists: steps 2–6 of the README's "Upcoming steps", and Phase 1 of the earlier plan's roadmap. Phase 0's remaining work (the public student experience, install polish) folds into the steps below so the public pages describe features as they become real.
 
+**Progress (2026-11-14, local build):** built and tested locally, not yet applied to staging or pushed: migration 0006 (role management, already pushed as code but not applied), 0007 merchants, 0008 catalogue and offers, 0009 QR redemption, 0010 admin insights, with their screens. Bookings (1.7) are not built; redemption works without them. The student photo on the live pass waits for a retained profile photo (verification photos are deleted after 30 days). See `docs/PRODUCTION_SEPARATION.md` and `docs/ACCOUNT_DELETION_RUNBOOK.md`.
+
 ## 2. Principles for every step
 
 - Each step is a set of small, reviewable pull requests to `main`. Each push deploys a preview, and `main` deploys production on Vercel.

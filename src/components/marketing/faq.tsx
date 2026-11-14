@@ -20,7 +20,7 @@ export const faqs = [
   },
   {
     q: "How do I use a discount at a shop?",
-    a: "Open Perqly, scan the Perqly QR at the counter, pick the deal and show the live pass on your screen. The cashier checks your photo and code, confirms it, and you pay the student price.",
+    a: "Open Perqly, scan the Perqly QR at the counter, pick what you bought and show the live pass on your screen. The cashier checks your name and pass code and confirms, you confirm, and you pay the shop the student price directly.",
   },
   {
     q: "My school isn't on Perqly yet. What can I do?",

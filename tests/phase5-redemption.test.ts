@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { colourOfDay, normaliseShortCode, redemptionErrorMessage, SHORT_CODE, tokenFromScan } from "@/features/redemptions/schemas";
+import { normaliseShortCode, redemptionErrorMessage, SHORT_CODE, tokenFromScan } from "@/features/redemptions/schemas";
 import { merchantNavFor } from "@/app/merchant/merchant-nav";
 
 const origin = "https://perqly-eta.vercel.app";
@@ -25,16 +25,6 @@ describe("short codes", () => {
   });
 });
 
-describe("pass colour", () => {
-  it("is the same all day and changes the next day", () => {
-    const morning = new Date("2026-11-14T06:00:00Z");
-    const night = new Date("2026-11-14T23:59:00Z");
-    const tomorrow = new Date("2026-11-15T06:00:00Z");
-    expect(colourOfDay(morning)).toBe(colourOfDay(night));
-    expect(colourOfDay(tomorrow)).not.toBe(colourOfDay(morning));
-  });
-});
-
 describe("messages", () => {
   it("explains limits with the reset date", () => {
     expect(redemptionErrorMessage("limit_reached", { limit: 1, period: "month", resets_at: "2026-12-01T00:00:00Z" })).toMatch(
@@ -54,5 +44,30 @@ describe("merchant nav", () => {
     expect(draft).not.toContain("/merchant/codes");
     const manager = merchantNavFor({ merchantId: "m", displayName: "Shop", role: "manager", status: "approved" }).map((n) => n.href);
     expect(manager).toContain("/merchant/codes");
+  });
+});
+
+describe("account and staff helpers", () => {
+  it("lets support look up users but only admins manage the platform", async () => {
+    const { canSupport, canManagePlatform } = await import("@/lib/auth/roles");
+    const base = {
+      userId: "u",
+      fullName: null,
+      firstName: null,
+      signupIntent: null,
+      isSuspended: false,
+      aal: "aal2" as const,
+      institutionRoles: [],
+      delegatedInstitutions: [],
+      merchantRoles: [],
+    };
+    expect(canSupport({ ...base, platformRole: "support" })).toBe(true);
+    expect(canManagePlatform({ ...base, platformRole: "support" })).toBe(false);
+    expect(canSupport({ ...base, platformRole: "reviewer" })).toBe(false);
+    expect(canSupport({ ...base, platformRole: null })).toBe(false);
+  });
+  it("treats /account as private", async () => {
+    const { isPrivatePath } = await import("@/lib/auth/paths");
+    expect(isPrivatePath("/account/notifications")).toBe(true);
   });
 });

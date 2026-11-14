@@ -50,13 +50,6 @@ export function isToken(value: string) {
   return TOKEN.test(value);
 }
 
-/** The pass's colour of the day, the same for everyone on an Accra calendar day. */
-const DAY_COLOURS = ["#2563EB", "#DB2777", "#059669", "#D97706", "#7C3AED", "#DC2626", "#0891B2"] as const;
-export function colourOfDay(date = new Date()) {
-  const day = Math.floor(date.getTime() / 86_400_000); // Accra is UTC+0 all year.
-  return DAY_COLOURS[((day % 7) + 7) % 7];
-}
-
 type LimitDetail = { limit?: number; period?: string; resets_at?: string | null };
 
 /** Student-facing messages from the spec (section 9). */

@@ -10,7 +10,7 @@ const smallCards = [
   {
     icon: MapPin,
     title: "Close to campus",
-    body: "Deals are sorted by distance, so the chop bar round the corner comes before the mall across town.",
+    body: "Businesses around your campus, with branch addresses, opening hours and directions.",
   },
   {
     icon: Smartphone,

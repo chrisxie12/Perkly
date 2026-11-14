@@ -178,10 +178,3 @@ export async function voidRedemption(_prev: FormState, formData: FormData): Prom
   revalidatePath("/admin/redemptions");
   return { status: "success", message: "Voided. The student's savings and the offer's count were reversed." };
 }
-
-export async function markAllNotificationsRead(): Promise<void> {
-  if (!hasSupabaseEnv()) return;
-  const supabase = await createClient();
-  await supabase.rpc("mark_notifications_read", { p_ids: null });
-  revalidatePath("/notifications");
-}

@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils";
 export function LivePass({ className }: { className?: string }) {
   const epochSeconds = useTickingClock();
   const now = epochSeconds === null ? null : new Date(epochSeconds * 1000);
-  // The illustration counts down from 2:47 and loops every 3 minutes.
-  const secondsLeft = epochSeconds === null ? 167 : 180 - (epochSeconds % 180);
+  // The illustration counts down from 9:47 and loops every 10 minutes, like a real pass.
+  const secondsLeft = epochSeconds === null ? 587 : 600 - (epochSeconds % 600);
 
   const colour: DayColour = now ? dayColourFor(now) : DAY_COLOURS[1];
   const minutes = Math.floor(secondsLeft / 60);

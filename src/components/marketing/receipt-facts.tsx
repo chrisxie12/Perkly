@@ -8,7 +8,7 @@ const lines = [
   { label: "What students pay", value: "GH₵0" },
   { label: "What merchants pay to join during the pilot", value: "GH₵0" },
   { label: "Campuses at launch", value: "1, GCTU" },
-  { label: "How long a live pass lasts", value: "3 min" },
+  { label: "How long a live pass lasts", value: "10 min" },
   { label: "App stores you need to visit", value: "0" },
 ];
 

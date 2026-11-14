@@ -126,6 +126,11 @@ export function defaultDestination(ctx: UserContext): Destination {
  * Can change platform settings (institutions, reviewers). Mirrors the database's
  * `private.is_staff('admin')`, which also needs two-factor; the admin area enforces that.
  */
+/** Perqly support and above: user lookup, redemptions, analytics. */
+export function canSupport(ctx: UserContext): boolean {
+  return ctx.platformRole === "support" || canManagePlatform(ctx);
+}
+
 export function canManagePlatform(ctx: UserContext): boolean {
   return ctx.platformRole === "admin" || ctx.platformRole === "super_admin";
 }

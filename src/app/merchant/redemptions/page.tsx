@@ -27,7 +27,7 @@ export default async function MerchantRedemptionsPage({ searchParams }: PageProp
   const cutoff = new Date().getTime() - WEEK;
 
   return (
-    <AreaShell area="Merchant" nav={merchantNavFor(membership)}>
+    <AreaShell area="Business" nav={merchantNavFor(membership)}>
       <PageTitle
         title="Redemptions"
         description={
