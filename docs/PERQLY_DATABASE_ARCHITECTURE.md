@@ -232,7 +232,7 @@ Purpose: one row per verification application; history is kept.
 | `decided_by_type`                   | `decider_type` null           | `institution` or `perqly` (delegated review only)                                                                                      |
 | `decision_reason`                   | text null                     | Rejection code: `not_enrolled`, `id_mismatch`, `photo_mismatch`, `unreadable_documents`, `duplicate_account`, `other`                  |
 | `reviewer_note`                     | text null                     | Shown to the student; required for resubmission requests and "other" rejections                                                        |
-| `documents_deleted_at`              | timestamptz null              | Set by the 30-day cleanup (roadmap 1.8)                                                                                                |
+| `documents_deleted_at`              | timestamptz null              | Set by the 30-day cleanup (migration 0005, daily job)                                                                                  |
 
 Constraints: partial unique `(student_id) where status in ('draft','submitted','resubmission_requested')` (one open application at a time).
 Indexes: `(institution_id, status, submitted_at)` for the queue; `(student_id, created_at desc)`; `(decided_by)`.
@@ -241,6 +241,8 @@ Access: no direct writes for anyone. Students use `start_verification_applicatio
 Expiry: `public.expire_student_verifications()` (service role, scheduled with the jobs in roadmap 1.8) marks lapsed verifications `expired`. Until it runs, `private.student_state()` already treats them as expired.
 
 #### Audit notes (2026-11-14)
+
+Migration 0005 adds: `appoint_institution_reviewer_by_email()` (same permissions as `appoint_institution_reviewer()`, checked before the lookup so others can't test whether an email has an account), `admin_set_institution_domain()` and `admin_upsert_campus()` (platform admins with two-factor, audited), and three service-role-only functions: `list_verification_documents_due()` and `mark_verification_documents_deleted()` for the retention job (closed applications only: approved, rejected, withdrawn; retention in `app_settings` key `verification.document_retention_days`, default 30), and `get_verification_notice()`, which gives the server the student's email for decision emails so reviewers never see it. Tests: `supabase/tests/006_verification_admin_test.sql`.
 
 Migration 0004 was reviewed before being applied anywhere. Changes made as a result: the student ID hash keys HMAC with the decoded pepper bytes and refuses to run without it; storage paths are validated before any UUID cast; document reads require a recent audited view and stop once documents are deleted; reviewers no longer read `profiles` or `student_profiles` rows (names come from a dedicated function); `private.is_staff()` now also requires the account not to be suspended (a fix-forward of migration 0002's helper); concurrent starts and approvals return clean errors; and academic year ends on short months are handled. Tests: `supabase/tests/005_students_security_test.sql`.
 
@@ -783,15 +785,15 @@ Images are resized and converted to WebP in the browser before upload (max 1600 
 
 ## 9. Scheduled jobs (pg_cron)
 
-| Job                            | Schedule         | What it does                                                                          |
-| ------------------------------ | ---------------- | ------------------------------------------------------------------------------------- |
-| `expire_redemption_sessions`   | Every minute     | `open`/`awaiting_*` past `expires_at` → `expired`                                     |
-| `expire_offers`                | Every 15 minutes | `active` offers past `ends_at`, or at `total_cap` → `expired`                         |
-| `close_stale_bookings`         | Every 15 minutes | Past `pending`/`reschedule_requested` → `cancelled` (system)                          |
-| `expire_verifications`         | Daily 02:00      | `verified_until < now()` → `expired`; notify 30 days ahead                            |
-| `purge_verification_documents` | Daily 02:30      | Delete ID photos and selfies 30 days after the decision; redact the student ID number |
-| `purge_rate_limit_events`      | Daily 03:00      | Delete events older than 2 days                                                       |
-| `reconcile_student_savings`    | Daily 03:30      | Compare `student_savings` with `redemptions`; audit any mismatch                      |
+| Job                            | Schedule         | What it does                                                                                                                                                                                                                                        |
+| ------------------------------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `expire_redemption_sessions`   | Every minute     | `open`/`awaiting_*` past `expires_at` → `expired`                                                                                                                                                                                                   |
+| `expire_offers`                | Every 15 minutes | `active` offers past `ends_at`, or at `total_cap` → `expired`                                                                                                                                                                                       |
+| `close_stale_bookings`         | Every 15 minutes | Past `pending`/`reschedule_requested` → `cancelled` (system)                                                                                                                                                                                        |
+| `expire_verifications`         | Daily 02:00      | `verified_until < now()` → `expired`; notify 30 days ahead                                                                                                                                                                                          |
+| `purge_verification_documents` | Daily 02:30      | Delete ID photos and selfies 30 days after the decision; redact the student ID number. Implemented as `GET /api/cron/daily` (Vercel Cron): files are removed through the Storage API, then `mark_verification_documents_deleted()` (migration 0005) |
+| `purge_rate_limit_events`      | Daily 03:00      | Delete events older than 2 days                                                                                                                                                                                                                     |
+| `reconcile_student_savings`    | Daily 03:30      | Compare `student_savings` with `redemptions`; audit any mismatch                                                                                                                                                                                    |
 
 Expiry is also checked inside every function, so a late job never lets an expired session or offer through.
 

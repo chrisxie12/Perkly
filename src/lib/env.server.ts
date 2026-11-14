@@ -16,6 +16,7 @@ const serverEnvSchema = z.object({
     .refine((value) => value.startsWith("re_"), "RESEND_API_KEY must start with re_")
     .optional(),
   RESEND_FROM_EMAIL: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -26,6 +27,7 @@ export function getServerEnv(): ServerEnv {
     SUPABASE_SECRET_KEY: blankToUndefined(process.env.SUPABASE_SECRET_KEY),
     RESEND_API_KEY: blankToUndefined(process.env.RESEND_API_KEY),
     RESEND_FROM_EMAIL: blankToUndefined(process.env.RESEND_FROM_EMAIL),
+    CRON_SECRET: blankToUndefined(process.env.CRON_SECRET),
   });
 }
 
@@ -33,4 +35,9 @@ export function getServerEnv(): ServerEnv {
 export function isInstitutionalEmailConfirmationEnabled(): boolean {
   const env = getServerEnv();
   return Boolean(env.SUPABASE_SECRET_KEY && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL);
+}
+
+/** Decision emails need the secret key (to look up the student's email) and Resend. */
+export function isDecisionEmailEnabled(): boolean {
+  return isInstitutionalEmailConfirmationEnabled();
 }
