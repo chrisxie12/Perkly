@@ -23,6 +23,7 @@ import {
   teamMemberSchema,
 } from "./schemas";
 import { coordsFromMapsLink } from "./shop";
+import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 
 // Every action calls a database function that checks who the caller is and
 // what they may do. These are conveniences; the database decides.
@@ -142,6 +143,7 @@ export async function submitForReview(formData: FormData): Promise<void> {
   const merchantId = String(formData.get("merchantId") ?? "");
   if (!hasSupabaseEnv() || !/^[0-9a-f-]{36}$/.test(merchantId)) redirect("/merchant");
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("submit_merchant_for_review", { p_merchant_id: merchantId });
   revalidatePath("/", "layout");
   redirect(error ? `/merchant?error=${encodeURIComponent(error.message.slice(0, 40))}` : "/merchant?submitted=1");
@@ -155,6 +157,7 @@ export async function addTeamMember(_prev: FormState, formData: FormData): Promi
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
   if (!hasSupabaseEnv()) return unavailable;
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("add_merchant_user", {
     p_merchant_id: parsed.data.merchantId,
     p_email: parsed.data.email,
@@ -179,6 +182,7 @@ export async function decideMerchant(_prev: FormState, formData: FormData): Prom
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
   if (!hasSupabaseEnv()) return unavailable;
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("decide_merchant", {
     p_merchant_id: parsed.data.merchantId,
     p_decision: parsed.data.decision,

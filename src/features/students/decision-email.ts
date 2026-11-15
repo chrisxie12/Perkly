@@ -9,6 +9,8 @@ export const decisionNoticeSchema = z.object({
   reviewer_note: z.string().nullable(),
   institution_short_name: z.string(),
   verified_until: z.string().nullable(),
+  // The student's notification setting; older databases don't send it, so default to sending.
+  email_wanted: z.boolean().default(true),
 });
 
 export type DecisionNotice = z.infer<typeof decisionNoticeSchema>;

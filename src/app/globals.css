@@ -101,6 +101,18 @@
   --animate-draw: draw 2.4s var(--ease-out-quint) 0.6s both;
   --animate-ring: ring 2.8s var(--ease-out-quint) infinite;
 
+  @keyframes bell-ring {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(14deg);
+    }
+    75% {
+      transform: rotate(-14deg);
+    }
+  }
   @keyframes marquee {
     from {
       transform: translateX(0);

@@ -8,6 +8,7 @@ import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "@/features/auth/types";
 import { normaliseShortCode, REJECT_REASONS, PAYMENT_METHODS, SHORT_CODE } from "./schemas";
+import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 
 type Result = {
   ok: boolean;
@@ -58,6 +59,8 @@ export async function enterShortCode(formData: FormData): Promise<void> {
 
 async function sessionCall(fn: string, args: Record<string, unknown>) {
   const supabase = await createClient();
+  // Confirming a redemption notifies the student and the cashier.
+  if (fn.includes("confirm")) deliverNotificationsSoon();
   const { data, error } = await supabase.rpc(fn, args);
   if (error) return { ok: false, error: "unknown" } as Result;
   return (data as Result | null) ?? ({ ok: false, error: "unknown" } as Result);
@@ -186,6 +189,7 @@ export async function voidRedemption(_prev: FormState, formData: FormData): Prom
   if (reason.length < 5) return { status: "error", fieldErrors: { reason: "Record why it's being voided." } };
   if (!hasSupabaseEnv()) return { status: "error", message: "This isn't available in this environment yet." };
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("void_redemption", { p_redemption_id: id.data, p_reason: reason.slice(0, 500) });
   if (error) {
     return {

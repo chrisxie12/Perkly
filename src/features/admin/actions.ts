@@ -7,6 +7,7 @@ import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
+import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 import {
   adminErrorMessage,
   appointSchema,
@@ -140,6 +141,7 @@ export async function appointReviewer(_prev: FormState, formData: FormData): Pro
   if (!hasSupabaseEnv()) return unavailable;
 
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("appoint_institution_reviewer_by_email", {
     p_institution_id: parsed.data.institutionId,
     p_email: parsed.data.email,
@@ -267,6 +269,7 @@ export async function handleInstitutionRequest(formData: FormData): Promise<void
   const status = z.enum(["added", "declined"]).safeParse(formData.get("status"));
   if (!id.success || !status.success || !hasSupabaseEnv()) return;
   const supabase = await createClient();
+  deliverNotificationsSoon();
   await supabase.rpc("admin_handle_institution_request", {
     p_request_id: id.data,
     p_status: status.data,

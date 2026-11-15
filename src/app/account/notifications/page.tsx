@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { PushToggle } from "@/features/account/components/push-toggle";
+import { getVapidPublicKey } from "@/lib/notifications/vapid";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { EmptyState } from "@/components/shared/states";
 import { loginPath } from "@/lib/auth/paths";
@@ -23,16 +26,28 @@ export default async function NotificationsPage() {
     <AreaShell area="account">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageTitle title="Notifications" description={unread === 0 ? "You're up to date." : `${unread} new.`} />
-        {unread > 0 && (
-          <form action={markNotificationsRead}>
-            <SubmitButton variant="secondary" size="sm">
-              Mark all as read
-            </SubmitButton>
-          </form>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {unread > 0 && (
+            <form action={markNotificationsRead}>
+              <SubmitButton variant="secondary" size="sm">
+                Mark all as read
+              </SubmitButton>
+            </form>
+          )}
+          <Link href="/account/notifications/settings" className={buttonVariants({ variant: "secondary", size: "sm" })}>
+            <Settings aria-hidden /> Settings
+          </Link>
+        </div>
+      </div>
+      <div className="mb-6 empty:hidden">
+        <PushToggle vapidPublicKey={getVapidPublicKey()} compact />
       </div>
       {items.length === 0 ? (
-        <EmptyState icon={<Bell />} title="No notifications yet" description="Redemptions and changes to your account show up here." />
+        <EmptyState
+          icon={<Bell />}
+          title="No notifications yet"
+          description="Verification updates, new deals from businesses you saved, redemptions and account changes show up here."
+        />
       ) : (
         <ul className="divide-y divide-ink-200 overflow-hidden rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70">
           {items.map((n) => {

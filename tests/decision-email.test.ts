@@ -9,6 +9,7 @@ const base: DecisionNotice = {
   reviewer_note: null,
   institution_short_name: "GCTU",
   verified_until: "2027-07-31T23:59:59Z",
+  email_wanted: true,
 };
 
 describe("decision emails", () => {

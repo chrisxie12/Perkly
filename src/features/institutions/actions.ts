@@ -14,6 +14,7 @@ import { buildDecisionEmail, decisionNoticeSchema } from "@/features/students/de
 import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
 import { studentErrorMessage } from "@/features/students/status";
+import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 
 const decisionSchema = z
   .object({
@@ -42,6 +43,7 @@ export async function decideApplication(_prev: FormState, formData: FormData): P
   if (!hasSupabaseEnv()) return { status: "error", message: "This isn't available in this environment yet." };
 
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("decide_verification", {
     p_application_id: parsed.data.applicationId,
     p_decision: parsed.data.decision,
@@ -70,7 +72,7 @@ async function sendDecisionEmail(applicationId: string, siteUrl: string) {
     const { data, error } = await createAdminClient().rpc("get_verification_notice", { p_application_id: applicationId });
     if (error || !data) return;
     const notice = decisionNoticeSchema.safeParse(data);
-    if (!notice.success) return;
+    if (!notice.success || !notice.data.email_wanted) return;
     const email = buildDecisionEmail(notice.data, siteUrl);
     await sendEmail({ to: notice.data.email, ...email });
   } catch (error) {

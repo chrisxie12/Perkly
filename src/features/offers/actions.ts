@@ -10,6 +10,7 @@ import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
 import { readForm } from "@/features/admin/schemas";
 import { catalogueItemSchema, offerErrorMessage, offerSchema } from "./schemas";
+import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 
 const unavailable: FormState = { status: "error", message: "This isn't available in this environment yet." };
 
@@ -94,6 +95,7 @@ export async function submitOffer(formData: FormData): Promise<void> {
   const id = offerIdSchema.safeParse(formData.get("offerId"));
   if (!id.success || !hasSupabaseEnv()) redirect("/merchant/offers");
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { data, error } = await supabase.rpc("submit_offer", { p_offer_id: id.data });
   revalidatePath("/merchant/offers");
   redirect(
@@ -106,6 +108,7 @@ export async function changeOfferState(formData: FormData): Promise<void> {
   const action = z.enum(["pause", "resume", "archive"]).safeParse(formData.get("action"));
   if (!id.success || !action.success || !hasSupabaseEnv()) redirect("/merchant/offers");
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("set_offer_state", { p_offer_id: id.data, p_action: action.data });
   revalidatePath("/merchant/offers");
   redirect(error ? `/merchant/offers?error=${encodeURIComponent(error.message.slice(0, 40))}` : "/merchant/offers");
@@ -121,6 +124,7 @@ export async function moderateOffer(_prev: FormState, formData: FormData): Promi
   }
   if (!hasSupabaseEnv()) return unavailable;
   const supabase = await createClient();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("moderate_offer", {
     p_offer_id: parsed.data.offerId,
     p_decision: parsed.data.decision,

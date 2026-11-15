@@ -12,6 +12,7 @@ import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
 import { applicationSchema, emailCodeSchema, institutionalEmailSchema, studentProfileSchema } from "./schemas";
 import { studentErrorMessage } from "./status";
+import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 
 const notConfigured: FormState = { status: "error", message: "This isn't available in this environment yet." };
 
@@ -118,6 +119,7 @@ export async function submitVerificationApplication(_prev: FormState, formData: 
   if (!hasSupabaseEnv()) return notConfigured;
 
   const supabase = await client();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("submit_verification_application", {
     p_application_id: parsed.data.applicationId,
     p_student_id_number: parsed.data.studentIdNumber,
@@ -163,6 +165,7 @@ export async function requestInstitution(_prev: FormState, formData: FormData): 
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
   if (!hasSupabaseEnv()) return notConfigured;
   const supabase = await client();
+  deliverNotificationsSoon();
   const { error } = await supabase.rpc("request_institution", {
     p_institution_name: parsed.data.institutionName,
     p_campus_name: parsed.data.campusName ?? null,

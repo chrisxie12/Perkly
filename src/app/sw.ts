@@ -64,4 +64,50 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") void self.skipWaiting();
 });
 
+// Phone notifications -----------------------------------------------------------------
+type PushPayload = { id?: string; title?: string; body?: string; url?: string; tag?: string };
+
+const samePath = (url: unknown) =>
+  typeof url === "string" && /^\/[A-Za-z0-9/_?=&.-]*$/.test(url) && !url.startsWith("//") ? url : "/account/notifications";
+
+self.addEventListener("push", (event) => {
+  let data: PushPayload = {};
+  try {
+    data = (event.data?.json() ?? {}) as PushPayload;
+  } catch {
+    data = { body: event.data?.text() };
+  }
+  const url = samePath(data.url);
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(data.title || "Perqly", {
+        body: data.body || undefined,
+        icon: "/icon-192.png",
+        tag: data.tag,
+        data: { url },
+      });
+      // Open tabs update their bell straight away.
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of windows) client.postMessage({ type: "PERQLY_NOTIFICATION" });
+    })(),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = samePath((event.notification.data as { url?: unknown } | null)?.url);
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const open = windows.find((client) => new URL(client.url).origin === self.location.origin);
+      if (open) {
+        await open.focus();
+        if ("navigate" in open) await (open as WindowClient).navigate(url);
+        return;
+      }
+      await self.clients.openWindow(url);
+    })(),
+  );
+});
+
 serwist.addEventListeners();

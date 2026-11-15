@@ -192,6 +192,16 @@ You'll then be asked to set up an authenticator app the next time you open `/adm
 | Database password                      | **No**                  | Never stored in the repo              | Never                                                  | Never                                         | —                           | Only in your password manager and typed into the CLI when it asks                                                                                                            |
 | `SUPABASE_ACCESS_TOKEN`                | **No**                  | Your machine only, if you use the CLI | —                                                      | —                                             | Optional                    | Personal token for `supabase login`. GitHub secret only if migrations are later automated                                                                                    |
 
+### Phone notifications (web push)
+
+Three more variables, all on Vercel **Production** (and Preview if you want to test there):
+
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: the public half. Safe in the browser.
+- `VAPID_PRIVATE_KEY`: the private half. Server only. Mark it **Sensitive**.
+- `VAPID_SUBJECT`: `mailto:` plus an address you read, e.g. `mailto:support@your-domain`. Push services use it to contact you.
+
+Make the pair on your own machine with `npx web-push generate-vapid-keys` and paste the values straight into Vercel. Don't commit them or send them to anyone. Generate them once and keep them: new keys cut off every phone that has already turned notifications on. Without them, people still get in-app notifications and emails, and the "Turn on notifications" button stays hidden.
+
 The Resend API key used for SMTP is entered in the **Supabase dashboard** (section 3.4), not in Vercel or the repo.
 
 Where to set Vercel variables: Project `perqly` → Settings → Environment Variables. Tick **Preview** and **Development** for the staging values and leave **Production** unticked.

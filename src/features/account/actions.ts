@@ -52,3 +52,50 @@ export async function markNotificationsRead(): Promise<void> {
   await supabase.rpc("mark_notifications_read", { p_ids: null });
   revalidatePath("/account/notifications");
 }
+
+// Notifications ----------------------------------------------------------------------
+
+const subscriptionSchema = z.object({
+  endpoint: z.url().startsWith("https://").max(1000),
+  keys: z.object({ p256dh: z.string().min(20).max(200), auth: z.string().min(10).max(100) }),
+});
+
+/** Saves this device for phone notifications. Returns false if it couldn't. */
+export async function savePushSubscription(subscription: unknown, deviceLabel: string): Promise<boolean> {
+  const parsed = subscriptionSchema.safeParse(subscription);
+  if (!parsed.success || !hasSupabaseEnv()) return false;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_push_subscription", {
+    p_endpoint: parsed.data.endpoint,
+    p_p256dh: parsed.data.keys.p256dh,
+    p_auth: parsed.data.keys.auth,
+    p_device_label: deviceLabel.slice(0, 120),
+  });
+  revalidatePath("/account/notifications/settings");
+  return !error;
+}
+
+export async function removePushSubscription(endpoint: string): Promise<void> {
+  if (!hasSupabaseEnv() || typeof endpoint !== "string" || endpoint.length > 1000) return;
+  const supabase = await createClient();
+  await supabase.rpc("delete_push_subscription", { p_endpoint: endpoint });
+  revalidatePath("/account/notifications/settings");
+}
+
+const CATEGORIES = ["verification", "deals", "redemptions", "business", "review", "account"] as const;
+
+export async function saveNotificationSettings(_prev: FormState, formData: FormData): Promise<FormState> {
+  if (!hasSupabaseEnv()) return { status: "error", message: "This isn't available in this environment yet." };
+  const shown = formData.getAll("category").filter((c): c is (typeof CATEGORIES)[number] => CATEGORIES.includes(c as never));
+  const supabase = await createClient();
+  for (const category of new Set(shown)) {
+    const { error } = await supabase.rpc("set_notification_preference", {
+      p_category: category,
+      p_push: formData.get(`${category}:push`) === "on",
+      p_email: formData.get(`${category}:email`) === "on",
+    });
+    if (error) return { status: "error", message: "Couldn't save your settings. Try again." };
+  }
+  revalidatePath("/account/notifications/settings");
+  return { status: "success", message: "Saved." };
+}
