@@ -5,7 +5,8 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { isInstitutionalEmailConfirmationEnabled } from "@/lib/env.server";
 import { getMyStudentStatus, getSchoolOptions } from "@/features/students/queries";
 import { schoolLockReason } from "@/features/students/status";
-import { StudentProfileForm } from "@/features/students/components/profile-form";
+import { NotListed, StudentProfileForm } from "@/features/students/components/profile-form";
+import { getPublicEnv, hasSupabaseEnv } from "@/lib/env";
 import { InstitutionalEmailCard } from "@/features/students/components/institutional-email-card";
 
 export const metadata: Metadata = { title: "Your profile", robots: { index: false } };
@@ -29,6 +30,7 @@ export default async function StudentProfilePage() {
               campuses={options.campuses}
               lockReason={lockReason}
               currentYear={new Date().getFullYear()}
+              supabaseUrl={hasSupabaseEnv() ? getPublicEnv().NEXT_PUBLIC_SUPABASE_URL : null}
               initial={{
                 institutionId: profile?.institution_id,
                 campusId: profile?.campus_id,
@@ -37,6 +39,11 @@ export default async function StudentProfilePage() {
                 gradYear: profile?.grad_year,
               }}
             />
+          )}
+          {!lockReason && (
+            <div className="mt-6">
+              <NotListed />
+            </div>
           )}
         </Card>
         {profile ? (

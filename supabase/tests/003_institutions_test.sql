@@ -35,6 +35,8 @@ $$;
 grant execute on all functions in schema tests to anon, authenticated;
 -- -------------------------------------------------------------------------
 select plan(19);
+-- These tests create practice institutions as listed; the accreditation guard has its own tests (020).
+select set_config('perqly.seed_pilot', 'on', true);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 insert into public.institutions (slug, name, short_name, status) values ('closed-u', 'Closed University', 'CU', 'inactive') returning id as closed \gset

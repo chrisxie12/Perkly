@@ -37,6 +37,8 @@ grant execute on all functions in schema tests to anon, authenticated;
 grant usage on schema tests to service_role;
 grant execute on all functions in schema tests to service_role;
 select plan(52);
+-- These tests create practice institutions as listed; the accreditation guard has its own tests (020).
+select set_config('perqly.seed_pilot', 'on', true);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 insert into public.institutions (slug, name, short_name, status) values ('other-u', 'Other University', 'OU', 'active') returning id as other \gset

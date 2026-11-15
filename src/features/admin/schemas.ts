@@ -93,7 +93,57 @@ export function adminErrorMessage(code: string | undefined): string {
       return "No Perqly account uses that email. Ask the person to sign up first, then try again.";
     case "reviewer_not_found":
       return "That reviewer was already removed.";
+    case "accreditation_unconfirmed":
+      return "Record the GTEC accreditation check as confirmed (in Directory details) before showing this institution to students.";
+    case "directory_invalid":
+      return "Check the website (it must start with https://) and the other details.";
+    case "campus_details_invalid":
+      return "Check the campus details. Links must start with https://.";
+    case "logo_source_required":
+      return "Add the page on the institution's official website where this logo came from.";
+    case "logo_missing":
+    case "path_invalid":
+      return "The logo didn't upload. Try again.";
+    case "request_not_found":
+      return "That request was already handled.";
     default:
       return "Something went wrong. Try again in a moment.";
   }
 }
+
+const trimmedText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((v) => (v ? v : undefined));
+const httpsUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .optional()
+  .transform((v) => (v ? v : undefined))
+  .refine((v) => !v || /^https:\/\//.test(v), "Use a full link starting with https://");
+
+export const directorySchema = z.object({
+  institutionId: z.uuid(),
+  institutionType: z.enum(["public", "private", ""]).optional(),
+  officialWebsite: httpsUrl,
+  city: trimmedText(60),
+  region: trimmedText(60),
+  infoSourceUrl: httpsUrl,
+  accreditationStatus: z.enum(["unverified", "confirmed", "not_found", "closed"]),
+  accreditationNote: trimmedText(300),
+});
+
+export const campusDetailsSchema = z.object({
+  institutionId: z.uuid(),
+  campusId: z.uuid(),
+  campusType: z.enum(["main", "satellite", "city", "learning_centre"]),
+  address: trimmedText(200),
+  city: trimmedText(60),
+  region: trimmedText(60),
+  sourceUrl: httpsUrl,
+  infoStatus: z.enum(["confirmed", "unverified"]),
+});

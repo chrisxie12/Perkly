@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { hasSupabaseEnv } from "@/lib/env";
 import { isInstitutionalEmailConfirmationEnabled } from "@/lib/env.server";
@@ -144,4 +145,35 @@ export async function withdrawVerificationApplication(formData: FormData): Promi
   redirect(
     error ? `/student/verify?withdraw=failed&reason=${encodeURIComponent(error.message.slice(0, 40))}` : "/student/verify?withdraw=done",
   );
+}
+
+const institutionRequestSchema = z.object({
+  institutionName: z.string().trim().min(3, "Enter the full name of your school.").max(160),
+  campusName: z.string().trim().max(120).optional(),
+  city: z.string().trim().max(60).optional(),
+});
+
+/** "My school isn't listed": records a request for Perqly to review. It never lists the school by itself. */
+export async function requestInstitution(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = institutionRequestSchema.safeParse({
+    institutionName: formData.get("institutionName") ?? "",
+    campusName: String(formData.get("campusName") ?? "") || undefined,
+    city: String(formData.get("city") ?? "") || undefined,
+  });
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  if (!hasSupabaseEnv()) return notConfigured;
+  const supabase = await client();
+  const { error } = await supabase.rpc("request_institution", {
+    p_institution_name: parsed.data.institutionName,
+    p_campus_name: parsed.data.campusName ?? null,
+    p_city: parsed.data.city ?? null,
+  });
+  if (error) {
+    if (error.message.includes("rate_limited")) return { status: "error", message: "You've sent 3 requests today. Try again tomorrow." };
+    return { status: "error", message: "That didn't send. Check the name and try again." };
+  }
+  return {
+    status: "success",
+    message: "Thanks. We'll check your school's accreditation and campus details before adding it. You can't choose it until then.",
+  };
 }

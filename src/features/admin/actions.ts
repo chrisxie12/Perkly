@@ -7,7 +7,16 @@ import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
-import { adminErrorMessage, appointSchema, campusSchema, domainSchema, institutionSchema, readForm } from "./schemas";
+import {
+  adminErrorMessage,
+  appointSchema,
+  campusDetailsSchema,
+  campusSchema,
+  directorySchema,
+  domainSchema,
+  institutionSchema,
+  readForm,
+} from "./schemas";
 
 // Every action calls a database function that checks the caller is a platform
 // admin with two-factor (or, for appointments, an institution admin). The app
@@ -155,4 +164,112 @@ export async function removeReviewer(formData: FormData): Promise<void> {
   await supabase.rpc("remove_institution_reviewer", { p_reviewer_id: parsed.data.reviewerId });
   revalidatePath(institutionPath(parsed.data.institutionId));
   revalidatePath("/institution/reviewers");
+}
+
+// Institution directory ------------------------------------------------------------------
+
+export async function saveDirectoryDetails(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = directorySchema.safeParse(
+    readForm(formData, [
+      "institutionId",
+      "institutionType",
+      "officialWebsite",
+      "city",
+      "region",
+      "infoSourceUrl",
+      "accreditationStatus",
+      "accreditationNote",
+    ]),
+  );
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  if (!hasSupabaseEnv()) return unavailable;
+  const v = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_update_institution_directory", {
+    p_institution_id: v.institutionId,
+    p_institution_type: v.institutionType ?? "",
+    p_official_website: v.officialWebsite ?? null,
+    p_city: v.city ?? null,
+    p_region: v.region ?? null,
+    p_info_source_url: v.infoSourceUrl ?? null,
+    p_accreditation_status: v.accreditationStatus,
+    p_accreditation_note: v.accreditationNote ?? null,
+  });
+  if (error) return { status: "error", message: adminErrorMessage(error.message) };
+  revalidatePath(institutionPath(v.institutionId));
+  revalidatePath("/admin/institutions");
+  return { status: "success", message: "Saved, with today's date as the last check." };
+}
+
+const LOGO_PATH = /^[0-9a-f-]{36}\/logo-[0-9]{10,13}\.(svg|png|webp)$/;
+
+/** Records an uploaded logo (the browser uploads the file to storage first). */
+export async function setInstitutionLogo(
+  institutionId: string,
+  path: string,
+  sourceUrl: string,
+): Promise<{ ok: boolean; message?: string }> {
+  if (!hasSupabaseEnv()) return { ok: false, message: unavailable.message };
+  if (!LOGO_PATH.test(path) || !path.startsWith(`${institutionId}/`)) return { ok: false, message: adminErrorMessage("path_invalid") };
+  if (!/^https:\/\//.test(sourceUrl.trim())) return { ok: false, message: adminErrorMessage("logo_source_required") };
+  const supabase = await createClient();
+  const { data: old, error } = await supabase.rpc("admin_set_institution_logo", {
+    p_institution_id: institutionId,
+    p_path: path,
+    p_source_url: sourceUrl.trim(),
+  });
+  if (error) {
+    await supabase.storage.from("institution-logos").remove([path]);
+    return { ok: false, message: adminErrorMessage(error.message) };
+  }
+  if (typeof old === "string" && old !== path) await supabase.storage.from("institution-logos").remove([old]);
+  revalidatePath(institutionPath(institutionId));
+  revalidatePath("/admin/institutions");
+  revalidatePath("/student", "layout");
+  return { ok: true };
+}
+
+export async function saveCampusDetails(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = campusDetailsSchema.safeParse(
+    readForm(formData, ["institutionId", "campusId", "campusType", "address", "city", "region", "sourceUrl", "infoStatus"]),
+  );
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  if (!hasSupabaseEnv()) return unavailable;
+  const v = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_update_campus_details", {
+    p_campus_id: v.campusId,
+    p_campus_type: v.campusType,
+    p_address: v.address ?? null,
+    p_city: v.city ?? null,
+    p_region: v.region ?? null,
+    p_source_url: v.sourceUrl ?? null,
+    p_info_status: v.infoStatus,
+  });
+  if (error) return { status: "error", message: adminErrorMessage(error.message) };
+  revalidatePath(institutionPath(v.institutionId));
+  return { status: "success", message: "Campus saved." };
+}
+
+export async function setPrimaryCampus(formData: FormData): Promise<void> {
+  const institutionId = z.uuid().safeParse(formData.get("institutionId"));
+  const campusId = z.uuid().safeParse(formData.get("campusId"));
+  if (!institutionId.success || !campusId.success || !hasSupabaseEnv()) return;
+  const supabase = await createClient();
+  await supabase.rpc("admin_set_primary_campus", { p_campus_id: campusId.data });
+  revalidatePath(institutionPath(institutionId.data));
+}
+
+export async function handleInstitutionRequest(formData: FormData): Promise<void> {
+  const id = z.uuid().safeParse(formData.get("requestId"));
+  const status = z.enum(["added", "declined"]).safeParse(formData.get("status"));
+  if (!id.success || !status.success || !hasSupabaseEnv()) return;
+  const supabase = await createClient();
+  await supabase.rpc("admin_handle_institution_request", {
+    p_request_id: id.data,
+    p_status: status.data,
+    p_note: String(formData.get("note") ?? "").slice(0, 300) || null,
+  });
+  revalidatePath("/admin/institutions/requests");
+  revalidatePath("/admin/institutions");
 }
