@@ -222,7 +222,9 @@ export async function setInstitutionLogo(
     await supabase.storage.from("institution-logos").remove([path]);
     return { ok: false, message: adminErrorMessage(error.message) };
   }
-  if (typeof old === "string" && old !== path) await supabase.storage.from("institution-logos").remove([old]);
+  // Bundled logos ship with the app (public/institution-logos); only uploaded ones live in storage.
+  if (typeof old === "string" && old !== path && !old.startsWith("bundled/"))
+    await supabase.storage.from("institution-logos").remove([old]);
   revalidatePath(institutionPath(institutionId));
   revalidatePath("/admin/institutions");
   revalidatePath("/student", "layout");

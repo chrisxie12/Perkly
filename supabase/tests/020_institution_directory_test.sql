@@ -48,7 +48,8 @@ select is((select count(*)::int from public.institutions where slug <> 'gctu' an
 select set_eq($$select name from public.campuses where institution_id = (select id from public.institutions where slug = 'ug')$$,
   array['Legon', 'Korle-Bu', 'Accra City'], 'UG has Legon, Korle-Bu and Accra City');
 select is((select name from public.campuses where institution_id = :'ug' and is_primary), 'Legon', 'Legon is UG''s primary campus');
-select is((select count(*)::int from public.institutions where logo_status = 'official'), 0, 'no logo is marked official until one is uploaded');
+select is((select count(*)::int from public.institutions where logo_status = 'official' and logo_path not like 'bundled/%'), 0,
+  'no uploaded logo is marked official until one is uploaded');
 
 -- Students only see listed institutions ------------------------------------------------------
 select tests.as_user(:'s1');

@@ -12,6 +12,11 @@ values ('gctu', 'Ghana Communication Technology University', 'GCTU', 'pilot', 'i
 on conflict (slug) do nothing;
 select set_config('perqly.seed_pilot', '', false);
 
+-- Official logo shipped with the app (migration 0022 sets it where GCTU already exists).
+update public.institutions
+   set logo_path = 'bundled/gctu.png', logo_source_url = 'https://site.gctu.edu.gh/', logo_status = 'official'
+ where slug = 'gctu' and logo_path is null;
+
 insert into public.campuses (institution_id, name)
 select id, 'Tesano' from public.institutions where slug = 'gctu'
 on conflict (institution_id, name) do nothing;
