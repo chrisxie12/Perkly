@@ -19,8 +19,11 @@ export const maxDuration = 60;
  * functions check the dates themselves.
  */
 export async function GET(request: NextRequest) {
+  // Read the request first: this keeps the route out of the build-time prerender,
+  // so a mistyped secret in Vercel can only break this job, never the deploy.
+  const authorization = request.headers.get("authorization");
   const env = getServerEnv();
-  if (!isAuthorisedCronRequest(request.headers.get("authorization"), env.CRON_SECRET)) {
+  if (!isAuthorisedCronRequest(authorization, env.CRON_SECRET)) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
   if (!hasSupabaseEnv() || !env.SUPABASE_SECRET_KEY) {
