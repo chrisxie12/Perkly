@@ -31,7 +31,25 @@ export function StudentBenefits() {
         <SectionHeading id="students-title" title="Built for how students actually spend." />
 
         <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-6 md:grid-rows-[auto_auto]">
-          <div className="grain relative overflow-hidden rounded-2xl bg-blue-500 p-8 text-white md:col-span-3 md:row-span-2 md:p-10">
+          <div className="reveal grain relative isolate overflow-hidden rounded-3xl bg-blue-500 p-8 text-white md:col-span-3 md:row-span-2 md:p-10">
+            {/* Slow light moving across the card, and stacked coins in outline */}
+            <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+              <div className="absolute -right-24 -bottom-24 size-96 animate-drift rounded-full bg-sky-300/40 blur-3xl" />
+              <div className="absolute -top-20 -left-16 size-72 animate-drift rounded-full bg-orange-400/25 blur-3xl [animation-delay:-7s]" />
+              <svg
+                viewBox="0 0 200 200"
+                className="absolute -top-6 -right-10 w-56 text-white/10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+              >
+                <ellipse cx="100" cy="150" rx="70" ry="18" />
+                <ellipse cx="100" cy="128" rx="70" ry="18" />
+                <ellipse cx="100" cy="106" rx="70" ry="18" />
+                <ellipse cx="100" cy="84" rx="70" ry="18" />
+                <path d="M30 84 V150 M170 84 V150" />
+              </svg>
+            </div>
             <p className="font-display text-display-lg font-extrabold">Free for students. Always.</p>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white">
               You never pay to use Perqly. Businesses pay to reach verified students, and that pays for the platform.
@@ -40,7 +58,7 @@ export function StudentBenefits() {
               <PiggyBank className="size-9 shrink-0 text-orange-300" aria-hidden />
               <p className="text-[0.9375rem] leading-snug">
                 <span className="font-semibold text-white">Your savings, counted.</span> Perqly keeps a running total of what you&apos;ve
-                saved this semester.
+                saved.
               </p>
             </div>
           </div>
@@ -48,7 +66,7 @@ export function StudentBenefits() {
           {smallCards.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="rounded-2xl bg-white p-7 shadow-soft ring-1 ring-ink-200/70 md:col-span-3 lg:col-span-3 xl:col-span-3"
+              className="reveal rounded-3xl bg-white p-7 shadow-soft ring-1 ring-ink-200/70 transition-shadow duration-300 hover:shadow-lift md:col-span-3 lg:col-span-3 xl:col-span-3"
             >
               <Icon className="size-8 text-blue-500" aria-hidden />
               <h3 className="mt-5 font-display text-xl font-bold tracking-tight">{title}</h3>

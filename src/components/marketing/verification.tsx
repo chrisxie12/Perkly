@@ -25,7 +25,7 @@ export function Verification() {
           </p>
           <ul className="mt-10 space-y-6">
             {evidence.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
+              <li key={title} className="reveal flex gap-4">
                 <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
                   <Icon className="size-6" aria-hidden />
                 </span>

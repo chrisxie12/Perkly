@@ -44,7 +44,7 @@ export function WaitlistForm({ source, inverse = false }: { source: "hero" | "fi
           placeholder="you@gmail.com"
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          className="h-12 min-w-0 flex-1 rounded-full bg-white px-5 text-base text-ink-900 ring-1 ring-ink-300 outline-none ring-inset placeholder:text-ink-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="h-12 w-full min-w-0 rounded-full bg-white px-5 text-base text-ink-900 ring-1 ring-ink-300 outline-none ring-inset placeholder:text-ink-500 focus-visible:ring-2 focus-visible:ring-blue-500 min-[420px]:flex-1"
         />
         <button
           type="submit"

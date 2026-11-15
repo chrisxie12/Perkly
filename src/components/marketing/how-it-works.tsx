@@ -91,13 +91,31 @@ export function HowItWorks() {
           title="Three steps from student to student price."
           intro="No coupons to print and no codes to remember. Your phone is your pass."
         />
-        <ol className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <ol className="relative mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {/* The path from step 1 to step 3, drawn as you scroll */}
+          <span
+            aria-hidden
+            className="absolute top-[3.4rem] right-[16%] left-[16%] hidden h-1 overflow-hidden rounded-full bg-ink-200 md:block"
+          >
+            <span className="progress-x block h-full w-full rounded-full bg-gradient-to-r from-blue-500 to-orange-500" />
+          </span>
           {steps.map((step, index) => (
-            <li key={step.title} className="flex flex-col rounded-2xl bg-ink-100 p-6 md:p-7">
-              <span className="font-display text-6xl leading-none font-extrabold text-blue-500" aria-hidden>
+            <li
+              key={step.title}
+              className="reveal group relative flex flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-soft ring-1 ring-ink-200 transition-shadow duration-300 hover:shadow-lift md:p-7"
+              style={{ animationRange: `entry 0% entry ${45 + index * 15}%` }}
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-gradient-to-br from-blue-50 to-transparent transition-transform duration-500 group-hover:scale-125"
+              />
+              <span
+                className="relative grid size-14 place-items-center rounded-2xl bg-blue-500 font-display text-3xl leading-none font-extrabold text-white shadow-soft"
+                aria-hidden
+              >
                 {index + 1}
               </span>
-              <h3 className="mt-6 font-display text-2xl font-bold tracking-tight">
+              <h3 className="relative mt-6 font-display text-2xl font-bold tracking-tight">
                 <span className="sr-only">Step {index + 1}: </span>
                 {step.title}
               </h3>

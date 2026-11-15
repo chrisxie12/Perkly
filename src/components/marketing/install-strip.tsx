@@ -7,7 +7,7 @@ export function InstallStrip() {
   return (
     <section aria-labelledby="install-title" className="pb-16 md:pb-24">
       <PageContainer>
-        <div className="flex flex-col gap-6 rounded-[2rem] bg-white p-7 ring-1 ring-ink-200 sm:p-10 md:flex-row md:items-center md:justify-between">
+        <div className="reveal relative flex flex-col gap-6 overflow-hidden rounded-[2rem] bg-white p-7 shadow-soft ring-1 ring-ink-200 sm:p-10 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl">
             <h2 id="install-title" className="font-display text-2xl font-extrabold text-ink-900 md:text-3xl">
               Put Perqly on your phone now.

@@ -96,6 +96,10 @@
   --animate-marquee: marquee 48s linear infinite;
   --animate-rise: rise 0.9s var(--ease-out-quint) both;
   --animate-stamp: stamp 0.7s var(--ease-out-quint) both;
+  --animate-drift: drift 18s ease-in-out infinite alternate;
+  --animate-bob: bob 5s ease-in-out infinite;
+  --animate-draw: draw 2.4s var(--ease-out-quint) 0.6s both;
+  --animate-ring: ring 2.8s var(--ease-out-quint) infinite;
 
   @keyframes marquee {
     from {
@@ -148,6 +152,41 @@
     }
     to {
       height: 0;
+    }
+  }
+  @keyframes drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(6%, -8%, 0) scale(1.15);
+    }
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(var(--tilt, 0deg));
+    }
+    50% {
+      transform: translateY(-10px) rotate(var(--tilt, 0deg));
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: var(--len, 900);
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes ring {
+    from {
+      transform: scale(0.6);
+      opacity: 0.55;
+    }
+    to {
+      transform: scale(2.4);
+      opacity: 0;
     }
   }
   @keyframes stamp {
@@ -206,6 +245,33 @@
   .grain {
     background-image: radial-gradient(rgb(255 255 255 / 0.08) 1px, transparent 1px);
     background-size: 14px 14px;
+  }
+}
+
+/* Landing page: sections settle in as they scroll into view. CSS only; browsers
+   without scroll-driven animations simply show the content. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    /* A line that fills as the steps scroll into view */
+    .progress-x {
+      animation: track-fill-x linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 50%;
+      transform-origin: left;
+    }
+  }
+}
+@keyframes track-fill-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }
 

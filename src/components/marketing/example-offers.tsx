@@ -72,7 +72,7 @@ export function ExampleOffers() {
 
         <ul className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:-mx-8 sm:px-8 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
           {offers.map(({ merchant, deal, detail, category, icon: Icon, band }) => (
-            <li key={merchant} className="w-[82%] shrink-0 snap-start sm:w-[60%] md:w-auto">
+            <li key={merchant} className="reveal w-[82%] shrink-0 snap-start sm:w-[60%] md:w-auto">
               <Link
                 href="/student"
                 aria-label={`${deal} at ${merchant}. Example offer. Deals unlock once your school verifies you.`}
