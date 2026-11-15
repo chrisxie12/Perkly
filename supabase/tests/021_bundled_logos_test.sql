@@ -1,5 +1,5 @@
 begin;
-select plan(4);
+select plan(6);
 
 select is(
   (select count(*)::int from public.institutions where logo_path like 'bundled/%' and logo_status = 'official'),
@@ -19,6 +19,10 @@ select is(
 select is(
   (select logo_path from public.institutions where slug = 'ug'), 'bundled/ug.svg',
   'UG points at the official SVG');
+
+select set_eq($$select name from public.campuses where institution_id = (select id from public.institutions where slug = 'gctu')$$,
+  array['Tesano', 'Abeka', 'Nungua Learning Centre'], 'a new database gets GCTU''s three campuses without the seed');
+select is((select official_website from public.institutions where slug = 'gctu'), 'https://gctu.edu.gh', 'and its directory details');
 
 select * from finish();
 rollback;

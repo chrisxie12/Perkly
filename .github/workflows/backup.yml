@@ -1,0 +1,77 @@
+name: Nightly database backup
+
+# Dumps the database every night, encrypts it, and keeps it as a private
+# workflow artifact for 14 days. See docs/BACKUPS.md for setup and restore.
+#
+# Needs two repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     the Session pooler connection string, with the password
+#   BACKUP_PASSPHRASE   a long random passphrase, kept in your password manager
+# Without them the job skips and changes nothing.
+
+on:
+  schedule:
+    - cron: "17 1 * * *" # 01:17 UTC, before the 02:30 daily job
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        id: check
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Backup secrets aren't set; skipping." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install the Postgres 17 client
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      - name: Dump and encrypt
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          umask 077
+          stamp=$(date -u +%Y-%m-%dT%H%MZ)
+          mkdir -p out
+          # Your data and the sign-in accounts (auth), not Supabase's own internals.
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --format=custom --no-owner --no-privileges \
+            --schema=public --schema=private --schema=auth \
+            --file="out/perqly-$stamp.dump"
+          size=$(du -h "out/perqly-$stamp.dump" | cut -f1)
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
+            --symmetric --cipher-algo AES256 --output "out/perqly-$stamp.dump.gpg" "out/perqly-$stamp.dump" 3<<<"$BACKUP_PASSPHRASE"
+          shred -u "out/perqly-$stamp.dump"
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          echo "Backup perqly-$stamp: $size before encryption." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep for 14 days
+        if: steps.check.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: perqly-db-${{ env.STAMP }}
+          path: out/*.gpg
+          retention-days: 14
+          if-no-files-found: error
