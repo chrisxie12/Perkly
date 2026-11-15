@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
@@ -12,6 +12,8 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 
 export const metadata: Metadata = { title: "Scan", robots: { index: false } };
+// The camera screen is black, so the phone's bars go black with it.
+export const viewport: Viewport = { themeColor: "#000000" };
 
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
 

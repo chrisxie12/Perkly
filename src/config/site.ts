@@ -5,7 +5,8 @@ export const siteConfig = {
     "Perqly gets verified tertiary students real discounts at shops, food spots and services around campus. Launching first at GCTU, Accra.",
   pilotInstitution: "GCTU",
   pilotInstitutionLong: "Ghana Communication Technology University",
-  themeColor: "#0066FF",
+  // White, like the app's top bar, so the phone's status and navigation bars blend in.
+  themeColor: "#FFFFFF",
   backgroundColor: "#F8FAFC",
 } as const;
 
