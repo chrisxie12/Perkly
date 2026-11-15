@@ -267,17 +267,21 @@ function adminNav(n: NavContext): AreaNav {
   const reports = item("reports", "Reports", "/admin/reports", "chart", ["/admin/reports*"]);
   const audit = item("audit", "Audit logs", "/admin/audit", "scroll", ["/admin/audit*"]);
   const settings = item("settings", "Settings", "/admin/settings", "settings", ["/admin/settings*"]);
+  // Perqly admins verify students for any school (D16); the review queue lives in the school area.
+  const reviews = item("reviews", "Student reviews", "/institution/reviews", "inbox", ["/institution/reviews*"]);
+  const canReview = n.ctx.delegatedInstitutions.length > 0;
 
   const groups: NavGroup[] = [
     { label: null, items: [overview] },
-    { label: "Partners", items: [institutions, merchants, offers] },
+    { label: "Partners", items: [...(canReview ? [reviews] : []), institutions, merchants, offers] },
     { label: "People", items: [...(support ? [users] : []), ...(admin ? [staff] : [])] },
     { label: "Activity", items: [...(support ? [redemptions, reports] : []), ...(admin ? [audit] : [])] },
     { label: null, items: admin ? [settings] : [] },
   ].filter((g) => g.items.length > 0);
 
   const all = groups.flatMap((g) => g.items);
-  const preferred = ["overview", "merchants", "offers", "users", "institutions", "redemptions"];
+  // What a solo operator checks most: reviews first, then businesses and their deals.
+  const preferred = ["overview", "reviews", "merchants", "offers", "users", "institutions", "redemptions"];
   const primary = preferred.map((k) => all.find((i) => i.key === k)).filter((i): i is NavItem => Boolean(i));
   const fits = all.length <= 5;
   const tabs = fits ? all : primary.slice(0, 4);
@@ -285,8 +289,26 @@ function adminNav(n: NavContext): AreaNav {
   return { area: "admin", label: AREA_TITLE.admin, groups, tabs, more };
 }
 
-function accountNav(): AreaNav {
+/** Where "Home" goes from the account pages: the area the person mainly uses. */
+export function homeAreaFor(ctx: UserContext): Exclude<NavArea, "account"> {
+  if (ctx.platformRole) return "admin";
+  if (ctx.merchantRoles.length > 0 || ctx.signupIntent === "merchant") return "merchant";
+  if (ctx.institutionRoles.length > 0) return "institution";
+  return "student";
+}
+
+const HOME: Record<Exclude<NavArea, "account">, { label: string; href: string; icon: IconName }> = {
+  student: { label: "Deals", href: "/student", icon: "tag" },
+  merchant: { label: "Business", href: "/merchant", icon: "store" },
+  institution: { label: "School", href: "/institution", icon: "building" },
+  admin: { label: "Staff", href: "/admin", icon: "home" },
+};
+
+function accountNav(n: NavContext): AreaNav {
+  const home = HOME[homeAreaFor(n.ctx)];
   const tabs = [
+    // Never highlighted here: it leaves the account pages.
+    item("home", home.label, home.href, home.icon, []),
     item("account", "Account", "/account", "user", ["/account"]),
     item("notifications", "Notifications", "/account/notifications", "bell", ["/account/notifications*"]),
   ];
@@ -304,7 +326,7 @@ export function navFor(area: NavArea, n: NavContext): AreaNav {
     case "admin":
       return adminNav(n);
     case "account":
-      return accountNav();
+      return accountNav(n);
   }
 }
 

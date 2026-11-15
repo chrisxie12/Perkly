@@ -72,6 +72,25 @@ describe("menus by role", () => {
     expect(nav.groups.map((g) => g.label)).toEqual([null, "Partners", "People", "Activity", null]);
   });
 
+  it("puts student reviews first for admins who can verify students", () => {
+    const n: NavContext = { ctx: ctx({ platformRole: "super_admin", delegatedInstitutions: [{ institutionId: "i", shortName: "GCTU" }] }) };
+    const nav = navFor("admin", n);
+    expect(nav.tabs.map((t) => t.label)).toEqual(["Overview", "Student reviews", "Merchants", "Offers"]);
+    expect(nav.tabs[1].href).toBe("/institution/reviews");
+  });
+
+  it("gives the account pages a way back to the person's main area", () => {
+    expect(labels("account", student)).toEqual(["Deals", "Account", "Notifications"]);
+    expect(navFor("account", owner).tabs[0]).toMatchObject({ label: "Business", href: "/merchant" });
+    expect(navFor("account", staff("admin")).tabs[0]).toMatchObject({ label: "Staff", href: "/admin" });
+    expect(activeIn(navFor("account", student).tabs, "/account/notifications/settings")).toBe("notifications");
+  });
+
+  it("keeps the sidebar groups for Perqly admins", () => {
+    const nav = navFor("admin", staff("super_admin"));
+    expect(nav.groups.map((g) => g.label)).toEqual([null, "Partners", "People", "Activity", null]);
+  });
+
   it("hides staff-only pages from lower Perqly roles", () => {
     const sup = navFor("admin", staff("support"));
     const all = sup.groups.flatMap((g) => g.items.map((i) => i.label));
