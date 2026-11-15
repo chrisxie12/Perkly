@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { Footprints, Heart, Lock } from "lucide-react";
+import { Footprints, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toggleFavourite } from "@/features/offers/actions";
 import { CategoryIcon } from "@/features/offers/components/marketplace";
 import type { Deal } from "@/features/offers/queries";
 import { openLabel } from "@/features/merchants/hours";
 import { initials, toneFor, walkLabel } from "./format";
 
 export { initials, toneFor, walkLabel };
+import { HeartButton } from "./heart-button";
+export { HeartButton };
 
 export function MerchantAvatar({
   name,
@@ -35,24 +36,6 @@ export function MerchantAvatar({
     >
       {initials(name)}
     </span>
-  );
-}
-
-export function HeartButton({ merchantId, saved, back, label }: { merchantId: string; saved: boolean; back: string; label: string }) {
-  return (
-    <form action={toggleFavourite}>
-      <input type="hidden" name="merchantId" value={merchantId} />
-      <input type="hidden" name="save" value={saved ? "false" : "true"} />
-      <input type="hidden" name="back" value={back} />
-      <button
-        type="submit"
-        aria-pressed={saved}
-        aria-label={saved ? `Remove ${label} from saved` : `Save ${label}`}
-        className={cn("grid size-11 place-items-center rounded-full hover:bg-ink-100", saved ? "text-red-600" : "text-ink-600")}
-      >
-        <Heart className={cn("size-5", saved && "fill-current")} aria-hidden />
-      </button>
-    </form>
   );
 }
 

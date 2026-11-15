@@ -12,6 +12,7 @@ import { getActiveMembership } from "@/features/merchants/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { BottomNav, SideNav } from "./app-nav";
+import { FrameChrome } from "./frame-chrome";
 
 async function navContext(area: NavArea): Promise<NavContext | null> {
   const ctx = await getUserContext();
@@ -23,17 +24,51 @@ async function navContext(area: NavArea): Promise<NavContext | null> {
 
 /**
  * The signed-in app frame: top bar (notifications, account menu, area switcher),
- * a sidebar on tablets and desktops, and bottom tabs on phones. It also checks,
- * on every page load, that the user may open this page; the menus and the check
- * come from the same rules in src/lib/navigation/config.ts.
+ * a sidebar on tablets and desktops, and bottom tabs on phones. It lives in each
+ * area's layout, so it stays on screen while pages change: tapping a tab swaps
+ * only the page, like a native app. Full-screen flows (scanner, live pass) hide it.
+ */
+export async function AreaFrame({ area, children }: { area: NavArea; children: React.ReactNode }) {
+  const n = await navContext(area);
+  const nav = n ? navFor(area, n) : null;
+  return (
+    <FrameChrome
+      area={area}
+      header={
+        <header className="pt-safe sticky top-0 z-30 border-b border-ink-200 bg-white">
+          <div className="flex h-16 items-center justify-between gap-3 px-4 md:px-5">
+            <div className="flex items-center gap-3">
+              <Link href="/" aria-label="Perqly home" className="rounded-lg">
+                <Logo />
+              </Link>
+              <span className="hidden rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700 sm:inline">
+                {AREA_TITLE[area]}
+              </span>
+            </div>
+            <React.Suspense fallback={null}>
+              <AccountBar />
+            </React.Suspense>
+          </div>
+        </header>
+      }
+      side={nav ? <SideNav nav={nav} /> : null}
+      bottom={nav ? <BottomNav nav={nav} /> : null}
+    >
+      {children}
+    </FrameChrome>
+  );
+}
+
+/**
+ * Per-page check that this user may open this page (the frame itself is in the
+ * layout). Pages wrap their content in it; `immersive` pages draw the whole screen.
  */
 export async function AreaShell({
   area,
-  immersive = false,
   children,
 }: {
   area: NavArea;
-  /** Full-screen flows (scanner, live pass): no top bar or tabs, the page draws everything. */
+  /** Kept for readability at call sites; the frame hides itself on full-screen routes. */
   immersive?: boolean;
   children: React.ReactNode;
 }) {
@@ -41,46 +76,17 @@ export async function AreaShell({
   const path = h.get(PATH_HEADER) ?? "";
   const nav = n ? navFor(area, n) : null;
   const decision = n && path ? routeAccess(path, n) : { kind: "allow" as const };
-
-  if (immersive && decision.kind === "allow") return <div className="flex min-h-dvh flex-col">{children}</div>;
-
+  if (decision.kind === "allow") return <>{children}</>;
   return (
-    <div className="flex min-h-dvh flex-col bg-paper">
-      <header className="pt-safe sticky top-0 z-30 border-b border-ink-200 bg-white">
-        <div className="flex h-16 items-center justify-between gap-3 px-4 md:px-5">
-          <div className="flex items-center gap-3">
-            <Link href="/" aria-label="Perqly home" className="rounded-lg">
-              <Logo />
-            </Link>
-            <span className="hidden rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700 sm:inline">
-              {AREA_TITLE[area]}
-            </span>
-          </div>
-          <React.Suspense fallback={null}>
-            <AccountBar />
-          </React.Suspense>
-        </div>
-      </header>
-      <div className="flex flex-1">
-        {nav && <SideNav nav={nav} />}
-        <main className="mx-auto w-full max-w-5xl min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-5 md:pt-12 md:pb-12">
-          {decision.kind === "allow" ? (
-            children
-          ) : (
-            <div className="mx-auto max-w-md py-12 text-center">
-              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-blue-50 text-blue-600">
-                <Lock className="size-7" aria-hidden />
-              </div>
-              <h1 className="mt-5 font-display text-2xl font-extrabold">You can&apos;t open this page</h1>
-              <p className="mt-2 text-ink-700">{decision.reason}</p>
-              <Link href={nav?.tabs[0]?.href ?? "/auth/continue"} className={`${buttonVariants({ variant: "secondary" })} mt-6`}>
-                Go to {nav?.tabs[0]?.label ?? "your area"}
-              </Link>
-            </div>
-          )}
-        </main>
+    <div className="mx-auto max-w-md py-12 text-center">
+      <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+        <Lock className="size-7" aria-hidden />
       </div>
-      {nav && <BottomNav nav={nav} />}
+      <h1 className="mt-5 font-display text-2xl font-extrabold">You can&apos;t open this page</h1>
+      <p className="mt-2 text-ink-700">{decision.reason}</p>
+      <Link href={nav?.tabs[0]?.href ?? "/auth/continue"} className={`${buttonVariants({ variant: "secondary" })} mt-6`}>
+        Go to {nav?.tabs[0]?.label ?? "your area"}
+      </Link>
     </div>
   );
 }

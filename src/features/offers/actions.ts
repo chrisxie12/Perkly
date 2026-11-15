@@ -135,6 +135,21 @@ export async function moderateOffer(_prev: FormState, formData: FormData): Promi
 }
 
 /** Save or unsave a business. RLS lets students write only their own favourites, of live businesses. */
+/** Saves or unsaves a business without leaving the page (the heart button calls this). */
+export async function setFavourite(merchantId: string, save: boolean): Promise<void> {
+  const id = z.uuid().safeParse(merchantId);
+  const ctx = await getUserContext();
+  if (!id.success || !ctx || !hasSupabaseEnv()) return;
+  const supabase = await createClient();
+  if (save)
+    await supabase
+      .from("favourites")
+      .upsert({ student_id: ctx.userId, merchant_id: id.data }, { onConflict: "student_id,merchant_id", ignoreDuplicates: true });
+  else await supabase.from("favourites").delete().eq("student_id", ctx.userId).eq("merchant_id", id.data);
+  revalidatePath("/student", "layout");
+}
+
+/** Fallback for the heart button when JavaScript hasn't loaded yet. */
 export async function toggleFavourite(formData: FormData): Promise<void> {
   const merchantId = z.uuid().safeParse(formData.get("merchantId"));
   const save = formData.get("save") === "true";
