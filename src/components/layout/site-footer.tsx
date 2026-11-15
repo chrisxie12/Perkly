@@ -16,7 +16,7 @@ const columns = [
   {
     title: "Partners",
     links: [
-      { href: "/#merchants", label: "For merchants" },
+      { href: "/merchants", label: "For businesses" },
       { href: "/register?as=merchant", label: "Merchant sign-up" },
       { href: "/institution", label: "For institutions" },
     ],

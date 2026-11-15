@@ -188,7 +188,8 @@ select is_empty($$
   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'execute')
     and p.proname not like 'pgtap%' and p.proowner = (select oid from pg_roles where rolname = current_user)
     and p.oid not in (select objid from pg_depend where deptype = 'e')
-$$, 'anonymous visitors cannot execute any Perqly function in public');
+    and p.proname <> 'join_waitlist' -- the landing page's waitlist form (migration 0020), rate-limited
+$$, 'anonymous visitors cannot execute any Perqly function in public except the waitlist');
 
 select * from finish();
 rollback;

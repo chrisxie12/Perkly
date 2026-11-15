@@ -1,0 +1,28 @@
+import Link from "next/link";
+import { PageContainer } from "@/components/layout/page-container";
+import { InstallButton } from "@/components/marketing/install-button";
+
+/** The call to action after "How it works": install now, or get an email when sign-up opens. */
+export function InstallStrip() {
+  return (
+    <section aria-labelledby="install-title" className="pb-16 md:pb-24">
+      <PageContainer>
+        <div className="flex flex-col gap-6 rounded-[2rem] bg-white p-7 ring-1 ring-ink-200 sm:p-10 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-xl">
+            <h2 id="install-title" className="font-display text-2xl font-extrabold text-ink-900 md:text-3xl">
+              Put Perqly on your phone now.
+            </h2>
+            <p className="mt-2 text-lg leading-relaxed text-ink-600">
+              It&apos;s free, needs no app store and uses very little data. Sign-up for GCTU students opens with the pilot.{" "}
+              <Link href="#notify" className="font-semibold text-blue-700 underline underline-offset-2">
+                Get an email when it does
+              </Link>
+              .
+            </p>
+          </div>
+          <InstallButton className="self-start md:self-auto" />
+        </div>
+      </PageContainer>
+    </section>
+  );
+}

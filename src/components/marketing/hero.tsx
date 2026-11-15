@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Check, ScanLine } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { InstallButton } from "@/components/marketing/install-button";
+import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { PageContainer } from "@/components/layout/page-container";
 import { LivePass } from "@/components/marketing/live-pass";
 import { PhoneFrame } from "@/components/marketing/phone-frame";
@@ -29,13 +29,12 @@ export function Hero() {
               you&apos;re a student. Merchants pay for the deals. You just show up.
             </p>
 
-            <div className="mt-9 flex animate-rise flex-col gap-3 [animation-delay:420ms] sm:flex-row">
-              <Button asChild size="lg">
-                <Link href="/register">Get started</Link>
-              </Button>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/#merchants">I run a business</Link>
-              </Button>
+            <div className="mt-9 animate-rise [animation-delay:420ms]">
+              <InstallButton />
+            </div>
+
+            <div id="notify" className="mt-8 animate-rise scroll-mt-28 [animation-delay:470ms]">
+              <WaitlistForm source="hero" />
             </div>
 
             <ul className="mt-8 flex animate-rise flex-wrap gap-x-6 gap-y-2 text-[0.9375rem] font-medium text-ink-700 [animation-delay:520ms]">

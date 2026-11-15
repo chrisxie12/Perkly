@@ -11,6 +11,12 @@ export default function MarketingLayout({ children }: LayoutProps<"/">) {
       >
         Skip to content
       </a>
+      <script
+        // Keeps the browser's install offer if it arrives before the page's JavaScript; the Install button picks it up.
+        dangerouslySetInnerHTML={{
+          __html: "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__perqlyInstall=e})",
+        }}
+      />
       <SiteHeader />
       <main id="main">{children}</main>
       <SiteFooter />

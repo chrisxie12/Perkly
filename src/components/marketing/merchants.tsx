@@ -16,9 +16,9 @@ export function Merchants() {
     <section id="merchants" aria-labelledby="merchants-title" className="relative overflow-hidden bg-ink-900 py-24 text-white md:py-32">
       <PageContainer className="grid grid-cols-1 items-center gap-16 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
-          <h2 id="merchants-title" className="font-display text-display-lg font-extrabold">
+          <h1 id="merchants-title" className="font-display text-display-lg font-extrabold">
             More students through your door. Free to join for the pilot.
-          </h2>
+          </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-300">
             You choose the discount and the limits. Perqly brings you verified students from the campus next door and shows you the results.
           </p>

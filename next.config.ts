@@ -38,13 +38,18 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  // The service worker is built by Serwist and registered from /serwist/sw.js.
+  // /sw.js serves the same file at the conventional address (for checks and tools).
+  async rewrites() {
+    return [{ source: "/sw.js", destination: "/serwist/sw.js" }];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
       {
         // The service worker must never be cached by the browser or CDN,
         // so users always receive the newest version.
-        source: "/serwist/:path*",
+        source: "/:sw(serwist/.*|sw\\.js)",
         headers: [
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
           { key: "Service-Worker-Allowed", value: "/" },

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MoreVertical, PlusSquare, Share, Smartphone } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
+import { InstallButton } from "@/components/marketing/install-button";
 
 export const metadata: Metadata = {
   title: "Install Perqly",
@@ -62,9 +63,13 @@ export default function InstallPage() {
           ))}
         </div>
 
-        <p className="mt-10 max-w-2xl text-ink-600">
-          Already installed? Open Perqly from your home screen. A one-tap install button will appear here on phones that support it.
-        </p>
+        <div className="mt-10 flex flex-col gap-4">
+          <InstallButton hideFallback />
+          <p className="max-w-2xl text-ink-600">
+            On phones that support one-tap install, the button above installs Perqly directly. Already installed? Open Perqly from your home
+            screen.
+          </p>
+        </div>
       </PageContainer>
     </section>
   );

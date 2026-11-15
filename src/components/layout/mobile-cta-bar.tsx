@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { InstallButton } from "@/components/marketing/install-button";
 import { cn } from "@/lib/utils";
 
 /**
@@ -47,9 +46,7 @@ export function MobileCtaBar() {
         <p className="flex-1 text-sm leading-snug text-ink-700">
           <span className="font-semibold text-ink-900">Free for students.</span> Launching at GCTU.
         </p>
-        <Button asChild>
-          <Link href="/register">Get Perqly</Link>
-        </Button>
+        <InstallButton className="h-11 px-5 text-[0.9375rem]" />
       </div>
     </div>
   );

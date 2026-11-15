@@ -92,7 +92,7 @@ export function SiteHeader() {
                   <Link href="/register">Get started</Link>
                 </Button>
                 <Button asChild variant="outline-inverse" size="lg">
-                  <Link href="/merchant">For merchants</Link>
+                  <Link href="/merchants">For businesses</Link>
                 </Button>
               </div>
             </SheetContent>

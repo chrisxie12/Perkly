@@ -1,6 +1,17 @@
 import { Plus } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 
+export const merchantFaqs = [
+  {
+    q: "How do businesses join?",
+    a: "Merchant sign-up opens with the pilot, and joining is free during the pilot. You'll set up your business, add your branches, create your offer and print your branch QR.",
+  },
+  {
+    q: "What does it cost?",
+    a: "Nothing during the pilot. You set your own original price and student price for each offer, and students pay you directly at the counter.",
+  },
+];
+
 export const faqs = [
   {
     q: "Is Perqly free for students?",
@@ -27,28 +38,32 @@ export const faqs = [
     a: "We're starting with GCTU so we can get it right, then adding schools one by one. Install Perqly now and you'll be ready when your school joins.",
   },
   {
-    q: "How do businesses join?",
-    a: "Merchant sign-up opens with the pilot, and joining is free during the pilot. You'll set up your business, add your branches, create your offer and print your branch QR.",
-  },
-  {
     q: "Is my information safe?",
     a: "Only your school's reviewers can see your ID photo, every view is logged, and ID photos are deleted 30 days after a decision. Merchants see your first name and photo when you redeem, never your phone number or email.",
   },
 ];
 
-export function Faq() {
+export function Faq({
+  items = faqs,
+  title = "Questions, answered.",
+  intro = "The things students ask us most.",
+}: {
+  items?: { q: string; a: string }[];
+  title?: string;
+  intro?: string;
+}) {
   return (
     <section id="faq" aria-labelledby="faq-title" className="bg-white py-24 md:py-32">
       <PageContainer className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <h2 id="faq-title" className="font-display text-display-lg font-extrabold">
-            Questions, answered.
+            {title}
           </h2>
-          <p className="mt-5 max-w-sm text-lg leading-relaxed text-ink-600">The things students and shop owners ask us most.</p>
+          <p className="mt-5 max-w-sm text-lg leading-relaxed text-ink-600">{intro}</p>
         </div>
         {/* Native <details>: accessible, keyboard-friendly and needs no JavaScript */}
         <div className="border-t border-ink-200">
-          {faqs.map((item) => (
+          {items.map((item) => (
             <details key={item.q} name="faq" className="group border-b border-ink-200">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 font-display text-lg font-semibold tracking-tight text-ink-900 transition-colors hover:text-blue-600 md:text-xl [&::-webkit-details-marker]:hidden">
                 {item.q}
