@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <AuthCard
       title="Sign in to Perqly"
-      description="We'll email you a 6-digit code. No password needed."
+      description="Continue with Google, or get a 6-digit code by email. No password needed."
       footer={
         <>
           New to Perqly?{" "}

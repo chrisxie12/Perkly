@@ -11,7 +11,7 @@ export default function RegisterPage() {
   return (
     <AuthCard
       title="Create your Perqly account"
-      description="Free for students. It takes a minute, and we'll email you a code to confirm it's you."
+      description="Free for students. It takes a minute."
       footer={
         <>
           Already have an account?{" "}

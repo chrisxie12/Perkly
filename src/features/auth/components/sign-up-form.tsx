@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FieldError, Input, Label } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { requestSignUpCode } from "../actions";
 import { idleState } from "../types";
 import { FormMessage } from "./form-message";
 import { SubmitButton } from "./submit-button";
+import { GoogleButton, OrDivider } from "./google-button";
 
 const intents = [
   { value: "student", title: "I'm a student", body: "Get verified by your school and use student discounts." },
@@ -21,44 +22,18 @@ export function SignUpForm() {
   const preset = params.get("as") === "merchant" ? "merchant" : "student";
   const [state, action] = useActionState(requestSignUpCode, idleState);
   const errors = state.fieldErrors ?? {};
+  const form = useRef<HTMLFormElement>(null);
+
+  // Google gives us the name and email; the person still chooses student or business and agrees to the terms.
+  const prepareGoogle = () => {
+    const data = new FormData(form.current ?? undefined);
+    if (data.get("consent") !== "on") return "Tick the box to agree to the terms and privacy notice first.";
+    return { intent: data.get("intent") === "merchant" ? ("merchant" as const) : ("student" as const) };
+  };
 
   return (
-    <form action={action} noValidate className="space-y-6">
+    <form ref={form} action={action} noValidate className="space-y-6">
       <input type="hidden" name="next" value={next} />
-      <div>
-        <Label htmlFor="fullName">Full name</Label>
-        <Input
-          id="fullName"
-          name="fullName"
-          autoComplete="name"
-          required
-          invalid={Boolean(errors.fullName)}
-          aria-describedby={errors.fullName ? "fullName-error" : undefined}
-        />
-        {errors.fullName && <FieldError id="fullName-error">{errors.fullName}</FieldError>}
-      </div>
-      <div>
-        <Label htmlFor="email">Email address</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          required
-          invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? "email-error" : "email-hint"}
-        />
-        {errors.email ? (
-          <FieldError id="email-error">{errors.email}</FieldError>
-        ) : (
-          <p id="email-hint" className="mt-2 text-sm text-ink-600">
-            Any email you use. You&apos;ll confirm your school email later, during verification.
-          </p>
-        )}
-      </div>
       <fieldset aria-describedby={errors.intent ? "intent-error" : undefined}>
         <legend className="mb-2 block text-sm font-semibold text-ink-900">How will you use Perqly?</legend>
         <div className="grid gap-3">
@@ -108,9 +83,45 @@ export function SignUpForm() {
         </label>
         {errors.consent && <FieldError id="consent-error">{errors.consent}</FieldError>}
       </div>
+      <GoogleButton next={next || null} prepare={prepareGoogle} label="Sign up with Google" />
+      <OrDivider />
+      <div>
+        <Label htmlFor="fullName">Full name</Label>
+        <Input
+          id="fullName"
+          name="fullName"
+          autoComplete="name"
+          required
+          invalid={Boolean(errors.fullName)}
+          aria-describedby={errors.fullName ? "fullName-error" : undefined}
+        />
+        {errors.fullName && <FieldError id="fullName-error">{errors.fullName}</FieldError>}
+      </div>
+      <div>
+        <Label htmlFor="email">Email address</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+          invalid={Boolean(errors.email)}
+          aria-describedby={errors.email ? "email-error" : "email-hint"}
+        />
+        {errors.email ? (
+          <FieldError id="email-error">{errors.email}</FieldError>
+        ) : (
+          <p id="email-hint" className="mt-2 text-sm text-ink-600">
+            Any email you use. You&apos;ll confirm your school email later, during verification.
+          </p>
+        )}
+      </div>
       <FormMessage state={state} />
       <SubmitButton size="lg" className="w-full">
-        Create account
+        Create account with email
       </SubmitButton>
     </form>
   );

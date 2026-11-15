@@ -54,7 +54,8 @@ Recommended at the same time (Vercel, needs your approval): set the Vercel proje
 | Email OTP expiration       | **600** seconds (10 minutes)                     |
 | Email OTP length           | **6**                                            |
 | Phone provider             | **Off** (phone sign-in comes later, decision D6) |
-| All social providers       | Off                                              |
+| Google                     | **On** (section 3.9)                             |
+| Other social providers     | Off                                              |
 
 ### 3.2 Authentication → URL Configuration
 
@@ -135,6 +136,21 @@ Settings → API Keys shows two kinds of key:
 | **Publishable** key (`sb_publishable_…`) | The app's only key. Safe in the browser because RLS protects the data                                                                                                       |
 | **Secret** key (`sb_secret_…`)           | Optional, server only: lets the server issue institutional-email confirmation codes (step 1.3). Never in the browser, never in a `NEXT_PUBLIC_` variable, never in the repo |
 | Legacy `anon` / `service_role` keys      | Not used                                                                                                                                                                    |
+
+### 3.9 Google sign-in
+
+Perqly offers "Continue with Google" on `/login` and "Sign up with Google" on `/register`. Google returns to Supabase, which returns to `/auth/callback` on the Perqly address that started it.
+
+1. **Google Cloud Console → APIs & Services → OAuth consent screen.** App name Perqly, your support email, user type External. Scopes: `openid`, `email`, `profile` only. Add the Perqly domain under Authorised domains once there is one. While the app is in Testing, only the test users you list can sign in; publish it before students use it.
+2. **Credentials → Create credentials → OAuth client ID → Web application.**
+   - Authorised JavaScript origins: `https://perqly-eta.vercel.app` and `http://localhost:3000`.
+   - Authorised redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback` (shown in Supabase on the Google provider page).
+3. **Supabase → Authentication → Sign In / Providers → Google.** Turn it on and paste the Client ID and Client secret there. They are never stored in this repository or in Vercel.
+4. **Supabase → Authentication → URL Configuration → Redirect URLs.** Add `https://perqly-eta.vercel.app/**` (and the production domain later). Without it, Supabase sends people to the Site URL instead of back to `/auth/callback`.
+
+New Google accounts get their name from Google. On `/register` the person still picks student or business and ticks the terms box before the button works; `/auth/callback` records the choice with `set_signup_intent` (migration 0018). On `/login`, the page tells new people that continuing creates an account and means they agree to the terms.
+
+Staff who need two-step verification still get the authenticator step after Google, the same as after an email code.
 
 ## 4. Applying the database migrations
 
