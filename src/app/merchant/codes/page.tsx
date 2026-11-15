@@ -45,7 +45,7 @@ export default async function CodesPage() {
             <li key={c.branch_id} className="grid gap-6 rounded-xl bg-white p-5 shadow-soft ring-1 ring-ink-200/70 md:grid-cols-[auto_1fr]">
               {c.svg && c.qr_code_id ? (
                 <>
-                  <div id={`poster-${c.branch_id}`} className="perqly-poster mx-auto w-64 text-center">
+                  <div id={`poster-${c.branch_id}`} className="perqly-poster theme-fixed mx-auto w-64 rounded-xl bg-white p-3 text-center">
                     <p className="font-display text-xl font-extrabold text-ink-900">{merchant.display_name}</p>
                     <p className="font-semibold text-ink-700">{c.branch_name}</p>
                     <p className="mt-3 font-semibold text-blue-700">Student? Scan with Perqly</p>

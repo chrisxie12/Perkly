@@ -52,7 +52,7 @@ export default async function MePage() {
       <div className="flex items-start gap-3 rounded-2xl bg-emerald-50 p-4 text-emerald-800">
         <BadgeCheck className="size-5 shrink-0" aria-hidden />
         <div>
-          <b className="block">Verified by {school}</b>
+          <b className="block">Verified {school} student</b>
           <p className="text-sm text-ink-700">
             {p?.verified_until ? `Valid until ${formatDate(p.verified_until)}.` : "Your verification is active."}
           </p>

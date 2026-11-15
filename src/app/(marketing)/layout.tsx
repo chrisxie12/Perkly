@@ -17,10 +17,13 @@ export default function MarketingLayout({ children }: LayoutProps<"/">) {
           __html: "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__perqlyInstall=e})",
         }}
       />
-      <SiteHeader />
-      <main id="main">{children}</main>
-      <SiteFooter />
-      <MobileCtaBar />
+      {/* The marketing pages keep their light design in dark mode (see globals.css). */}
+      <div className="theme-fixed min-h-dvh bg-paper text-ink-900">
+        <SiteHeader />
+        <main id="main">{children}</main>
+        <SiteFooter />
+        <MobileCtaBar />
+      </div>
     </>
   );
 }

@@ -47,7 +47,7 @@ export function VerificationStatusCard({ status, showAction = true }: { status: 
     verified: {
       icon: BadgeCheck,
       tone: "bg-green-50 text-success",
-      text: `Verified by ${school} until ${formatDate(status.profile?.verified_until)}.`,
+      text: `You're verified as a ${school} student until ${formatDate(status.profile?.verified_until)}.`,
       action: null,
     },
     expired: {

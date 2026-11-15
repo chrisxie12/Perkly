@@ -5,6 +5,7 @@ import { UpdatePrompt } from "@/components/shared/update-prompt";
 import { siteConfig } from "@/config/site";
 import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
+import { THEME_COLORS, themeScript } from "@/lib/theme/script";
 
 const bricolage = localFont({
   src: "./fonts/bricolage-grotesque.woff2",
@@ -58,7 +59,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: siteConfig.themeColor,
+  // The theme script in <head> switches this to match a chosen light or dark theme.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -66,7 +71,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-GH" className={`${bricolage.variable} ${figtree.variable} antialiased`}>
+    // suppressHydrationWarning: the theme script sets data-theme on <html> before React loads.
+    <html lang="en-GH" className={`${bricolage.variable} ${figtree.variable} antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-dvh">
         <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
           {children}

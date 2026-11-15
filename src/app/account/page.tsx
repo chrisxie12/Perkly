@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { cancelDeletion, requestDeletion } from "@/features/account/actions";
 import { NameForm } from "@/features/account/components/name-form";
+import { ThemePicker } from "@/features/account/components/theme-picker";
 import { formatDate } from "@/features/students/components/status-card";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false } };
@@ -37,14 +38,21 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
         </div>
       )}
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-        <Card>
-          <CardTitle className="mb-6">Your name</CardTitle>
-          {ctx.isSuspended ? (
-            <p className="text-ink-700">Your account is suspended, so it can&apos;t be changed. Contact Perqly support.</p>
-          ) : (
-            <NameForm fullName={ctx.fullName ?? ""} firstName={ctx.firstName ?? ""} />
-          )}
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardTitle className="mb-6">Your name</CardTitle>
+            {ctx.isSuspended ? (
+              <p className="text-ink-700">Your account is suspended, so it can&apos;t be changed. Contact Perqly support.</p>
+            ) : (
+              <NameForm fullName={ctx.fullName ?? ""} firstName={ctx.firstName ?? ""} />
+            )}
+          </Card>
+          <Card>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription className="mb-5">Light or dark. Saved on this device.</CardDescription>
+            <ThemePicker />
+          </Card>
+        </div>
         <div className="space-y-6">
           <Card>
             <CardTitle>Your data</CardTitle>

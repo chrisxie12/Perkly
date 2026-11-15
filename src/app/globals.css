@@ -377,3 +377,160 @@
     animation-duration: 9s;
   }
 }
+
+/*
+ * Dark mode.
+ *
+ * <html data-theme="dark"> is set before paint by the script in app/layout.tsx,
+ * from the person's choice (Account → Appearance) or their phone's setting.
+ * Most colours follow by swapping the palette variables; a few utilities that
+ * mean "always this colour" (white cards, white text on dark pills) get
+ * explicit dark values below.
+ *
+ * .theme-fixed keeps the original light palette inside it: the marketing
+ * pages, logo tiles and QR codes (which must stay dark-on-white to scan),
+ * and pieces designed dark on purpose (the live pass, the site footer).
+ */
+:root {
+  --surface-card: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-card: #131b2b;
+
+  --color-ink-50: #0b1220;
+  --color-ink-100: #1b2436;
+  --color-ink-200: #263147;
+  --color-ink-300: #364259;
+  --color-ink-400: #5b6780;
+  --color-ink-500: #8792a7;
+  --color-ink-600: #a9b2c3;
+  --color-ink-700: #c6cdd9;
+  --color-ink-800: #dfe4ec;
+  --color-ink-900: #eff2f7;
+  --color-paper: #0b1220;
+
+  --color-blue-50: #0f2140;
+  --color-blue-100: #14294f;
+  --color-blue-200: #1e3b6e;
+  --color-orange-50: #2a1810;
+  --color-orange-100: #3b2014;
+  --color-orange-200: #5c321d;
+  --color-green-50: #0f2a1c;
+  --color-green-200: #1d4a31;
+  --color-emerald-50: #0c2a20;
+  --color-emerald-200: #17493a;
+  --color-red-50: #2e1316;
+  --color-red-200: #5a2328;
+
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px -4px rgb(0 0 0 / 0.45);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 18px 40px -12px rgb(0 0 0 / 0.6);
+}
+
+/* Back to the light palette inside fixed islands. */
+:root[data-theme="dark"] .theme-fixed {
+  color-scheme: light;
+  --surface-card: #ffffff;
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f4f8;
+  --color-ink-200: #e3e8ef;
+  --color-ink-300: #cdd4de;
+  --color-ink-400: #9aa3b2;
+  --color-ink-500: #6b7280;
+  --color-ink-600: #4b5563;
+  --color-ink-700: #374151;
+  --color-ink-800: #283240;
+  --color-ink-900: #1f2937;
+  --color-paper: #f8fafc;
+  --color-blue-50: #ebf3ff;
+  --color-blue-100: #d6e6ff;
+  --color-blue-200: #adcdff;
+  --color-orange-50: #fff3ee;
+  --color-orange-100: #ffe3d6;
+  --color-orange-200: #ffc5ad;
+  --color-green-50: oklch(98.2% 0.018 155.826);
+  --color-green-200: oklch(92.5% 0.084 155.995);
+  --color-emerald-50: oklch(97.9% 0.021 166.113);
+  --color-emerald-200: oklch(90.5% 0.093 164.15);
+  --color-red-50: oklch(97.1% 0.013 17.38);
+  --color-red-200: oklch(88.5% 0.062 18.334);
+  --shadow-soft: 0 1px 2px rgb(0 31 82 / 0.06), 0 4px 16px -4px rgb(0 31 82 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(0 31 82 / 0.06), 0 18px 40px -12px rgb(0 31 82 / 0.22);
+}
+
+/* White surfaces become dark cards (translucent headers keep their blur). */
+:root[data-theme="dark"] :is(.bg-white):not(.theme-fixed, .theme-fixed *) {
+  background-color: var(--surface-card);
+}
+:root[data-theme="dark"] :is(.bg-white\/95):not(.theme-fixed, .theme-fixed *) {
+  background-color: color-mix(in srgb, var(--surface-card) 95%, transparent);
+}
+:root[data-theme="dark"] :is(.bg-white\/90):not(.theme-fixed, .theme-fixed *) {
+  background-color: color-mix(in srgb, var(--surface-card) 90%, transparent);
+}
+:root[data-theme="dark"] :is(.bg-white\/75):not(.theme-fixed, .theme-fixed *) {
+  background-color: color-mix(in srgb, var(--surface-card) 75%, transparent);
+}
+:root[data-theme="dark"] :is(.ring-white):not(.theme-fixed, .theme-fixed *) {
+  --tw-ring-color: var(--surface-card);
+}
+:root[data-theme="dark"] :is(.border-white):not(.theme-fixed, .theme-fixed *) {
+  border-color: var(--surface-card);
+}
+
+/* Dark ink surfaces (selected filters, badges, dark buttons, hero cards) stay dark,
+   a step lighter than the cards around them so they still stand out. */
+:root[data-theme="dark"] :is(.bg-ink-900, .\!bg-ink-900):not(.theme-fixed, .theme-fixed *) {
+  background-color: #34415c !important;
+}
+:root[data-theme="dark"] :is(.bg-ink-800):not(.theme-fixed, .theme-fixed *) {
+  background-color: #2c3850;
+}
+:root[data-theme="dark"] :is(.bg-ink-700):not(.theme-fixed, .theme-fixed *) {
+  background-color: #3b4862;
+}
+:root[data-theme="dark"] :is(.ring-ink-900):not(.theme-fixed, .theme-fixed *) {
+  --tw-ring-color: #34415c;
+}
+/* Scrims stay dark. */
+:root[data-theme="dark"] .bg-ink-900\/50 {
+  background-color: rgb(0 0 0 / 0.55);
+}
+:root[data-theme="dark"] .bg-ink-900\/60 {
+  background-color: rgb(0 0 0 / 0.65);
+}
+:root[data-theme="dark"] .bg-ink-900\/80 {
+  background-color: rgb(0 0 0 / 0.75);
+}
+
+/* Coloured text, lightened to stay readable on dark. */
+:root[data-theme="dark"] :is(.text-slate-700):not(.theme-fixed, .theme-fixed *) {
+  color: var(--color-ink-700);
+}
+:root[data-theme="dark"] :is(.text-blue-500, .text-blue-600):not(.theme-fixed, .theme-fixed *) {
+  color: #6ea8ff;
+}
+:root[data-theme="dark"] :is(.text-blue-700):not(.theme-fixed, .theme-fixed *) {
+  color: #8dbbff;
+}
+:root[data-theme="dark"] :is(.text-blue-800, .text-blue-900):not(.theme-fixed, .theme-fixed *) {
+  color: #b5d2ff;
+}
+:root[data-theme="dark"] :is(.text-orange-700, .text-orange-800, .text-orange-900):not(.theme-fixed, .theme-fixed *) {
+  color: #ffb38c;
+}
+:root[data-theme="dark"]
+  :is(.text-green-600, .text-green-700, .text-green-800, .text-emerald-700, .text-emerald-800, .text-success):not(
+    .theme-fixed,
+    .theme-fixed *
+  ) {
+  color: #6ee7a0;
+}
+:root[data-theme="dark"] :is(.text-red-600, .text-red-700, .text-red-800, .text-danger):not(.theme-fixed, .theme-fixed *) {
+  color: #fca5a5;
+}
+:root[data-theme="dark"] :is(.hover\:text-blue-600:hover, .hover\:text-blue-700:hover, .group:hover .group-hover\:text-blue-600) {
+  color: #8dbbff;
+}

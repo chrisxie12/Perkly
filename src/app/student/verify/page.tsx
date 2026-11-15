@@ -86,8 +86,8 @@ export default async function VerifyPage({ searchParams }: PageProps<"/student/v
         {view === "verified" && (
           <Card>
             <p className="leading-relaxed text-ink-700">
-              {school} has confirmed you&apos;re a student. Your verification lasts until {formatDate(profile?.verified_until)}. Student
-              offers will appear in Perqly as businesses near your campus join.
+              Perqly has confirmed you&apos;re a {school} student. Your verification lasts until {formatDate(profile?.verified_until)}.
+              Student offers will appear in Perqly as businesses near your campus join.
             </p>
             <Button asChild variant="secondary" className="mt-4">
               <Link href="/student">Back to home</Link>

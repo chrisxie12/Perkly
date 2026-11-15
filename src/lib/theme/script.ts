@@ -1,0 +1,21 @@
+/**
+ * Runs in <head> before the page paints, so dark mode never flashes white.
+ * Choice is "system" (follow the phone), "light" or "dark", saved on this device.
+ * Kept tiny and dependency-free: it's inlined as a string.
+ */
+export const THEME_STORAGE_KEY = "perqly-theme";
+export const THEME_COLORS = { light: "#FFFFFF", dark: "#0B1220" } as const;
+
+export const themeScript = `(function(){try{
+var k=${JSON.stringify(THEME_STORAGE_KEY)},c=${JSON.stringify(THEME_COLORS)};
+var p=localStorage.getItem(k);if(p!=="light"&&p!=="dark")p="system";
+var m=matchMedia("(prefers-color-scheme: dark)");
+function apply(){var d=p==="dark"||(p==="system"&&m.matches);var r=document.documentElement;
+r.dataset.theme=d?"dark":"light";r.dataset.themeChoice=p;
+document.querySelectorAll('meta[name="theme-color"]').forEach(function(t){
+if(t.dataset.fixed==="1")return;var v=(t.getAttribute("content")||"").toLowerCase();
+if(v==="#000000"){t.dataset.fixed="1";return;}
+t.removeAttribute("media");t.setAttribute("content",d?c.dark:c.light);});}
+apply();m.addEventListener("change",function(){if(p==="system")apply();});
+window.__perqlyTheme=function(n){p=n;try{localStorage.setItem(k,n)}catch(e){}apply();};
+}catch(e){}})();`;

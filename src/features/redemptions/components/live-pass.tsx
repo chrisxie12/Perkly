@@ -52,7 +52,7 @@ export function LivePass({
   const pct = left === null ? 100 : Math.min(100, (left / windowSeconds) * 100);
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#0A1430] text-white">
+    <div className="theme-fixed relative flex min-h-dvh flex-col overflow-hidden bg-[#0A1430] text-white">
       <div className="pass-bg" aria-hidden />
       <div className="pt-safe pb-safe relative z-10 flex flex-1 flex-col px-5 pb-5">
         <div className="flex min-h-12 items-center justify-between">

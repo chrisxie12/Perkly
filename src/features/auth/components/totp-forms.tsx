@@ -77,7 +77,7 @@ export function TotpSetup() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-white p-5 text-center ring-1 ring-ink-200">
+      <div className="theme-fixed rounded-xl bg-white p-5 text-center ring-1 ring-ink-200">
         {/* eslint-disable-next-line @next/next/no-img-element -- a data URI from Supabase, not an optimisable image */}
         <img src={enrollment.qrCode} alt="QR code to add Perqly to your authenticator app" className="mx-auto size-48" />
         <p className="mt-4 text-sm text-ink-600">Can&apos;t scan it? Enter this key in the app instead:</p>
