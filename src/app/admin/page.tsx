@@ -94,7 +94,7 @@ export default async function AdminPage() {
           <CardDescription>
             {institutions.length} in total, {open} open to students.
             {withoutReviewers.length > 0 &&
-              ` ${withoutReviewers.map((row) => row.short_name).join(", ")} ${withoutReviewers.length === 1 ? "has" : "have"} no reviewers yet, so students there can't be verified.`}
+              ` ${withoutReviewers.map((row) => row.short_name).join(", ")} ${withoutReviewers.length === 1 ? "has" : "have"} no reviewers yet, so only Perqly admins can verify students there.`}
           </CardDescription>
           <Link href="/admin/institutions" className="mt-5 inline-flex items-center gap-2 font-semibold text-blue-600">
             Manage institutions <ArrowRight className="size-4" aria-hidden />

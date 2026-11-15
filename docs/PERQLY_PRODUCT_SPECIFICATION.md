@@ -326,6 +326,7 @@ Approved by the founder on 2026-11-14. These override any recommendation that di
 | D13 | Manual code fallback                      | Recommendation stands: allowed, rate-limited                                                                                                                                                                                                                                                                 |
 | D14 | GCTU                                      | **Approved:** an official GCTU pilot requires institutional approval. Until then GCTU appears only as a planned pilot institution, and real students aren't verified                                                                                                                                         |
 | D15 | Institutional email                       | **Approved 2026-11-14:** students register and sign in with a personal email. An institutional email is optional, stored separately with its own confirmation state, and never grants verification. Verification always needs an application approved by an authorised reviewer of the student's institution |
+| D16 | Who verifies students                     | **Approved 2026-11-15:** Perqly platform admins (signed in with two-factor) may approve or reject any institution's students, alongside the institution's own reviewers. Perqly reviewers below admin still need the institution to delegate review. Every decision is logged with the reviewer's name       |
 
 ## 16. Product acceptance criteria for Phase 1
 

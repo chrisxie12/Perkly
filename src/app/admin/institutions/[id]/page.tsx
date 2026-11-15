@@ -106,12 +106,12 @@ export default async function InstitutionDetailPage({ params, searchParams }: Pa
             title="Reviewers"
             description={
               institution.review_mode === "delegated"
-                ? "Perqly reviewers decide for this institution under the signed agreement. Institution reviewers can still decide too."
-                : "Only these people can approve or reject this institution's students."
+                ? "Perqly reviewers decide for this institution under the signed agreement. Institution reviewers and Perqly admins can decide too."
+                : "These people, and Perqly admins, can approve or reject this institution's students."
             }
           >
             {reviewers.length === 0 ? (
-              <Empty>No reviewers yet. Students can apply, but nobody can decide.</Empty>
+              <Empty>No reviewers yet. Students can apply; Perqly admins decide until the institution appoints reviewers.</Empty>
             ) : (
               <ul className="divide-y divide-ink-200">
                 {reviewers.map((reviewer) => (
