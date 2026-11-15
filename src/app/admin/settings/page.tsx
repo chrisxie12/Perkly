@@ -5,6 +5,16 @@ import { canManagePlatform } from "@/lib/auth/roles";
 import { SettingForm } from "@/features/admin/components/platform-forms";
 import { getPlatformSettings } from "@/features/admin/insights";
 import { formatDate } from "@/features/students/components/status-card";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { BillingSettingsForm } from "@/features/billing/components/admin-billing-forms";
+import { formatGhs } from "@/features/billing/queries";
+import { createClient } from "@/lib/supabase/server";
+
+async function getBillingSettings() {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("admin_get_billing_settings");
+  return (data ?? null) as { enabled: boolean; monthly_fee_pesewas: number; trial_days: number; grace_days: number } | null;
+}
 
 export const metadata: Metadata = { title: "Platform settings", robots: { index: false, follow: false } };
 
@@ -34,7 +44,7 @@ export default async function SettingsPage() {
       </AreaShell>
     );
   }
-  const settings = await getPlatformSettings();
+  const [settings, billing] = await Promise.all([getPlatformSettings(), getBillingSettings()]);
   const superAdmin = ctx.platformRole === "super_admin";
   return (
     <AreaShell area="admin">
@@ -46,6 +56,26 @@ export default async function SettingsPage() {
             : "Limits and time windows. Only super admins change them."
         }
       />
+      {billing && (
+        <Card className="mb-6">
+          <CardTitle>Business billing</CardTitle>
+          <CardDescription>
+            {billing.enabled
+              ? `On: ${formatGhs(billing.monthly_fee_pesewas)} a month, first ${billing.trial_days} days free, deals pause ${billing.grace_days} days after a missed payment.`
+              : "Off: businesses use Perqly free (the pilot, D9)."}
+          </CardDescription>
+          {superAdmin && (
+            <div className="mt-5">
+              <BillingSettingsForm
+                enabled={billing.enabled}
+                feeGhs={billing.monthly_fee_pesewas / 100}
+                trialDays={billing.trial_days}
+                graceDays={billing.grace_days}
+              />
+            </div>
+          )}
+        </Card>
+      )}
       <ul className="divide-y divide-ink-200 overflow-hidden rounded-xl bg-white shadow-soft ring-1 ring-ink-200/70">
         {settings.map((s) => (
           <li key={s.key} className="flex flex-wrap items-center justify-between gap-4 p-5">

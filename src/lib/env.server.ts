@@ -20,6 +20,11 @@ const serverEnvSchema = z.object({
   // Phone notifications (web push). Generate the pair with `npx web-push generate-vapid-keys`;
   // the public half goes in NEXT_PUBLIC_VAPID_PUBLIC_KEY.
   VAPID_PRIVATE_KEY: z.string().min(40, "VAPID_PRIVATE_KEY looks too short").optional(),
+  // Merchant billing (D18). sk_test_... while testing, sk_live_... once Paystack is activated.
+  PAYSTACK_SECRET_KEY: z
+    .string()
+    .regex(/^sk_(test|live)_[A-Za-z0-9]{20,}$/, "PAYSTACK_SECRET_KEY should start with sk_test_ or sk_live_")
+    .optional(),
   VAPID_SUBJECT: z
     .string()
     .refine((value) => /^(mailto:|https:\/\/)/.test(value), "VAPID_SUBJECT must be mailto:you@example.com or an https URL")
@@ -37,6 +42,7 @@ export function getServerEnv(): ServerEnv {
     CRON_SECRET: blankToUndefined(process.env.CRON_SECRET),
     VAPID_PRIVATE_KEY: blankToUndefined(process.env.VAPID_PRIVATE_KEY),
     VAPID_SUBJECT: blankToUndefined(process.env.VAPID_SUBJECT),
+    PAYSTACK_SECRET_KEY: blankToUndefined(process.env.PAYSTACK_SECRET_KEY),
   });
 }
 

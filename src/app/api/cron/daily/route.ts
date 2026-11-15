@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
   const sessions = await admin.rpc("expire_redemption_sessions");
   if (sessions.error) console.error("[cron] expire_redemption_sessions failed", sessions.error.message);
   const reminders = await admin.rpc("notify_expiring_verifications");
+  const billing = await admin.rpc("run_billing_cycle");
+  if (billing.error) console.error("[cron] run_billing_cycle failed", billing.error.message);
   if (reminders.error) console.error("[cron] notify_expiring_verifications failed", reminders.error.message);
   // Expiry notices and reminders go out now; anything an earlier delivery missed is retried too.
   const notifications = await dispatchNotifications(500).catch(() => ({ delivered: 0 }));
@@ -52,6 +54,7 @@ export async function GET(request: NextRequest) {
         offersEnded: offers.data ?? 0,
         sessionsExpired: sessions.data ?? 0,
         reminders: reminders.data ?? 0,
+        billing: billing.data ?? null,
         notificationsDelivered: notifications.delivered,
         documents,
       },

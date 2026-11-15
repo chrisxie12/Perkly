@@ -12,6 +12,8 @@ import { getBranches, getCategories, getMerchant, getTeam } from "@/features/mer
 import { MERCHANT_STATUS_LABEL } from "@/features/merchants/schemas";
 import { formatDate } from "@/features/students/components/status-card";
 import { getAgreementState } from "@/features/agreements/queries";
+import { ManualPaymentForm } from "@/features/billing/components/admin-billing-forms";
+import { formatGhs, getMerchantBilling } from "@/features/billing/queries";
 
 export const metadata: Metadata = { title: "Business", robots: { index: false, follow: false } };
 
@@ -29,7 +31,13 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const [merchant, ctx] = await Promise.all([getMerchant(id), getUserContext()]);
   if (!merchant) notFound();
-  const [branches, team, categories, agreement] = await Promise.all([getBranches(id), getTeam(id), getCategories(), getAgreementState(id)]);
+  const [branches, team, categories, agreement, billing] = await Promise.all([
+    getBranches(id),
+    getTeam(id),
+    getCategories(),
+    getAgreementState(id),
+    getMerchantBilling(id),
+  ]);
   const category = categories.find((c) => c.id === merchant.category_id)?.name ?? "Unknown";
 
   return (
@@ -103,14 +111,58 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
             )}
           </Card>
         </div>
-        <Card>
-          <CardTitle className="mb-4">Decision</CardTitle>
-          {ctx && canManagePlatform(ctx) ? (
-            <MerchantDecisionForm merchantId={merchant.id} status={merchant.status} />
-          ) : (
-            <p className="text-ink-700">Only Perqly admins can approve, reject or suspend businesses.</p>
+        <div className="space-y-6">
+          <Card>
+            <CardTitle className="mb-4">Decision</CardTitle>
+            {ctx && canManagePlatform(ctx) ? (
+              <MerchantDecisionForm merchantId={merchant.id} status={merchant.status} />
+            ) : (
+              <p className="text-ink-700">Only Perqly admins can approve, reject or suspend businesses.</p>
+            )}
+          </Card>
+          {billing && (
+            <Card>
+              <CardTitle className="mb-2">Billing</CardTitle>
+              <p className="text-ink-700">
+                {
+                  {
+                    off: "Billing is off: free during the pilot.",
+                    none: "Starts when the business is approved.",
+                    trial: `Free month until ${formatDate(billing.trial_ends_at)}.`,
+                    active: `Paid until ${formatDate(billing.paid_until)}.`,
+                    due: `Payment due. Deals pause on ${formatDate(billing.hold_on)}.`,
+                    on_hold: "On hold: deals paused until payment.",
+                  }[billing.state]
+                }
+              </p>
+              {billing.payments.filter((p) => p.status === "success").length > 0 && (
+                <ul className="mt-3 divide-y divide-ink-200 text-sm">
+                  {billing.payments
+                    .filter((p) => p.status === "success")
+                    .slice(0, 5)
+                    .map((p) => (
+                      <li key={p.reference} className="flex justify-between gap-3 py-2">
+                        <span>
+                          {formatGhs(p.amount_pesewas)} for {p.months} month{p.months === 1 ? "" : "s"}
+                        </span>
+                        <span className="text-ink-600">
+                          {p.method === "manual" ? "Recorded" : "Paystack"}, {formatDate(p.paid_at)}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              )}
+              {ctx && canManagePlatform(ctx) && merchant.status === "approved" && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer font-semibold text-blue-700">Record a payment made another way</summary>
+                  <div className="mt-4">
+                    <ManualPaymentForm merchantId={merchant.id} feeGhs={billing.monthly_fee_pesewas / 100} />
+                  </div>
+                </details>
+              )}
+            </Card>
           )}
-        </Card>
+        </div>
       </div>
     </AreaShell>
   );

@@ -33,7 +33,8 @@ export function buildCsp({ supabaseUrl, isDev }: { supabaseUrl?: string; isDev: 
     "frame-ancestors": ["'none'"],
     "base-uri": ["'self'"],
     "object-src": ["'none'"],
-    "form-action": ["'self'"],
+    // Shops pay their Perqly subscription on Paystack's hosted checkout.
+    "form-action": ["'self'", "https://checkout.paystack.com"],
   };
 
   const policy = Object.entries(directives).map(([name, values]) => `${name} ${values.join(" ")}`);

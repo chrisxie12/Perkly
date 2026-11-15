@@ -12,6 +12,8 @@ import { RegisterMerchantForm } from "@/features/merchants/components/merchant-f
 import { getActiveMembership, getBranches, getCategories, getMerchant } from "@/features/merchants/queries";
 import { MERCHANT_STATUS_LABEL, merchantErrorMessage } from "@/features/merchants/schemas";
 import { getAgreementState } from "@/features/agreements/queries";
+import { formatGhs, getMerchantBilling } from "@/features/billing/queries";
+import { formatDate } from "@/features/students/components/status-card";
 import { canManage } from "./merchant-nav";
 
 export const metadata: Metadata = { title: "Your business", robots: { index: false } };
@@ -41,7 +43,7 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
       <AreaShell area="merchant">
         <PageTitle
           title="Register your business"
-          description="Offer student prices to verified tertiary students near you. Joining is free during the pilot. Perqly reviews every business before students can see it."
+          description="Offer student prices to verified tertiary students near you. Your first month is free. Perqly reviews every business before students can see it."
         />
         <Card className="max-w-2xl">
           <RegisterMerchantForm categories={categories} />
@@ -50,11 +52,13 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
     );
   }
 
-  const [merchant, branches, agreement] = await Promise.all([
+  const [merchant, branches, agreement, billing] = await Promise.all([
     getMerchant(membership.merchantId),
     getBranches(membership.merchantId),
     getAgreementState(membership.merchantId),
+    canManage(membership) ? getMerchantBilling(membership.merchantId) : Promise.resolve(null),
   ]);
+  const trialEndingSoon = billing?.trial_ending_soon ?? false;
   const signed = Boolean(agreement.signature);
   if (!merchant) {
     return (
@@ -80,6 +84,24 @@ export default async function MerchantHomePage({ searchParams }: PageProps<"/mer
   return (
     <AreaShell area="merchant">
       <PageTitle title={merchant.display_name} description={`Your role: ${membership.role}.`} />
+
+      {billing && (billing.state === "due" || billing.state === "on_hold" || trialEndingSoon) && (
+        <Link
+          href="/merchant/billing"
+          className={`mb-6 flex items-center justify-between gap-3 rounded-xl px-4 py-3 font-medium ${
+            billing.state === "on_hold" ? "bg-red-50 text-red-800" : "bg-orange-50 text-orange-900"
+          }`}
+        >
+          <span>
+            {billing.state === "on_hold"
+              ? "Your deals are paused until your Perqly payment is made."
+              : billing.state === "due"
+                ? `Payment due: ${formatGhs(billing.monthly_fee_pesewas)} by ${formatDate(billing.hold_on)} keeps your deals live.`
+                : `Your free month ends on ${formatDate(billing.trial_ends_at)}.`}
+          </span>
+          <span className="shrink-0 font-semibold underline">Pay now</span>
+        </Link>
+      )}
 
       {query.registered && (
         <p role="status" className="mb-6 rounded-lg bg-green-50 px-4 py-3 font-medium text-success">

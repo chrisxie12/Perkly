@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, MapPin, PenLine, QrCode, Store, Users } from "lucide-react";
+import { ArrowRight, MapPin, PenLine, QrCode, Store, Users, Wallet } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { getAgreementState } from "@/features/agreements/queries";
 import { getActiveMembership, getBranches, getMerchant } from "@/features/merchants/queries";
@@ -37,6 +37,7 @@ export default async function BusinessHubPage() {
       label: "Agreement",
       text: agreement.signature ? `Version ${agreement.signature.version} signed` : "Not signed yet",
     },
+    { href: "/merchant/billing", icon: Wallet, label: "Billing", text: "Your Perqly subscription and payments" },
   ];
   return (
     <AreaShell area="merchant">

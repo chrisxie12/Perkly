@@ -35,7 +35,8 @@ export type IconName =
   | "map"
   | "pen"
   | "piggy"
-  | "badge";
+  | "badge"
+  | "wallet";
 
 export type NavItem = {
   key: string;
@@ -197,6 +198,7 @@ function merchantNav(n: NavContext): AreaNav {
     "/merchant/team*",
     "/merchant/codes*",
     "/merchant/agreement*",
+    "/merchant/billing*",
   ]);
 
   const tabs = manage ? [overview, offers, ...(live ? [scan, analytics] : []), business] : [overview, ...(live ? [scan, history] : [])];
@@ -221,6 +223,7 @@ function merchantNav(n: NavContext): AreaNav {
         ...(live ? [item("codes", "QR codes", "/merchant/codes", "qr", ["/merchant/codes*"])] : []),
         item("team", "Team", "/merchant/team", "users", ["/merchant/team*"]),
         item("agreement", "Agreement", "/merchant/agreement", "pen", ["/merchant/agreement*"]),
+        item("billing", "Billing", "/merchant/billing", "wallet", ["/merchant/billing*"]),
       ],
     });
   }

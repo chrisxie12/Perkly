@@ -28,6 +28,7 @@ import {
   Tag,
   User,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   box: Box,
   map: MapPin,
   pen: PenLine,
+  wallet: Wallet,
   piggy: PiggyBank,
   badge: BadgeCheck,
 };
