@@ -57,7 +57,7 @@ const offers: { merchant: string; deal: string; detail: string; category: string
 
 export function ExampleOffers() {
   return (
-    <section aria-labelledby="offers-title" className="bg-white py-24 md:py-32">
+    <section aria-labelledby="offers-title" className="bg-white py-14 sm:py-20 md:py-32">
       <PageContainer>
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeading
@@ -70,7 +70,7 @@ export function ExampleOffers() {
           </Badge>
         </div>
 
-        <ul className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:-mx-8 sm:px-8 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
+        <ul className="-mx-5 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:-mx-8 sm:mt-14 sm:px-8 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
           {offers.map(({ merchant, deal, detail, category, icon: Icon, band }) => (
             <li key={merchant} className="reveal w-[82%] shrink-0 snap-start sm:w-[60%] md:w-auto">
               <Link

@@ -41,8 +41,8 @@ export async function SiteFooter() {
   const year = await getCurrentYear();
   return (
     <footer className="bg-ink-900 pb-28 text-ink-300 md:pb-12">
-      <PageContainer className="grid gap-12 pt-16 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-        <div>
+      <PageContainer className="grid grid-cols-2 gap-x-6 gap-y-10 pt-12 sm:gap-12 sm:pt-16 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="col-span-2 md:col-span-1">
           <Logo inverse />
           <p className="mt-5 max-w-xs leading-relaxed">
             Student benefits. Real campus value. Built in Ghana for Ghanaian tertiary students.
@@ -63,7 +63,7 @@ export async function SiteFooter() {
           </nav>
         ))}
       </PageContainer>
-      <PageContainer className="mt-14 flex flex-col gap-2 border-t border-white/10 pt-8 text-sm sm:flex-row sm:justify-between">
+      <PageContainer className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-8 text-sm sm:mt-14 sm:flex-row sm:justify-between">
         <p>© {year} Perqly. All rights reserved.</p>
         <p>Made in Accra, Ghana</p>
       </PageContainer>

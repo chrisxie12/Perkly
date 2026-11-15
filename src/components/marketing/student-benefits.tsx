@@ -26,12 +26,12 @@ const smallCards = [
 
 export function StudentBenefits() {
   return (
-    <section id="students" aria-labelledby="students-title" className="py-24 md:py-32">
+    <section id="students" aria-labelledby="students-title" className="py-14 sm:py-20 md:py-32">
       <PageContainer>
         <SectionHeading id="students-title" title="Built for how students actually spend." />
 
-        <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-6 md:grid-rows-[auto_auto]">
-          <div className="reveal grain relative isolate overflow-hidden rounded-3xl bg-blue-500 p-8 text-white md:col-span-3 md:row-span-2 md:p-10">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-14 sm:gap-5 md:grid-cols-6 md:grid-rows-[auto_auto]">
+          <div className="reveal grain relative isolate overflow-hidden rounded-3xl bg-blue-500 p-6 text-white sm:p-8 md:col-span-3 md:row-span-2 md:p-10">
             {/* Slow light moving across the card, and stacked coins in outline */}
             <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
               <div className="absolute -right-24 -bottom-24 size-96 animate-drift rounded-full bg-sky-300/40 blur-3xl" />
@@ -66,7 +66,7 @@ export function StudentBenefits() {
           {smallCards.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="reveal rounded-3xl bg-white p-7 shadow-soft ring-1 ring-ink-200/70 transition-shadow duration-300 hover:shadow-lift md:col-span-3 lg:col-span-3 xl:col-span-3"
+              className="reveal rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink-200/70 transition-shadow duration-300 hover:shadow-lift sm:p-7 md:col-span-3 lg:col-span-3 xl:col-span-3"
             >
               <Icon className="size-8 text-blue-500" aria-hidden />
               <h3 className="mt-5 font-display text-xl font-bold tracking-tight">{title}</h3>

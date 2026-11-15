@@ -23,7 +23,7 @@ export const faqs = [
   },
   {
     q: "How does verification work?",
-    a: "Sign up with your personal email, then send your school a verification request with your student ID number, a photo of your student ID and a selfie. Adding a school email is optional. Reviewers appointed by your school approve it, and deals unlock as soon as they do.",
+    a: "Sign up with your personal email, then send your school a verification request with your student ID number, a photo of your student ID and a selfie. Adding a school email is optional. Reviewers appointed by your school, or Perqly's verification team, approve it, and deals unlock as soon as they do.",
   },
   {
     q: "Do I need to download an app?",
@@ -39,7 +39,7 @@ export const faqs = [
   },
   {
     q: "Is my information safe?",
-    a: "Only your school's reviewers can see your ID photo, every view is logged, and ID photos are deleted 30 days after a decision. Merchants see your first name and photo when you redeem, never your phone number or email.",
+    a: "Only the reviewers checking your request (your school's, or Perqly's verification team) can see your ID photo, every view is logged, and ID photos are deleted 30 days after a decision. Merchants see your first name and photo when you redeem, never your phone number or email.",
   },
 ];
 
@@ -53,8 +53,8 @@ export function Faq({
   intro?: string;
 }) {
   return (
-    <section id="faq" aria-labelledby="faq-title" className="bg-white py-24 md:py-32">
-      <PageContainer className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id="faq" aria-labelledby="faq-title" className="bg-white py-14 sm:py-20 md:py-32">
+      <PageContainer className="grid grid-cols-1 gap-6 sm:gap-12 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <h2 id="faq-title" className="font-display text-display-lg font-extrabold">
             {title}

@@ -6,7 +6,7 @@ import { CampusMap } from "@/components/marketing/campus-map";
 export function FinalCta() {
   return (
     <section aria-labelledby="cta-title" className="px-3 py-3 sm:px-5 sm:py-5">
-      <div className="grain relative isolate overflow-hidden rounded-[2rem] bg-blue-500 py-20 text-white md:rounded-[2.5rem] md:py-28">
+      <div className="grain relative isolate overflow-hidden rounded-[2rem] bg-blue-500 py-12 text-white sm:py-20 md:rounded-[2.5rem] md:py-28">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-32 left-1/4 size-[32rem] animate-drift rounded-full bg-sky-300/40 blur-3xl" />
           <div className="absolute -right-24 -bottom-40 size-[28rem] animate-drift rounded-full bg-orange-400/35 blur-3xl [animation-delay:-10s]" />

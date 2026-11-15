@@ -13,8 +13,8 @@ const lines = [
 
 export function ReceiptFacts() {
   return (
-    <section aria-labelledby="facts-title" className="py-24 md:py-32">
-      <PageContainer className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2">
+    <section aria-labelledby="facts-title" className="py-14 sm:py-20 md:py-32">
+      <PageContainer className="grid grid-cols-1 items-center gap-8 sm:gap-14 lg:grid-cols-2">
         <div>
           <h2 id="facts-title" className="font-display text-display-lg font-extrabold">
             The fine print, in big print.

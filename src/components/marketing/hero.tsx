@@ -11,7 +11,7 @@ const promises = ["Free for students", "Works on any phone", "No app store neede
 
 export function Hero() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
+    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-24 pb-10 md:pt-36 md:pb-24">
       {/* Backdrop: two slow colour glows and the campus map, all decorative */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 -right-32 size-[38rem] animate-drift rounded-full bg-blue-300/35 blur-3xl" />
@@ -29,7 +29,7 @@ export function Hero() {
           <span className="block animate-rise [animation-delay:200ms] lg:whitespace-nowrap">Pay the student price.</span>
         </h1>
 
-        <div className="mt-10 grid grid-cols-1 items-start gap-14 lg:mt-12 lg:grid-cols-[1fr_auto] lg:gap-10">
+        <div className="mt-6 grid grid-cols-1 items-start gap-10 sm:mt-10 sm:gap-14 lg:mt-12 lg:grid-cols-[1fr_auto] lg:gap-10">
           <div className="lg:max-w-xl lg:pt-6">
             <p className="animate-rise text-lg leading-relaxed text-ink-700 [animation-delay:320ms] md:text-xl">
               Perqly gets verified students real discounts at food spots, print shops and services around campus. Your school confirms

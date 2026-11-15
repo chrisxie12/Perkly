@@ -13,15 +13,15 @@ const evidence = [
 
 export function Verification() {
   return (
-    <section id="verification" aria-labelledby="verification-title" className="bg-white py-24 md:py-32">
-      <PageContainer className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
+    <section id="verification" aria-labelledby="verification-title" className="bg-white py-14 sm:py-20 md:py-32">
+      <PageContainer className="grid grid-cols-1 items-center gap-8 sm:gap-14 lg:grid-cols-2 lg:gap-20">
         <div>
           <h2 id="verification-title" className="font-display text-display-lg font-extrabold">
             Your school says you&apos;re a student. Not us.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
-            Reviewers appointed by your institution approve every verification request. Perqly collects the details they need and keeps a
-            record of every decision.
+            Reviewers appointed by your institution, or Perqly&apos;s verification team, check every verification request. Perqly collects
+            the details they need and keeps a record of every decision.
           </p>
           <ul className="mt-10 space-y-6">
             {evidence.map(({ icon: Icon, title, body }) => (
@@ -66,7 +66,7 @@ export function Verification() {
                   <BadgeCheck className="size-5 text-success" aria-hidden /> ID photo and selfie uploaded
                 </li>
                 <li className="flex items-center gap-3 rounded-lg bg-orange-50 px-3 py-2.5 text-ink-900">
-                  <Clock3 className="size-5 text-orange-700" aria-hidden /> Waiting for GCTU&apos;s reviewers
+                  <Clock3 className="size-5 text-orange-700" aria-hidden /> Waiting for review
                 </li>
               </ol>
             </div>
@@ -75,8 +75,8 @@ export function Verification() {
           <div className="mt-5 flex gap-4 rounded-2xl bg-blue-50 p-5 text-blue-900 ring-1 ring-blue-100">
             <ShieldCheck className="size-6 shrink-0 text-blue-600" aria-hidden />
             <p className="text-[0.9375rem] leading-relaxed">
-              Only your school&apos;s reviewers see your ID photo, and every view is logged. ID photos are deleted 30 days after a decision.
-              Merchants never see your phone number or email.
+              Only the people reviewing your request see your ID photo, and every view is logged. ID photos are deleted 30 days after a
+              decision. Merchants never see your phone number or email.
             </p>
           </div>
         </div>

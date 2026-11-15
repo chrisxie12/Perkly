@@ -14,7 +14,7 @@ const benefits = [
 export function Merchants() {
   return (
     <section id="merchants" aria-labelledby="merchants-title" className="relative overflow-hidden bg-ink-900 py-24 text-white md:py-32">
-      <PageContainer className="grid grid-cols-1 items-center gap-16 lg:grid-cols-[1.05fr_0.95fr]">
+      <PageContainer className="grid grid-cols-1 items-center gap-10 sm:gap-16 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
           <h1 id="merchants-title" className="font-display text-display-lg font-extrabold">
             More students through your door. Free to join for the pilot.

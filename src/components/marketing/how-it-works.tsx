@@ -84,14 +84,14 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" aria-labelledby="how-title" className="py-24 md:py-32">
+    <section id="how-it-works" aria-labelledby="how-title" className="py-14 sm:py-20 md:py-32">
       <PageContainer>
         <SectionHeading
           id="how-title"
           title="Three steps from student to student price."
           intro="No coupons to print and no codes to remember. Your phone is your pass."
         />
-        <ol className="relative mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <ol className="relative mt-8 grid grid-cols-1 gap-4 sm:mt-16 sm:gap-6 md:grid-cols-3">
           {/* The path from step 1 to step 3, drawn as you scroll */}
           <span
             aria-hidden
@@ -102,7 +102,7 @@ export function HowItWorks() {
           {steps.map((step, index) => (
             <li
               key={step.title}
-              className="reveal group relative flex flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-soft ring-1 ring-ink-200 transition-shadow duration-300 hover:shadow-lift md:p-7"
+              className="reveal group relative flex flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink-200 transition-shadow duration-300 hover:shadow-lift sm:p-6 md:p-7"
               style={{ animationRange: `entry 0% entry ${45 + index * 15}%` }}
             >
               <span
@@ -120,7 +120,7 @@ export function HowItWorks() {
                 {step.title}
               </h3>
               <p className="mt-3 leading-relaxed text-ink-700">{step.body}</p>
-              <div className="mt-auto pt-8">{step.vignette}</div>
+              <div className="mt-auto pt-5 sm:pt-8">{step.vignette}</div>
             </li>
           ))}
         </ol>
