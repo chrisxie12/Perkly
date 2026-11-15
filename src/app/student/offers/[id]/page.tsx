@@ -40,13 +40,15 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
         </div>
 
         <section className="mx-4 flex flex-col gap-3.5 rounded-3xl p-5 sm:mx-0" style={{ background: tone.bg, color: tone.fg }}>
-          <div className="flex items-center gap-3">
+          <Link href={`/student/merchants/${offer.merchant.slug}`} className="flex items-center gap-3 rounded-2xl hover:opacity-90">
             <MerchantAvatar name={offer.merchant.display_name} category={here?.category_slug ?? null} size="lg" className="!bg-white" />
             <div>
-              <b className="block">{offer.merchant.display_name}</b>
-              <span className="text-sm opacity-80">{[here?.branch_area, offer.merchant.category].filter(Boolean).join(", ")}</span>
+              <b className="block underline-offset-2 hover:underline">{offer.merchant.display_name}</b>
+              <span className="text-sm opacity-80">
+                {[here?.branch_area, offer.merchant.category].filter(Boolean).join(", ")} · See shop
+              </span>
             </div>
-          </div>
+          </Link>
           <h1 className="font-display text-[2rem] leading-[1.05] font-extrabold tracking-tight">{offer.title}</h1>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/75 px-2.5 py-1 text-[0.8125rem] font-semibold">

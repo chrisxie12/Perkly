@@ -120,3 +120,35 @@ export async function getBranchHours(branchIds: string[]) {
   }
   return map;
 }
+
+export type ShopExtras = {
+  price_range: string | null;
+  whatsapp: string | null;
+  socials: Record<string, string>;
+  payment_methods: string[];
+  amenities: string[];
+};
+export type ShopPhoto = { id: string; path: string; caption: string | null; sort_order: number };
+export type BranchLocation = BranchRow & { landmark: string | null; maps_url: string | null };
+
+/** Everything the shop page editor needs for one business. */
+export async function getShopEditor(merchantId: string) {
+  const supabase = await createClient();
+  const [extras, photos, branches] = await Promise.all([
+    supabase.from("merchants").select("price_range, whatsapp, socials, payment_methods, amenities").eq("id", merchantId).maybeSingle(),
+    supabase
+      .from("merchant_photos")
+      .select("id, path, caption, sort_order")
+      .eq("merchant_id", merchantId)
+      .order("sort_order")
+      .order("created_at"),
+    supabase.from("merchant_branches").select(`${BRANCH_COLUMNS}, landmark, maps_url`).eq("merchant_id", merchantId).order("name"),
+  ]);
+  const branchRows = (branches.data ?? []) as BranchLocation[];
+  const hours = await getBranchHours(branchRows.map((b) => b.id));
+  return {
+    extras: (extras.data as ShopExtras | null) ?? { price_range: null, whatsapp: null, socials: {}, payment_methods: [], amenities: [] },
+    photos: (photos.data ?? []) as ShopPhoto[],
+    branches: branchRows.map((b) => ({ ...b, has_hours: (hours.get(b.id)?.length ?? 0) > 0 })),
+  };
+}

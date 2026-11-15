@@ -64,15 +64,36 @@ export type MerchantPage = {
   email: string | null;
   website: string | null;
   category: string;
+  category_slug: string;
   category_icon: string;
+  price_range: string | null;
+  whatsapp: string | null;
+  socials: Record<string, string>;
+  payment_methods: string[];
+  amenities: string[];
+  /** ISO weekday in Accra, 1 = Monday. */
+  today: number;
   is_favourite: boolean;
+  photos: { id: string; path: string; caption: string | null }[];
   branches: {
     id: string;
     name: string;
     address: string;
+    area: string | null;
     digital_address: string | null;
+    landmark: string | null;
+    maps_url: string | null;
     opening_hours: string | null;
     phone: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    distance_m: number | null;
+    campus_name: string | null;
+    has_hours: boolean;
+    open_now: boolean;
+    open_until: string | null;
+    opens_next: string | null;
+    hours: { weekday: number; opens: string; closes: string }[];
   }[];
 };
 

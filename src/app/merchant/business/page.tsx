@@ -25,8 +25,8 @@ export default async function BusinessHubPage() {
     {
       href: "/merchant/profile",
       icon: Store,
-      label: "Profile",
-      text: merchant.description ? "Name, category, description and contacts" : "Add a description and a contact",
+      label: "Shop page",
+      text: "Photos, description, contacts, ways to pay and map links",
     },
     { href: "/merchant/branches", icon: MapPin, label: "Branches", text: `${active} active branch${active === 1 ? "" : "es"}` },
     ...(live ? [{ href: "/merchant/codes", icon: QrCode, label: "QR codes", text: "Print each branch's poster" }] : []),

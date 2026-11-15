@@ -158,7 +158,7 @@ export function BranchForm({
           <Field id={id("phone")} label="Branch phone (optional)" error={e.phone}>
             <Input id={id("phone")} name="phone" type="tel" defaultValue={branch?.phone ?? ""} invalid={Boolean(e.phone)} />
           </Field>
-          <Field id={id("addressLine")} label="Street or landmark" error={e.addressLine}>
+          <Field id={id("addressLine")} label="Street address" error={e.addressLine}>
             <Input id={id("addressLine")} name="addressLine" defaultValue={branch?.address_line ?? ""} />
           </Field>
           <Field id={id("area")} label="Area" error={e.area}>

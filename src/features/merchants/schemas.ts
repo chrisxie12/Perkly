@@ -51,6 +51,47 @@ export const branchSchema = z
     }
   });
 
+const handle = z
+  .string()
+  .trim()
+  .transform((v) =>
+    v
+      .replace(/^@/, "")
+      .replace(/^https?:\/\/(www\.)?[a-z.]+\/(@|add\/)?/i, "")
+      .replace(/\/$/, ""),
+  )
+  .pipe(z.string().regex(/^[A-Za-z0-9._-]{0,40}$/, "Use just the handle, for example auntieakos."));
+
+export const shopDetailsSchema = z.object({
+  merchantId: z.uuid(),
+  priceRange: optional(z.string().trim().min(2, "For example GH₵ 20–60.").max(40, "Keep it under 40 characters.")),
+  whatsapp: phoneSchema.optional(),
+  instagram: handle.optional(),
+  tiktok: handle.optional(),
+  facebook: handle.optional(),
+  x: handle.optional(),
+  snapchat: handle.optional(),
+  paymentMethods: z.array(z.enum(["Cash", "MTN MoMo", "Telecel Cash", "AT Money", "Card"])).default([]),
+  amenities: z
+    .array(z.enum(["Dine-in", "Takeaway", "Delivery to campus", "Seating", "Wi-Fi", "Toilet", "Wheelchair access", "Parking"]))
+    .default([]),
+});
+
+export const branchLocationSchema = z.object({
+  branchId: z.uuid(),
+  landmark: optional(z.string().trim().min(3, "For example: opposite the GCTU main gate.").max(120)),
+  mapsUrl: optional(
+    z
+      .string()
+      .trim()
+      .max(500)
+      .regex(
+        /^https:\/\/([a-z0-9.-]*google\.[a-z.]+\/maps|maps\.app\.goo\.gl\/|goo\.gl\/maps\/|maps\.google\.[a-z.]+\/)/i,
+        "Paste the link from Google Maps: Share, then Copy link.",
+      ),
+  ),
+});
+
 export const teamMemberSchema = z
   .object({
     merchantId: z.uuid(),
@@ -124,6 +165,17 @@ export function merchantErrorMessage(code: string | undefined): string {
       return "Give the business a reason they can act on.";
     case "invalid_transition":
       return "That decision doesn't apply to this business's current status.";
+    case "map_link_invalid":
+      return "Paste the link from Google Maps: Share, then Copy link.";
+    case "details_invalid":
+      return "Check the price range, WhatsApp number and choices.";
+    case "socials_invalid":
+      return "Use just the handle for each social account, for example auntieakos.";
+    case "too_many_photos":
+      return "You can have up to 10 photos. Remove one first.";
+    case "photo_missing":
+    case "path_invalid":
+      return "That photo didn't upload. Try again.";
     case "rate_limited":
       return "Too many attempts. Wait a while, then try again.";
     default:

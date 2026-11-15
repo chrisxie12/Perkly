@@ -216,7 +216,7 @@ function merchantNav(n: NavContext): AreaNav {
     groups.push({
       label: "Business",
       items: [
-        item("profile", "Profile", "/merchant/profile", "store", ["/merchant/profile*"]),
+        item("profile", "Shop page", "/merchant/profile", "store", ["/merchant/profile*"]),
         item("branches", "Branches", "/merchant/branches", "map", ["/merchant/branches*"]),
         ...(live ? [item("codes", "QR codes", "/merchant/codes", "qr", ["/merchant/codes*"])] : []),
         item("team", "Team", "/merchant/team", "users", ["/merchant/team*"]),

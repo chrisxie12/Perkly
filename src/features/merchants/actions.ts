@@ -13,13 +13,16 @@ import type { FormState } from "@/features/auth/types";
 import { readForm } from "@/features/admin/schemas";
 import { ACTIVE_MERCHANT_COOKIE } from "./queries";
 import {
+  branchLocationSchema,
   branchSchema,
   merchantDecisionSchema,
   merchantErrorMessage,
   merchantProfileSchema,
   registerMerchantSchema,
+  shopDetailsSchema,
   teamMemberSchema,
 } from "./schemas";
+import { coordsFromMapsLink } from "./shop";
 
 // Every action calls a database function that checks who the caller is and
 // what they may do. These are conveniences; the database decides.
@@ -192,4 +195,94 @@ export async function decideMerchant(_prev: FormState, formData: FormData): Prom
       reinstate: "Reinstated. The business is live again.",
     }[parsed.data.decision],
   };
+}
+
+// Shop page -----------------------------------------------------------------------------
+
+export async function saveShopDetails(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = shopDetailsSchema.safeParse({
+    ...readForm(formData, ["merchantId", "priceRange", "whatsapp", "instagram", "tiktok", "facebook", "x", "snapchat"]),
+    ...(formData.get("whatsappSameAsPhone") === "on" ? { whatsapp: String(formData.get("phone") ?? "") || undefined } : {}),
+    paymentMethods: formData.getAll("paymentMethods").map(String),
+    amenities: formData.getAll("amenities").map(String),
+  });
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  if (!hasSupabaseEnv()) return unavailable;
+  const v = parsed.data;
+  const socials = Object.fromEntries(
+    (["instagram", "tiktok", "facebook", "x", "snapchat"] as const).flatMap((k) => (v[k] ? [[k, v[k]]] : [])),
+  );
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_shop_details", {
+    p_merchant_id: v.merchantId,
+    p_price_range: v.priceRange ?? null,
+    p_whatsapp: v.whatsapp ?? null,
+    p_socials: socials,
+    p_payment_methods: v.paymentMethods,
+    p_amenities: v.amenities,
+  });
+  if (error) return { status: "error", message: merchantErrorMessage(error.message) };
+  revalidatePath("/merchant", "layout");
+  revalidatePath("/student", "layout");
+  return { status: "success", message: "Saved. Students see this on your shop page." };
+}
+
+export async function saveBranchLocation(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = branchLocationSchema.safeParse(readForm(formData, ["branchId", "landmark", "mapsUrl"]));
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  if (!hasSupabaseEnv()) return unavailable;
+  const v = parsed.data;
+  // Only full links carry coordinates; a short maps.app.goo.gl link keeps the branch's existing ones.
+  const coords = v.mapsUrl ? coordsFromMapsLink(v.mapsUrl) : null;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_branch_location", {
+    p_branch_id: v.branchId,
+    p_landmark: v.landmark ?? null,
+    p_maps_url: v.mapsUrl ?? null,
+    p_latitude: coords?.latitude ?? null,
+    p_longitude: coords?.longitude ?? null,
+  });
+  if (error) return { status: "error", message: merchantErrorMessage(error.message) };
+  revalidatePath("/merchant", "layout");
+  revalidatePath("/student", "layout");
+  return {
+    status: "success",
+    message: coords
+      ? "Saved, with the map pin from your link."
+      : v.mapsUrl
+        ? "Saved. Short links don't include the pin, so walking times use the location set on the branch."
+        : "Saved.",
+  };
+}
+
+const PHOTO_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg)$/;
+
+export async function addShopPhoto(merchantId: string, path: string, caption: string | null): Promise<{ ok: boolean; message?: string }> {
+  if (!hasSupabaseEnv()) return { ok: false, message: unavailable.message };
+  if (!PHOTO_PATH.test(path) || !path.startsWith(`${merchantId}/`)) return { ok: false, message: "That photo didn't upload. Try again." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("add_merchant_photo", { p_merchant_id: merchantId, p_path: path, p_caption: caption });
+  if (error) {
+    await supabase.storage.from("merchant-photos").remove([path]);
+    return { ok: false, message: merchantErrorMessage(error.message) };
+  }
+  revalidatePath("/merchant/profile");
+  revalidatePath("/student", "layout");
+  return { ok: true };
+}
+
+export async function editShopPhoto(formData: FormData): Promise<void> {
+  const id = z.uuid().safeParse(formData.get("photoId"));
+  const action = z.enum(["remove", "cover", "caption"]).safeParse(formData.get("action"));
+  if (!id.success || !action.success || !hasSupabaseEnv()) return;
+  const caption = String(formData.get("caption") ?? "").slice(0, 140);
+  const supabase = await createClient();
+  const { data: removedPath, error } = await supabase.rpc("edit_merchant_photo", {
+    p_photo_id: id.data,
+    p_action: action.data,
+    p_caption: caption,
+  });
+  if (!error && typeof removedPath === "string") await supabase.storage.from("merchant-photos").remove([removedPath]);
+  revalidatePath("/merchant/profile");
+  revalidatePath("/student", "layout");
 }
