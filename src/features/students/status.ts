@@ -78,8 +78,8 @@ export function stateLabel(status: StudentStatus): string {
 }
 
 export const REJECTION_REASONS: Record<string, string> = {
-  not_enrolled: "Your school couldn't confirm that you're currently enrolled.",
-  id_mismatch: "The student ID number didn't match the school's records.",
+  not_enrolled: "We couldn't confirm that you're currently enrolled.",
+  id_mismatch: "The student ID number didn't match the one on your student ID card.",
   photo_mismatch: "The selfie didn't match the photo on the student ID.",
   unreadable_documents: "The photos were too hard to read.",
   duplicate_account: "This student ID is already verified on another Perqly account.",

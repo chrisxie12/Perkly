@@ -25,7 +25,7 @@ export default async function VerifyPage({ searchParams }: PageProps<"/student/v
     <AreaShell area="student">
       <PageTitle
         title="Get verified"
-        description={`${school}'s appointed reviewers confirm you're a student. You'll need your student ID number, a photo of your student ID card and a selfie.`}
+        description={`Perqly's reviewers confirm you're a ${school} student. You'll need your student ID number, a photo of your student ID card and a selfie.`}
       />
       {query.withdraw === "done" && (
         <p role="status" className="mb-6 rounded-lg bg-green-50 px-4 py-3 font-medium text-success">
@@ -45,7 +45,7 @@ export default async function VerifyPage({ searchParams }: PageProps<"/student/v
             <p className="leading-relaxed text-ink-700">
               Sent on {formatDate(app.submitted_at)} with student ID{" "}
               <strong className="font-semibold text-ink-900">{app.student_id_number}</strong>
-              {app.institutional_email ? ` and institutional email ${app.institutional_email}` : ""}. We&apos;ll email you when {school}{" "}
+              {app.institutional_email ? ` and institutional email ${app.institutional_email}` : ""}. We&apos;ll email you when Perqly
               decides.
             </p>
           </Card>

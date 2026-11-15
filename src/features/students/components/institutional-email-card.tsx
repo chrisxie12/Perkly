@@ -28,7 +28,7 @@ export function InstitutionalEmailCard({
       <CardTitle>Institutional email (optional)</CardTitle>
       <CardDescription>
         If you have a school email, you can add it here and include it with your verification application. You don&apos;t need one: you sign
-        in with your personal email, and your school&apos;s reviewers verify you from your student ID.
+        in with your personal email, and Perqly&apos;s reviewers verify you from your student ID.
       </CardDescription>
 
       {email && (

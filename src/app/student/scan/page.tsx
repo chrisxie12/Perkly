@@ -33,7 +33,7 @@ export default async function ScanPage({ searchParams }: PageProps<"/student/sca
           description={redemptionErrorMessage(view === "expired" ? "verification_expired" : "not_verified")}
         />
         <Card>
-          <p className="text-ink-700">You can browse deals and save shops now. Scanning unlocks as soon as your school approves you.</p>
+          <p className="text-ink-700">You can browse deals and save shops now. Scanning unlocks as soon as you&apos;re verified.</p>
           <Link href={view === "needs_profile" ? "/student/profile" : "/student/verify"} className={`${buttonVariants({})} mt-4`}>
             {view === "pending" ? "See your verification" : view === "needs_profile" ? "Choose your school" : "Start verification"}
           </Link>

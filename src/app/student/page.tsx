@@ -33,7 +33,6 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   ]);
   const view = verificationView(status);
   const verified = view === "verified";
-  const school = status.profile?.institution_short_name ?? null;
   const filtering = Boolean(q || category);
   const near = filtering
     ? []
@@ -97,7 +96,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             </Link>
           ) : view === "pending" ? (
             <div className="rounded-2xl bg-orange-50 p-4 ring-1 ring-orange-200">
-              <h2 className="font-display text-lg font-bold">{school ?? "Your school"} is checking your details</h2>
+              <h2 className="font-display text-lg font-bold">Perqly is checking your details</h2>
               <p className="mt-1 text-sm text-ink-700">You can browse deals now. Redeeming unlocks when they approve you.</p>
               <Link href="/student/verify" className={`${buttonVariants({ size: "sm", variant: "secondary" })} mt-3`}>
                 See status
@@ -106,13 +105,13 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
           ) : (
             <div className="rounded-2xl bg-ink-900 p-4 text-white">
               <h2 className="font-display text-lg leading-snug font-bold">
-                {view === "expired" ? "Your verification has expired" : `Verify with ${school ?? "your school"} to unlock student prices`}
+                {view === "expired" ? "Your verification has expired" : "Get verified to unlock student prices"}
               </h2>
               <p className="mt-1 text-sm text-white/75">
                 {view === "needs_profile"
                   ? "Start by choosing your school."
                   : view === "resubmit"
-                    ? "Your school asked you to change something."
+                    ? "Your reviewer asked you to change something."
                     : "You'll need your student ID card."}
               </p>
               <Link

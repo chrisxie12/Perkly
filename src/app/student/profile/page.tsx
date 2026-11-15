@@ -54,7 +54,7 @@ export default async function StudentProfilePage() {
       </div>
       <nav aria-label="More about you" className="mt-6 grid gap-3 sm:grid-cols-3">
         {[
-          { href: "/student/verify", label: "Verification", text: "Your school's decision and status" },
+          { href: "/student/verify", label: "Verification", text: "Your verification status" },
           { href: "/student/history", label: "Savings", text: "Every discount you've redeemed" },
           { href: "/account", label: "Account", text: "Your name, your data, notifications" },
         ].map((l) => (

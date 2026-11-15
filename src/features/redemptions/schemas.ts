@@ -56,7 +56,7 @@ type LimitDetail = { limit?: number; period?: string; resets_at?: string | null 
 export function redemptionErrorMessage(code: string | undefined, detail: LimitDetail & { merchant_name?: string } = {}): string {
   switch (code) {
     case "not_verified":
-      return "Your school needs to verify you before you can redeem discounts.";
+      return "You need to be verified as a student before you can redeem discounts.";
     case "verification_expired":
       return "Your verification has expired. Verify again to keep redeeming.";
     case "account_suspended":

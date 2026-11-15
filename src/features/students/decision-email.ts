@@ -34,14 +34,14 @@ export function buildDecisionEmail(notice: DecisionNotice, siteUrl: string) {
     case "approved":
       subject = "You're verified on Perqly";
       lines = [
-        `${school} has confirmed you're a student. Student offers appear in Perqly as businesses near your campus join.`,
+        `Perqly has confirmed you're a ${school} student. Student offers appear in Perqly as businesses near your campus join.`,
         notice.verified_until ? `Your verification lasts until ${dateFormat.format(new Date(notice.verified_until))}.` : "",
       ];
       break;
     case "resubmission_requested":
       subject = "Your Perqly verification needs a change";
       lines = [
-        `${school} looked at your application and needs you to change something before they can decide.`,
+        "Your reviewer looked at your application and needs you to change something before deciding.",
         notice.reviewer_note ? `Their note: ${notice.reviewer_note}` : "",
         "Open Perqly to update your application and send it again.",
       ];
@@ -49,10 +49,10 @@ export function buildDecisionEmail(notice: DecisionNotice, siteUrl: string) {
     case "rejected":
       subject = "Your Perqly verification wasn't approved";
       lines = [
-        `${school} couldn't verify you as a student.`,
+        `We couldn't verify you as a ${school} student.`,
         notice.decision_reason ? (REJECTION_REASONS[notice.decision_reason] ?? "") : "",
         notice.reviewer_note ? `Their note: ${notice.reviewer_note}` : "",
-        "If you think this is a mistake, contact your school, then apply again on Perqly.",
+        "If you think this is a mistake, reply to this email or apply again on Perqly with clearer photos.",
       ];
       break;
   }

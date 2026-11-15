@@ -16,7 +16,7 @@ describe("decision emails", () => {
     const email = buildDecisionEmail(base, "https://perqly-eta.vercel.app/");
     expect(email.subject).toBe("You're verified on Perqly");
     expect(email.text).toContain("Hi Ama,");
-    expect(email.text).toContain("GCTU has confirmed you're a student");
+    expect(email.text).toContain("Perqly has confirmed you're a GCTU student");
     expect(email.text).toMatch(/until (31 July|1 August) 2027/);
     expect(email.text).toContain("https://perqly-eta.vercel.app/student");
   });
@@ -27,7 +27,7 @@ describe("decision emails", () => {
       "https://x.test",
     );
     expect(email.subject).toBe("Your Perqly verification wasn't approved");
-    expect(email.text).toContain("didn't match the school's records");
+    expect(email.text).toContain("didn't match the one on your student ID card");
     expect(email.text).toContain("Their note: Number not found");
   });
 

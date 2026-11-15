@@ -176,7 +176,7 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
               href={view === "needs_profile" ? "/student/profile" : "/student/verify"}
               className={`${buttonVariants({ size: "lg" })} w-full !bg-ink-900`}
             >
-              <Lock aria-hidden /> {view === "pending" ? "Unlocks when your school approves you" : "Verify to unlock this deal"}
+              <Lock aria-hidden /> {view === "pending" ? "Unlocks when you're verified" : "Verify to unlock this deal"}
             </Link>
           )}
         </div>

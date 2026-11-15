@@ -75,7 +75,7 @@ export function ExampleOffers() {
             <li key={merchant} className="reveal w-[82%] shrink-0 snap-start sm:w-[60%] md:w-auto">
               <Link
                 href="/student"
-                aria-label={`${deal} at ${merchant}. Example offer. Deals unlock once your school verifies you.`}
+                aria-label={`${deal} at ${merchant}. Example offer. Deals unlock once you are verified as a student.`}
                 className="ticket group block w-full overflow-hidden rounded-xl bg-ink-100 text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:-translate-y-1"
               >
                 <div className={`flex items-center justify-between px-5 py-4 ${band}`}>

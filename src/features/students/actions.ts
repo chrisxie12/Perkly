@@ -132,7 +132,7 @@ export async function submitVerificationApplication(_prev: FormState, formData: 
     return { status: "error", message };
   }
   revalidatePath("/student", "layout");
-  return { status: "success", message: "Application sent to your school's reviewers." };
+  return { status: "success", message: "Application sent to Perqly's reviewers." };
 }
 
 export async function withdrawVerificationApplication(formData: FormData): Promise<void> {

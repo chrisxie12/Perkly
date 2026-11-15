@@ -19,11 +19,11 @@ export const faqs = [
   },
   {
     q: "Who can join?",
-    a: "Students at institutions that partner with Perqly. We're launching first at GCTU and will add more Ghanaian tertiary institutions after the pilot.",
+    a: "Students at the institutions Perqly covers. We're launching first for GCTU students and will add more Ghanaian tertiary institutions after the pilot.",
   },
   {
     q: "How does verification work?",
-    a: "Sign up with your personal email, then send your school a verification request with your student ID number, a photo of your student ID and a selfie. Adding a school email is optional. Reviewers appointed by your school, or Perqly's verification team, approve it, and deals unlock as soon as they do.",
+    a: "Sign up with your personal email, then send Perqly a verification request with your student ID number, a photo of your student ID and a selfie. Adding a school email is optional. Perqly's verification team checks your ID against your selfie and approves it, and deals unlock as soon as they do.",
   },
   {
     q: "Do I need to download an app?",
@@ -35,11 +35,11 @@ export const faqs = [
   },
   {
     q: "My school isn't on Perqly yet. What can I do?",
-    a: "We're starting with GCTU so we can get it right, then adding schools one by one. Install Perqly now and you'll be ready when your school joins.",
+    a: "We're starting with GCTU so we can get it right, then adding schools one by one. Install Perqly now and you'll be ready when we add your school.",
   },
   {
     q: "Is my information safe?",
-    a: "Only the reviewers checking your request (your school's, or Perqly's verification team) can see your ID photo, every view is logged, and ID photos are deleted 30 days after a decision. Merchants see your first name and photo when you redeem, never your phone number or email.",
+    a: "Only the Perqly reviewer checking your request can see your ID photo, every view is logged, and ID photos are deleted 30 days after a decision. Merchants see your first name and photo when you redeem, never your phone number or email.",
   },
 ];
 

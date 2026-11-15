@@ -52,7 +52,7 @@ Steps 1.3 and 1.4 can run in parallel. Walk-in redemption (1.6) comes before boo
 
 Approved on 2026-11-14; outcomes are recorded in [section 15 of the product specification](./PERQLY_PRODUCT_SPECIFICATION.md#15-decisions).
 
-Outside the code: start the GCTU agreement (D14) and the Data Protection Commission registration. Neither blocks building on staging, but both block the pilot.
+Outside the code: register with the Data Protection Commission. It doesn't block building on staging, but it blocks the pilot. No GCTU agreement is needed (D17).
 
 ### 1.1 Supabase foundation
 

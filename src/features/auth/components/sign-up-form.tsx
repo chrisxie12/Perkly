@@ -12,7 +12,7 @@ import { SubmitButton } from "./submit-button";
 import { GoogleButton, OrDivider } from "./google-button";
 
 const intents = [
-  { value: "student", title: "I'm a student", body: "Get verified by your school and use student discounts." },
+  { value: "student", title: "I'm a student", body: "Get verified as a student and use student discounts." },
   { value: "merchant", title: "I run a business", body: "Offer discounts to verified students near you." },
 ] as const;
 

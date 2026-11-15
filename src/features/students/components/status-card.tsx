@@ -29,7 +29,7 @@ export function VerificationStatusCard({ status, showAction = true }: { status: 
     pending: {
       icon: Clock3,
       tone: "bg-orange-100 text-orange-800",
-      text: `Your application is with ${school}'s reviewers. Sent ${formatDate(status.application?.submitted_at)}.`,
+      text: `Your application is with Perqly's reviewers. Sent ${formatDate(status.application?.submitted_at)}.`,
       action: { href: "/student/verify", label: "View application" },
     },
     resubmit: {

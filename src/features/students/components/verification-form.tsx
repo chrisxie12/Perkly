@@ -195,7 +195,7 @@ export function VerificationForm({
       )}
 
       <p className="rounded-xl bg-blue-50 p-4 text-[0.9375rem] leading-relaxed text-blue-900 ring-1 ring-blue-100">
-        {institutionShortName}&apos;s appointed reviewers will see these details and photos to confirm you&apos;re a student. Only they can
+        Perqly&apos;s reviewers will see these details and photos to confirm you&apos;re a {institutionShortName} student. Only they can
         open the photos, every view is logged, and Perqly deletes them 30 days after the decision.
       </p>
 

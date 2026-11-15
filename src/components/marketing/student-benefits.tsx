@@ -5,7 +5,7 @@ const smallCards = [
   {
     icon: BadgeCheck,
     title: "Only verified students",
-    body: "Your school confirms you, so merchants can offer prices they'd never give the general public.",
+    body: "Perqly checks every student's ID, so merchants can offer prices they'd never give the general public.",
   },
   {
     icon: MapPin,

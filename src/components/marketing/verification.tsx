@@ -2,7 +2,7 @@ import { BadgeCheck, Camera, Clock3, IdCard, Mail, ShieldCheck } from "lucide-re
 import { PageContainer } from "@/components/layout/page-container";
 
 const evidence = [
-  { icon: IdCard, title: "Student ID number", body: "Your school's reviewers check it against their records." },
+  { icon: IdCard, title: "Student ID number", body: "Checked against your student ID card." },
   { icon: Camera, title: "ID photo and a selfie", body: "So the reviewer can see the person on the ID is you." },
   {
     icon: Mail,
@@ -17,10 +17,10 @@ export function Verification() {
       <PageContainer className="grid grid-cols-1 items-center gap-8 sm:gap-14 lg:grid-cols-2 lg:gap-20">
         <div>
           <h2 id="verification-title" className="font-display text-display-lg font-extrabold">
-            Your school says you&apos;re a student. Not us.
+            Real students only. We check.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
-            Reviewers appointed by your institution, or Perqly&apos;s verification team, check every verification request. Perqly collects
+            Perqly&apos;s verification team checks every request by hand: your student ID card, your ID number and a selfie. Perqly collects
             the details they need and keeps a record of every decision.
           </p>
           <ul className="mt-10 space-y-6">

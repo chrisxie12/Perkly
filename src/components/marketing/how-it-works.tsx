@@ -14,7 +14,7 @@ function VerifyVignette() {
           <BadgeCheck className="size-4 text-success" aria-hidden /> ID photo and selfie added
         </li>
         <li className="flex items-center gap-2 text-ink-700">
-          <Clock3 className="size-4 text-orange-600" aria-hidden /> Waiting for your school
+          <Clock3 className="size-4 text-orange-600" aria-hidden /> Waiting for review
         </li>
       </ul>
     </div>
@@ -66,8 +66,8 @@ function ScanVignette() {
 
 const steps = [
   {
-    title: "Get verified by your school",
-    body: "Sign up with your personal email, then send your school a verification request: student ID number, ID photo and a selfie. A school email is optional. Your school approves it.",
+    title: "Get verified as a student",
+    body: "Sign up with your personal email, then send Perqly a verification request: student ID number, ID photo and a selfie. A school email is optional. Perqly checks it and approves you.",
     vignette: <VerifyVignette />,
   },
   {

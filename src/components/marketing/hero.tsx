@@ -32,7 +32,7 @@ export function Hero() {
         <div className="mt-6 grid grid-cols-1 items-start gap-10 sm:mt-10 sm:gap-14 lg:mt-12 lg:grid-cols-[1fr_auto] lg:gap-10">
           <div className="lg:max-w-xl lg:pt-6">
             <p className="animate-rise text-lg leading-relaxed text-ink-700 [animation-delay:320ms] md:text-xl">
-              Perqly gets verified students real discounts at food spots, print shops and services around campus. Your school confirms
+              Perqly gets verified students real discounts at food spots, print shops and services around campus. Perqly confirms
               you&apos;re a student. Merchants pay for the deals. You just show up.
             </p>
 

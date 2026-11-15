@@ -62,11 +62,11 @@ export default async function MePage() {
       <Link href="/student/verify" className="flex items-start gap-3 rounded-2xl bg-orange-50 p-4 text-orange-800">
         <Hourglass className="size-5 shrink-0" aria-hidden />
         <div>
-          <b className="block">Waiting for {school}</b>
+          <b className="block">Waiting for review</b>
           <p className="text-sm text-ink-700">
             {status.application?.submitted_at
               ? `Sent ${formatDate(status.application.submitted_at)}.`
-              : "Your application is with their reviewers."}
+              : "Your application is with Perqly's reviewers."}
           </p>
         </div>
       </Link>
@@ -87,7 +87,7 @@ export default async function MePage() {
                   : "Not verified yet"}
           </b>
           <p className="text-sm text-ink-700">
-            {view === "needs_profile" ? "Choose your school to start." : `Verify with ${school} to redeem deals.`}
+            {view === "needs_profile" ? "Choose your school to start." : "Get verified to redeem deals."}
           </p>
         </div>
       </Link>
@@ -131,7 +131,7 @@ export default async function MePage() {
       <p className="mt-6 mb-2 text-xs font-bold text-ink-600">Perqly</p>
       <nav aria-label="About Perqly" className="overflow-hidden rounded-2xl bg-white ring-1 ring-ink-200/70">
         <Row href="/install" icon={Smartphone} label="Add Perqly to your home screen" />
-        <Row href="/privacy" icon={LockKeyhole} label="Privacy and your ID photos" note="Deleted 30 days after your school decides" />
+        <Row href="/privacy" icon={LockKeyhole} label="Privacy and your ID photos" note="Deleted 30 days after the decision" />
         <Row href="/account" icon={Download} label="Download your data" />
       </nav>
       <div className="mt-6 mb-4">
