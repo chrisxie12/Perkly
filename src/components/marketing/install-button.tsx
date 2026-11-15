@@ -29,7 +29,7 @@ function start() {
   started = true;
   // Captured by the inline script in the marketing layout if it fired before this loaded.
   const early = (window as Window & { __perqlyInstall?: InstallPrompt }).__perqlyInstall;
-  state = { prompt: early ?? null, installed: window.matchMedia("(display-mode: standalone)").matches };
+  state = { prompt: early ?? null, installed: window.matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches };
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault(); // keep the browser's own mini-bar away; the button asks instead
     set({ prompt: e as InstallPrompt });

@@ -9,7 +9,11 @@ export default function manifest(): MetadataRoute.Manifest {
     description: siteConfig.description,
     start_url: "/student",
     scope: "/",
-    display: "standalone",
+    // Installed Perqly opens edge to edge with no status or navigation bars on
+    // Android; phones that can't do that fall back to a normal app window.
+    // Screens already pad for notches and home bars (pt-safe / pb-safe).
+    display: "fullscreen",
+    display_override: ["fullscreen", "standalone", "minimal-ui"],
     orientation: "portrait",
     theme_color: siteConfig.themeColor,
     background_color: siteConfig.backgroundColor,
