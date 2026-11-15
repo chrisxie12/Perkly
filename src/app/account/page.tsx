@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { cancelDeletion, requestDeletion } from "@/features/account/actions";
 import { NameForm } from "@/features/account/components/name-form";
-import { ThemePicker } from "@/features/account/components/theme-picker";
+import { DarkModeSwitch } from "@/components/theme/theme-toggle";
 import { formatDate } from "@/features/students/components/status-card";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false } };
@@ -48,9 +48,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
             )}
           </Card>
           <Card>
-            <CardTitle>Appearance</CardTitle>
-            <CardDescription className="mb-5">Light or dark. Saved on this device.</CardDescription>
-            <ThemePicker />
+            <CardTitle className="mb-4">Appearance</CardTitle>
+            <DarkModeSwitch />
           </Card>
         </div>
         <div className="space-y-6">

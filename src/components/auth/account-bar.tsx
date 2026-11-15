@@ -4,6 +4,7 @@ import { getUserContext } from "@/lib/auth/session";
 import { AREA_HOME, AREA_LABEL } from "@/lib/auth/paths";
 import { areasFor } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LiveBell } from "./live-bell";
 import { SignOutButton } from "./sign-out-button";
 
@@ -20,6 +21,7 @@ export async function AccountBar() {
   const unread = typeof data === "number" ? data : 0;
   return (
     <div className="flex items-center gap-1">
+      <ThemeToggle />
       <LiveBell userId={ctx.userId} initialUnread={unread} />
       <details className="relative">
         <summary className="flex cursor-pointer list-none items-center gap-1 rounded-full p-1 text-sm font-medium text-ink-700 hover:bg-ink-100 sm:px-3 sm:py-2 [&::-webkit-details-marker]:hidden">
