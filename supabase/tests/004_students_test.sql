@@ -162,7 +162,7 @@ select is((public.get_student_benefit_access() ->> 'allowed')::boolean, true, 'a
 select tests.as_postgres();
 
 select tests.as_user(:'kofi');
-select lives_ok(format('insert into storage.objects (bucket_id, name) values (%L, %L) on conflict (bucket_id, name) do nothing', 'verification-documents', :'kofi' || '/' || :'kofi_app' || '/id-card.jpg'),
+select lives_ok(format('insert into storage.objects (bucket_id, name) values (%L, %L)', 'verification-documents', :'kofi' || '/' || :'kofi_app' || '/id-card.jpg'),
   'after a resubmission request the student can upload new evidence');
 select lives_ok(format('select public.submit_verification_application(%L, %L, %L, %L, true)', :'kofi_app', 'GCTU/2024/0042', :'kofi' || '/' || :'kofi_app' || '/id-card.jpg', :'kofi' || '/' || :'kofi_app' || '/selfie.webp'),
   'and resubmit the same application');

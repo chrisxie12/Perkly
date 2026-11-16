@@ -31,8 +31,12 @@ jobs:
       - run: npm run test
       - run: npm run build
         env:
-          # The public site builds without Supabase; no secrets are used in CI.
+          # Fake, CI-only values. The build checks that these variables exist but never
+          # connects to Supabase, so no real project, key or secret is used in CI.
+          # They don't affect Vercel or any deployed environment.
           NEXT_PUBLIC_SITE_URL: https://perqly.example
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder_not_a_real_key
 
   database:
     runs-on: ubuntu-latest
