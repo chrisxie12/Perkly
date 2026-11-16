@@ -94,7 +94,7 @@ export function ChatThread({
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-[calc(100dvh-15rem)] flex-col md:min-h-[calc(100dvh-12rem)]">
       <ol className="flex flex-1 flex-col gap-1.5 px-1 pb-4" aria-label="Messages" aria-live="polite">
         {messages.length === 0 && <li className="m-auto max-w-[30ch] py-10 text-center text-[0.9375rem] text-ink-600">{emptyText}</li>}
         {messages.map((m, i) => {
@@ -133,12 +133,10 @@ export function ChatThread({
       </ol>
 
       {blocked ? (
-        <p className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] rounded-2xl bg-ink-50 px-4 py-3 text-center text-sm text-ink-700">
-          {blockedText}
-        </p>
+        <p className="sticky bottom-28 rounded-2xl bg-ink-50 px-4 py-3 text-center text-sm text-ink-700 md:bottom-4">{blockedText}</p>
       ) : (
         <form
-          className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] flex items-end gap-2 rounded-3xl bg-white p-1.5 shadow-sm ring-1 ring-ink-200"
+          className="sticky bottom-28 flex items-end gap-2 rounded-3xl bg-white p-1.5 shadow-sm ring-1 ring-ink-200 md:bottom-4"
           onSubmit={(e) => {
             e.preventDefault();
             send(draft);

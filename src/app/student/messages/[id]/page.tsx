@@ -18,9 +18,9 @@ export default async function StudentChatPage({ params }: PageProps<"/student/me
   const [messages, covers] = await Promise.all([getMessages(id), getCoverPhotos([chat.merchant_id])]);
   const iconLink = "grid size-11 place-items-center rounded-full text-blue-700 hover:bg-blue-50";
   return (
-    <AreaShell area="student" immersive>
-      <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col bg-paper px-4">
-        <header className="sticky top-0 z-10 -mx-4 mb-2 flex items-center gap-2 border-b border-ink-200 bg-paper px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
+    <AreaShell area="student">
+      <div className="max-w-2xl">
+        <header className="sticky top-16 z-10 -mx-4 -mt-6 mb-2 flex items-center gap-2 border-b border-ink-200 bg-paper px-2 py-2 sm:mx-0 md:-mt-12">
           <Link
             href="/student/messages"
             className="grid size-11 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
