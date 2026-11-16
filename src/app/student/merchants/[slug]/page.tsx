@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AtSign, ChevronLeft, Clock, Footprints, Globe, Mail, MapPin, MessageCircle, Navigation, Phone, Wallet } from "lucide-react";
+import { startConversation } from "@/features/chat/actions";
+import {
+  AtSign,
+  MessagesSquare,
+  ChevronLeft,
+  Clock,
+  Footprints,
+  Globe,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Navigation,
+  Phone,
+  Wallet,
+} from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { cn } from "@/lib/utils";
 import { getPublicEnv, hasSupabaseEnv } from "@/lib/env";
@@ -53,8 +67,9 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
-export default async function ShopPage({ params }: PageProps<"/student/merchants/[slug]">) {
+export default async function ShopPage({ params, searchParams }: PageProps<"/student/merchants/[slug]">) {
   const { slug } = await params;
+  const chatIssue = (await searchParams).chat;
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound();
   const [shop, status] = await Promise.all([getMerchantPage(slug), getMyStudentStatus()]);
   if (!shop) notFound();
@@ -116,7 +131,18 @@ export default async function ShopPage({ params }: PageProps<"/student/merchants
           </header>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 px-4 pt-5 pb-6 sm:px-0">
+        <div className="grid grid-cols-4 gap-2 px-4 pt-5 pb-6 sm:px-0">
+          <form action={startConversation} className="contents">
+            <input type="hidden" name="merchantId" value={shop.id} />
+            <input type="hidden" name="back" value={`/student/merchants/${slug}`} />
+            <button
+              type="submit"
+              className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl bg-blue-600 px-1 text-center text-white hover:bg-blue-700"
+            >
+              <MessagesSquare className="size-5" aria-hidden />
+              <span className="text-[0.8125rem] font-semibold">Chat</span>
+            </button>
+          </form>
           <Action href={phone ? telUrl(phone) : null} icon={Phone} label="Call" missing="No phone number yet" />
           <Action
             href={shop.whatsapp ? whatsappUrl(shop.whatsapp) : null}
@@ -126,6 +152,20 @@ export default async function ShopPage({ params }: PageProps<"/student/merchants
           />
           <Action href={directions} icon={Navigation} label="Directions" missing="No location yet" />
         </div>
+        {chatIssue && (
+          <p role="alert" className="mx-4 -mt-3 mb-5 rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-800 sm:mx-0">
+            {chatIssue === "profile" ? (
+              <>
+                Choose your school first, then you can message businesses.{" "}
+                <Link href="/student/profile" className="font-semibold underline">
+                  School details
+                </Link>
+              </>
+            ) : (
+              "Chat isn't available for this business right now."
+            )}
+          </p>
+        )}
 
         <Section id="deals-h" title="Student deals">
           {deals.length === 0 ? (

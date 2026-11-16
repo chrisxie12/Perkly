@@ -36,7 +36,8 @@ export type IconName =
   | "pen"
   | "piggy"
   | "badge"
-  | "wallet";
+  | "wallet"
+  | "chat";
 
 export type NavItem = {
   key: string;
@@ -102,6 +103,7 @@ export const ROUTE_RULES: Rule[] = [
   { path: "/merchant/branches*", allow: isManager, reason: "Only owners and managers manage branches." },
   { path: "/merchant/team*", allow: isManager, reason: "Only owners and managers manage the team." },
   { path: "/merchant/agreement*", allow: isManager, reason: "Only owners and managers can open the agreement." },
+  { path: "/merchant/messages*", allow: isManager, reason: "Only owners and managers answer students' messages." },
   // Institution
   {
     path: "/institution/reviewers*",
@@ -155,7 +157,14 @@ function studentNav(n: NavContext): AreaNav {
     item("saved", "Saved", "/student/favourites", "heart", ["/student/favourites*"]),
     scan,
     item("savings", "Savings", "/student/history", "piggy", ["/student/history*"]),
-    item("me", "Me", "/student/me", "user", ["/student/me*", "/student/profile*", "/student/verify*"], needsAction ? "dot" : undefined),
+    item(
+      "me",
+      "Me",
+      "/student/me",
+      "user",
+      ["/student/me*", "/student/profile*", "/student/verify*", "/student/messages*"],
+      needsAction ? "dot" : undefined,
+    ),
   ];
   return {
     area: "student",
@@ -167,6 +176,7 @@ function studentNav(n: NavContext): AreaNav {
       {
         label: "You",
         items: [
+          item("messages", "Messages", "/student/messages", "chat", ["/student/messages*"]),
           item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
           item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
         ],
@@ -176,7 +186,7 @@ function studentNav(n: NavContext): AreaNav {
 }
 
 function merchantNav(n: NavContext): AreaNav {
-  const overview = item("overview", "Overview", "/merchant", "home", ["/merchant"]);
+  const overview = item("overview", "Overview", "/merchant", "home", ["/merchant", "/merchant/messages*"]);
   if (!n.membership)
     return { area: "merchant", label: AREA_TITLE.merchant, tabs: [overview], more: [], groups: [{ label: null, items: [overview] }] };
   const manage = isManager(n);
@@ -203,7 +213,10 @@ function merchantNav(n: NavContext): AreaNav {
 
   const tabs = manage ? [overview, offers, ...(live ? [scan, analytics] : []), business] : [overview, ...(live ? [scan, history] : [])];
 
-  const groups: NavGroup[] = [{ label: null, items: [overview, ...(live ? [scan] : []), ...(live && !manage ? [history] : [])] }];
+  const messages = item("messages", "Messages", "/merchant/messages", "chat", ["/merchant/messages*"]);
+  const groups: NavGroup[] = [
+    { label: null, items: [overview, ...(manage ? [messages] : []), ...(live ? [scan] : []), ...(live && !manage ? [history] : [])] },
+  ];
   if (manage) {
     groups.push({
       label: "Sell",

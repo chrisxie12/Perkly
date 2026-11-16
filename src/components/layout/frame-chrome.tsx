@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation";
 import type { NavArea } from "@/lib/navigation/config";
 
-/** Routes that take the whole screen: the camera scanner and the live pass. */
+/** Routes that take the whole screen: the camera scanner, the live pass and open chats. */
 const IMMERSIVE: Record<NavArea, string[]> = {
-  student: ["/student/scan", "/student/redeem/"],
-  merchant: [],
+  student: ["/student/scan", "/student/redeem/", "/student/messages/"],
+  merchant: ["/merchant/messages/"],
   institution: [],
   admin: [],
   account: [],

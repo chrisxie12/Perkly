@@ -21,6 +21,7 @@ const CATEGORY_TEXT: Record<string, { label: string; description: string }> = {
   redemptions: { label: "Redemptions", description: "When a discount goes through or is cancelled." },
   business: { label: "Your business", description: "Approval, deals approved or taken down, team changes." },
   review: { label: "Things to review", description: "New students, businesses, deals and school requests." },
+  messages: { label: "Messages", description: "When a business replies to you, or a student messages your business." },
   account: { label: "Your account", description: "Roles you're given and school requests you sent." },
 };
 
@@ -30,7 +31,7 @@ export default async function NotificationSettingsPage() {
   const areas = areasFor(ctx);
 
   // Only the kinds of notification this person can actually get.
-  const relevant = new Set(["account", "verification", "deals", "redemptions"]);
+  const relevant = new Set(["account", "verification", "deals", "redemptions", "messages"]);
   if (areas.includes("merchant")) relevant.add("business");
   if (areas.includes("institution") || areas.includes("admin")) relevant.add("review");
 
@@ -40,7 +41,7 @@ export default async function NotificationSettingsPage() {
     const { data } = await supabase.rpc("get_my_notification_preferences");
     prefs = (data ?? []) as typeof prefs;
   }
-  const order = ["verification", "deals", "redemptions", "business", "review", "account"];
+  const order = ["verification", "deals", "redemptions", "messages", "business", "review", "account"];
   const settings: CategorySetting[] = order
     .filter((c) => relevant.has(c))
     .map((c) => {

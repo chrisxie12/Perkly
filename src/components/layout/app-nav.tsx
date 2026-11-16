@@ -18,6 +18,7 @@ import {
   Menu,
   PenLine,
   PiggyBank,
+  MessageCircle,
   QrCode,
   Receipt,
   ScanLine,
@@ -59,6 +60,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   pen: PenLine,
   wallet: Wallet,
   piggy: PiggyBank,
+  chat: MessageCircle,
   badge: BadgeCheck,
 };
 

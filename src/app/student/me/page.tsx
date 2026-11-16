@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  MessageCircle,
   BadgeCheck,
   Bell,
   Building2,
@@ -20,6 +21,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
+import { countUnreadChats } from "@/features/chat/queries";
 
 export const metadata: Metadata = { title: "Me", robots: { index: false } };
 
@@ -40,7 +42,12 @@ function Row({ href, icon: Icon, label, note }: { href: string; icon: typeof Bel
 }
 
 export default async function MePage() {
-  const [ctx, status, photoPath] = await Promise.all([getUserContext(), getMyStudentStatus(), getMyPassPhotoPath()]);
+  const [ctx, status, photoPath, unreadChats] = await Promise.all([
+    getUserContext(),
+    getMyStudentStatus(),
+    getMyPassPhotoPath(),
+    countUnreadChats(),
+  ]);
   const photoUrl = await signPassPhoto(photoPath, 120);
   const view = verificationView(status);
   const p = status.profile;
@@ -122,6 +129,12 @@ export default async function MePage() {
           icon={Camera}
           label="Photo for your pass"
           note={photoUrl ? "Added" : "Not added yet. Cashiers use it to check it's you"}
+        />
+        <Row
+          href="/student/messages"
+          icon={MessageCircle}
+          label="Messages"
+          note={unreadChats > 0 ? `${unreadChats} unread` : "Chats with businesses"}
         />
         <Row href="/student/profile" icon={Building2} label="School details" note={p ? p.institution_name : "Choose your school"} />
         <Row href="/student/verify" icon={BadgeCheck} label="Verification" />
