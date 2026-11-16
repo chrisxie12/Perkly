@@ -54,7 +54,7 @@ describe("buildCsp", () => {
 
   it("works without Supabase and relaxes only what development needs", () => {
     const csp = buildCsp({ isDev: true });
-    expect(csp).toContain("connect-src 'self' ws:");
+    expect(csp).toContain("connect-src 'self' https://tile.openstreetmap.org ws:");
     expect(csp).toContain("'unsafe-eval'");
     expect(csp).not.toContain("upgrade-insecure-requests");
   });

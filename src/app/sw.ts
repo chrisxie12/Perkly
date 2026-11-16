@@ -1,5 +1,13 @@
 import { defaultCache } from "@serwist/turbopack/worker";
-import { NetworkOnly, Serwist, type PrecacheEntry, type RuntimeCaching, type SerwistGlobalConfig } from "serwist";
+import {
+  CacheFirst,
+  ExpirationPlugin,
+  NetworkOnly,
+  Serwist,
+  type PrecacheEntry,
+  type RuntimeCaching,
+  type SerwistGlobalConfig,
+} from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -21,7 +29,16 @@ const isPrivatePath = (pathname: string) => PRIVATE_PREFIXES.some((prefix) => pa
 
 const privateFirst: RuntimeCaching[] = [
   {
-    // Cross-origin requests (Supabase auth, database, storage, realtime)
+    // Public OpenStreetMap tiles for the deals map: no tokens, safe to keep a
+    // week's worth so the map opens fast and OSM gets fewer requests.
+    matcher: ({ url }) => url.hostname === "tile.openstreetmap.org",
+    handler: new CacheFirst({
+      cacheName: "map-tiles",
+      plugins: [new ExpirationPlugin({ maxEntries: 400, maxAgeSeconds: 7 * 24 * 60 * 60 })],
+    }),
+  },
+  {
+    // Other cross-origin requests (Supabase auth, database, storage, realtime)
     // carry tokens or private data. Never cache them.
     matcher: ({ sameOrigin }) => !sameOrigin,
     handler: new NetworkOnly(),

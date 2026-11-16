@@ -26,7 +26,8 @@ export function buildCsp({ supabaseUrl, isDev }: { supabaseUrl?: string; isDev: 
     // OpenStreetMap tiles for the student map.
     "img-src": ["'self'", "data:", "blob:", supabase, "https://tile.openstreetmap.org"].filter(Boolean),
     "font-src": ["'self'"],
-    "connect-src": ["'self'", supabase, supabaseRealtime, ...(isDev ? ["ws:"] : [])].filter(Boolean),
+    // The service worker fetches map tiles itself, so they need connect-src too.
+    "connect-src": ["'self'", supabase, supabaseRealtime, "https://tile.openstreetmap.org", ...(isDev ? ["ws:"] : [])].filter(Boolean),
     "media-src": ["'self'", "blob:"],
     "worker-src": ["'self'"],
     "manifest-src": ["'self'"],

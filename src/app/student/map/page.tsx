@@ -5,6 +5,7 @@ import { AreaShell } from "@/components/layout/area-shell";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { listDeals, savingShare, type Deal } from "@/features/offers/queries";
+import { openLabel } from "@/features/merchants/hours";
 import { DealMap, type MapCampus, type MapPoint } from "@/features/students/app/deal-map";
 import { distanceLabel, savingLabel } from "@/features/students/app/deal-card";
 
@@ -36,6 +37,13 @@ export default async function DealsMapPage() {
       merchantName: best.merchant_name,
       saving: savingLabel(best),
       dealCount: list.length,
+      dealTitle: best.title,
+      categorySlug: best.category_slug,
+      categoryName: best.category_name,
+      categoryIcon: best.category_icon,
+      photo: best.cover_url ?? null,
+      rating: best.rating ?? null,
+      openText: openLabel(best)?.text ?? null,
       href: list.length > 1 ? `/student/merchants/${best.merchant_slug}` : `/student/offers/${best.offer_id}`,
       away: distanceLabel(best.distance_m),
       open: best.has_hours ? best.open_now : null,
@@ -45,16 +53,17 @@ export default async function DealsMapPage() {
 
   return (
     <AreaShell area="student">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-display text-4xl leading-none font-black tracking-tight text-ink-900">Deals map</h1>
-          <p className="mt-1.5 text-[0.9375rem] font-medium text-ink-600">
+      <div className="-mt-2 mb-3 flex items-center justify-between gap-3 md:mt-0">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl leading-tight font-black tracking-tight text-ink-900">Deals map</h1>
+          <p className="truncate text-sm font-medium text-ink-600">
             {points.length === 0
-              ? "No shops with deals have a location yet."
-              : `${points.length} ${points.length === 1 ? "place" : "places"} with student deals${campus ? ` around ${campus.name}` : ""}. Tap a pin.`}
+              ? "No pinned shops yet"
+              : `${points.length} ${points.length === 1 ? "place" : "places"}${campus ? ` around ${campus.name}` : ""}`}
+            {unplaced > 0 ? ` · ${unplaced} not pinned yet` : ""}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1 self-start rounded-2xl bg-ink-100 p-1 sm:self-auto" role="group" aria-label="View">
+        <div className="flex shrink-0 items-center gap-1 rounded-2xl bg-ink-100 p-1" role="group" aria-label="View">
           <Link href="/student" className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-ink-600 hover:bg-white/60">
             <LayoutGrid className="size-4" aria-hidden /> Grid
           </Link>
@@ -66,17 +75,7 @@ export default async function DealsMapPage() {
           </span>
         </div>
       </div>
-      <div className="mt-5">
-        <DealMap points={points} campus={campus} />
-      </div>
-      {unplaced > 0 && (
-        <p className="mt-3 text-sm text-ink-600">
-          {unplaced} {unplaced === 1 ? "shop hasn't" : "shops haven't"} pinned their location yet.{" "}
-          <Link href="/student" className="font-semibold text-blue-600 underline">
-            See all deals
-          </Link>
-        </p>
-      )}
+      <DealMap points={points} campus={campus} />
     </AreaShell>
   );
 }

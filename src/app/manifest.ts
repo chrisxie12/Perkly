@@ -12,8 +12,9 @@ export default function manifest(): MetadataRoute.Manifest {
     // Installed Perqly opens edge to edge with no status or navigation bars on
     // Android; phones that can't do that fall back to a normal app window.
     // Screens already pad for notches and home bars (pt-safe / pb-safe).
-    display: "fullscreen",
-    display_override: ["fullscreen", "standalone", "minimal-ui"],
+    // Standalone: no browser bars, but the phone's status bar (time, battery) stays visible.
+    display: "standalone",
+    display_override: ["standalone", "minimal-ui"],
     orientation: "portrait",
     theme_color: siteConfig.themeColor,
     background_color: siteConfig.backgroundColor,
