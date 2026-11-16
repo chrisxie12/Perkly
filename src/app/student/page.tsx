@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Footprints, Search, Store } from "lucide-react";
+import { DealCard } from "@/features/students/app/deal-card";
+import { ArrowRight, Search, Store } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
@@ -10,7 +11,7 @@ import { listDeals } from "@/features/offers/queries";
 import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
-import { CategoryChip, DealRow, MerchantAvatar, OpenTag, walkLabel } from "@/features/students/app/bits";
+import { CategoryChip } from "@/features/students/app/bits";
 
 export const metadata: Metadata = { title: "Deals", robots: { index: false } };
 
@@ -166,21 +167,8 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             </div>
             <ul className="flex snap-x [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
               {near.map((d) => (
-                <li key={d.offer_id} className="w-52 shrink-0 snap-start">
-                  <Link
-                    href={`/student/offers/${d.offer_id}`}
-                    className="flex h-full flex-col gap-2.5 rounded-2xl bg-white p-3.5 ring-1 ring-ink-200/70"
-                  >
-                    <MerchantAvatar name={d.merchant_name} category={d.category_slug} photo={d.cover_url} />
-                    <span className="min-h-11 font-display text-lg leading-tight font-bold">{d.title}</span>
-                    <span className="text-sm leading-snug text-ink-600">{d.merchant_name}</span>
-                    <span className="mt-auto flex items-center justify-between border-t border-ink-200 pt-2.5 text-[0.8125rem] text-ink-600">
-                      {d.has_hours ? <OpenTag deal={d} /> : <span className="font-semibold text-ink-900">{money(d.final_price)}</span>}
-                      <span className="inline-flex items-center gap-1">
-                        <Footprints className="size-3.5" aria-hidden /> {walkLabel(d.distance_m)}
-                      </span>
-                    </span>
-                  </Link>
+                <li key={d.offer_id} className="w-64 shrink-0 snap-start">
+                  <DealCard deal={d} back={link({ q, category })} locked={!verified} compact />
                 </li>
               ))}
             </ul>
@@ -214,10 +202,10 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               )}
             </div>
           ) : (
-            <ul className="space-y-2.5 px-4 pb-6 sm:px-0">
+            <ul className="grid gap-4 px-4 pb-6 sm:grid-cols-2 sm:px-0">
               {deals.map((d) => (
                 <li key={d.offer_id}>
-                  <DealRow deal={d} back={link({ q, category })} locked={!verified} />
+                  <DealCard deal={d} back={link({ q, category })} locked={!verified} />
                 </li>
               ))}
             </ul>
