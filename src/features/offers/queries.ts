@@ -274,7 +274,34 @@ export type Deal = {
   open_until: string | null;
   opens_next: string | null;
   cover_url?: string | null;
+  /** Average student rating of the shop, when it has any. */
+  rating?: number | null;
+  reviews?: number;
+  published_at?: string | null;
 };
+
+export const DEAL_SORTS = ["top", "new", "hot"] as const;
+export type DealSort = (typeof DEAL_SORTS)[number];
+
+/** Share of the normal price the student saves, 0 to 1. */
+export function savingShare(d: Pick<Deal, "discount_amount" | "regular_price">) {
+  return Number(d.regular_price) > 0 ? Number(d.discount_amount) / Number(d.regular_price) : 0;
+}
+
+/** Deals in the chosen order; the default is the server's order, nearest branch first. */
+export function sortDeals(deals: Deal[], sort: DealSort | null) {
+  const list = [...deals];
+  switch (sort) {
+    case "top":
+      return list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || (b.reviews ?? 0) - (a.reviews ?? 0));
+    case "new":
+      return list.sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
+    case "hot":
+      return list.sort((a, b) => savingShare(b) - savingShare(a));
+    default:
+      return list;
+  }
+}
 
 /** Live deals with the nearest branch and its distance from the student's campus. */
 export async function listDeals(params: { query?: string; category?: string; merchantId?: string } = {}) {
@@ -287,8 +314,40 @@ export async function listDeals(params: { query?: string; category?: string; mer
   });
   if (error) throw new Error(`Could not load deals (${error.code ?? "unknown"})`);
   const deals = (data ?? []) as Deal[];
-  const covers = await getCoverPhotos(deals.map((d) => d.merchant_id));
-  return deals.map((d) => ({ ...d, cover_url: covers.get(d.merchant_id) ?? null }));
+  const merchantIds = deals.map((d) => d.merchant_id);
+  const [covers, ratings, dates] = await Promise.all([
+    getCoverPhotos(merchantIds),
+    getRatings(merchantIds),
+    getPublishedDates(deals.map((d) => d.offer_id)),
+  ]);
+  return deals.map((d) => ({
+    ...d,
+    cover_url: covers.get(d.merchant_id) ?? null,
+    rating: ratings.get(d.merchant_id)?.rating ?? null,
+    reviews: ratings.get(d.merchant_id)?.reviews ?? 0,
+    published_at: dates.get(d.offer_id) ?? null,
+  }));
+}
+
+/** Average rating and count per business, for businesses with at least one visible rating. */
+export async function getRatings(merchantIds: string[]) {
+  const ids = [...new Set(merchantIds)];
+  const map = new Map<string, { rating: number; reviews: number }>();
+  if (ids.length === 0) return map;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("merchant_ratings", { p_merchant_ids: ids });
+  for (const row of (data ?? []) as { merchant_id: string; rating: number; reviews: number }[])
+    map.set(row.merchant_id, { rating: Number(row.rating), reviews: row.reviews });
+  return map;
+}
+
+async function getPublishedDates(offerIds: string[]) {
+  const map = new Map<string, string>();
+  if (offerIds.length === 0) return map;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("offer_published_dates", { p_offer_ids: offerIds });
+  for (const row of (data ?? []) as { offer_id: string; published_at: string }[]) map.set(row.offer_id, row.published_at);
+  return map;
 }
 
 /** Public URL of each listed business's cover photo (first in its gallery), by business id. */

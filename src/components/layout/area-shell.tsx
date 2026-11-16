@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { Lock } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
+import { CampusChip } from "@/components/auth/campus-chip";
 import { AccountBar } from "@/components/auth/account-bar";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
@@ -36,18 +37,26 @@ export async function AreaFrame({ area, children }: { area: NavArea; children: R
       area={area}
       header={
         <header className="pt-safe sticky top-0 z-30 border-b border-ink-200 bg-white">
-          <div className="flex h-16 items-center justify-between gap-3 px-4 md:px-5">
+          <div className="flex h-16 items-center justify-between gap-2 px-4 md:px-5">
             <div className="flex items-center gap-3">
-              <Link href="/" aria-label="Perqly home" className="rounded-lg">
-                <Logo />
+              <Link href="/" aria-label="Perqly home" className="shrink-0 rounded-lg">
+                {/* Students' header also carries the campus chip, so phones show just the mark. */}
+                <Logo className={area === "student" ? "[&>span]:hidden min-[440px]:[&>span]:inline" : undefined} />
               </Link>
               <span className="hidden rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700 sm:inline">
                 {AREA_TITLE[area]}
               </span>
             </div>
-            <React.Suspense fallback={null}>
-              <AccountBar />
-            </React.Suspense>
+            <div className="flex min-w-0 items-center gap-1">
+              {area === "student" && (
+                <React.Suspense fallback={null}>
+                  <CampusChip />
+                </React.Suspense>
+              )}
+              <React.Suspense fallback={null}>
+                <AccountBar />
+              </React.Suspense>
+            </div>
           </div>
         </header>
       }

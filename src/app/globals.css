@@ -56,6 +56,11 @@
   --color-ink-900: #1f2937;
 
   --color-paper: #f8fafc;
+
+  /* Lime: call-to-action buttons only, always with dark text (.text-on-lime). */
+  --color-lime-300: #e4ff5c;
+  --color-lime-400: #d4ff00;
+  --color-lime-500: #bde300;
   --color-success: #15803d;
   --color-danger: #c42b1c;
 
@@ -533,4 +538,9 @@
 }
 :root[data-theme="dark"] :is(.hover\:text-blue-600:hover, .hover\:text-blue-700:hover, .group:hover .group-hover\:text-blue-600) {
   color: #8dbbff;
+}
+
+/* Dark text that stays dark in dark mode, for lime buttons. */
+.text-on-lime {
+  color: #0b1220;
 }

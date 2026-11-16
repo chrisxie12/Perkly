@@ -37,7 +37,8 @@ export type IconName =
   | "piggy"
   | "badge"
   | "wallet"
-  | "chat";
+  | "chat"
+  | "star";
 
 export type NavItem = {
   key: string;
@@ -104,6 +105,7 @@ export const ROUTE_RULES: Rule[] = [
   { path: "/merchant/team*", allow: isManager, reason: "Only owners and managers manage the team." },
   { path: "/merchant/agreement*", allow: isManager, reason: "Only owners and managers can open the agreement." },
   { path: "/merchant/messages*", allow: isManager, reason: "Only owners and managers answer students' messages." },
+  { path: "/merchant/reviews*", allow: isManager, reason: "Only owners and managers see reviews." },
   // Institution
   {
     path: "/institution/reviewers*",
@@ -153,16 +155,16 @@ function studentNav(n: NavContext): AreaNav {
     emphasis: true,
   };
   const tabs = [
-    item("deals", "Deals", "/student", "tag", ["/student", "/student/offers*", "/student/merchants*"]),
-    item("saved", "Saved", "/student/favourites", "heart", ["/student/favourites*"]),
+    item("deals", "Home", "/student", "home", ["/student", "/student/offers*", "/student/merchants*"]),
+    item("map", "Map", "/student/map", "map", ["/student/map*"]),
     scan,
-    item("savings", "Savings", "/student/history", "piggy", ["/student/history*"]),
+    item("savings", "My deals", "/student/history", "tag", ["/student/history*"]),
     item(
       "me",
       "Me",
       "/student/me",
       "user",
-      ["/student/me*", "/student/profile*", "/student/verify*", "/student/messages*"],
+      ["/student/me*", "/student/profile*", "/student/verify*", "/student/messages*", "/student/favourites*"],
       needsAction ? "dot" : undefined,
     ),
   ];
@@ -176,6 +178,7 @@ function studentNav(n: NavContext): AreaNav {
       {
         label: "You",
         items: [
+          item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
           item("messages", "Messages", "/student/messages", "chat", ["/student/messages*"]),
           item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
           item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
@@ -186,7 +189,7 @@ function studentNav(n: NavContext): AreaNav {
 }
 
 function merchantNav(n: NavContext): AreaNav {
-  const overview = item("overview", "Overview", "/merchant", "home", ["/merchant", "/merchant/messages*"]);
+  const overview = item("overview", "Overview", "/merchant", "home", ["/merchant", "/merchant/messages*", "/merchant/reviews*"]);
   if (!n.membership)
     return { area: "merchant", label: AREA_TITLE.merchant, tabs: [overview], more: [], groups: [{ label: null, items: [overview] }] };
   const manage = isManager(n);
@@ -225,7 +228,11 @@ function merchantNav(n: NavContext): AreaNav {
     if (live) {
       groups.push({
         label: "Insights",
-        items: [analytics, item("redemptions", "Redemptions", "/merchant/redemptions", "receipt", ["/merchant/redemptions*"])],
+        items: [
+          analytics,
+          item("redemptions", "Redemptions", "/merchant/redemptions", "receipt", ["/merchant/redemptions*"]),
+          item("reviews", "Reviews", "/merchant/reviews", "star", ["/merchant/reviews*"]),
+        ],
       });
     }
     groups.push({
@@ -314,7 +321,7 @@ export function homeAreaFor(ctx: UserContext): Exclude<NavArea, "account"> {
 }
 
 const HOME: Record<Exclude<NavArea, "account">, { label: string; href: string; icon: IconName }> = {
-  student: { label: "Deals", href: "/student", icon: "tag" },
+  student: { label: "Home", href: "/student", icon: "home" },
   merchant: { label: "Business", href: "/merchant", icon: "store" },
   institution: { label: "School", href: "/institution", icon: "building" },
   admin: { label: "Staff", href: "/admin", icon: "home" },

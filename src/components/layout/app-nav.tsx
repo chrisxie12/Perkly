@@ -19,6 +19,7 @@ import {
   PenLine,
   PiggyBank,
   MessageCircle,
+  Star,
   QrCode,
   Receipt,
   ScanLine,
@@ -61,6 +62,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   wallet: Wallet,
   piggy: PiggyBank,
   chat: MessageCircle,
+  star: Star,
   badge: BadgeCheck,
 };
 
@@ -121,18 +123,19 @@ export function SideNav({ nav }: { nav: AreaNav }) {
   );
 }
 
-/** Phone bottom tabs: at most five, with "More" for the rest. */
+/** Phone bottom tabs: a floating bar, at most five, with "More" for the rest. Students get icons only. */
 export function BottomNav({ nav }: { nav: AreaNav }) {
   const pathname = usePathname();
   const active = activeIn([...nav.tabs, ...nav.more], pathname);
   const moreActive = nav.more.some((i) => i.key === active);
+  const iconsOnly = nav.area === "student";
   if (nav.tabs.length < 2 && nav.more.length === 0) return null;
   return (
     <nav
       aria-label={`${nav.label} tabs`}
-      className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur md:hidden"
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 mx-auto max-w-md rounded-full bg-white/90 px-2 shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5 backdrop-blur-xl md:hidden"
     >
-      <ul className="mx-auto flex max-w-lg">
+      <ul className="flex items-center">
         {nav.tabs.slice(0, nav.more.length > 0 ? 4 : 5).map((it) => {
           const Icon = ICONS[it.icon];
           const current = active === it.key;
@@ -142,16 +145,19 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
                 <Link
                   href={it.href}
                   aria-current={current ? "page" : undefined}
-                  className="flex flex-col items-center gap-1 px-1 pb-1.5 text-[0.6875rem] font-bold text-ink-900"
+                  aria-label={iconsOnly ? `${it.label}${badgeText(it.badge)}` : undefined}
+                  className="flex flex-col items-center gap-0.5 py-1.5 text-[0.6875rem] font-bold text-ink-900"
                 >
-                  <span className="relative -mt-7 grid size-14 place-items-center rounded-full bg-blue-500 text-white shadow-[0_8px_20px_rgba(0,102,255,0.35)] ring-4 ring-white">
-                    <Icon className="size-7" aria-hidden />
+                  <span className="relative grid size-12 place-items-center rounded-full bg-blue-500 text-white shadow-[0_8px_20px_rgba(0,102,255,0.35)] transition-transform active:scale-90">
+                    <Icon className="size-6" aria-hidden />
                     <Badge badge={it.badge} />
                   </span>
-                  <span>
-                    {it.label}
-                    <span className="sr-only">{badgeText(it.badge)}</span>
-                  </span>
+                  {!iconsOnly && (
+                    <span>
+                      {it.label}
+                      <span className="sr-only">{badgeText(it.badge)}</span>
+                    </span>
+                  )}
                 </Link>
               </li>
             );
@@ -161,19 +167,28 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
               <Link
                 href={it.href}
                 aria-current={current ? "page" : undefined}
+                aria-label={iconsOnly ? `${it.label}${badgeText(it.badge)}` : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-1 pt-2 pb-1.5 text-[0.6875rem] font-medium text-ink-600",
-                  current && "text-blue-700",
+                  "relative flex flex-col items-center gap-1 px-1 text-[0.6875rem] font-medium text-ink-600 transition-colors",
+                  iconsOnly ? "py-4" : "pt-2.5 pb-2",
+                  current && "text-blue-500",
                 )}
               >
-                <span className={cn("relative grid h-7 w-12 place-items-center rounded-full", current && "bg-blue-50")}>
-                  <Icon className="size-5" aria-hidden />
+                <span className="relative grid place-items-center transition-transform active:scale-90">
+                  <Icon className={iconsOnly ? "size-6" : "size-5"} aria-hidden />
                   <Badge badge={it.badge} />
                 </span>
-                <span className="truncate">
-                  {it.label}
-                  <span className="sr-only">{badgeText(it.badge)}</span>
-                </span>
+                {iconsOnly ? (
+                  <span
+                    className={cn("absolute bottom-1.5 size-1.5 rounded-full", current ? "bg-blue-500" : "bg-transparent")}
+                    aria-hidden
+                  />
+                ) : (
+                  <span className="truncate">
+                    {it.label}
+                    <span className="sr-only">{badgeText(it.badge)}</span>
+                  </span>
+                )}
               </Link>
             </li>
           );
@@ -192,7 +207,7 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
                 </span>
                 More
               </summary>
-              <ul className="absolute right-2 bottom-full mb-2 w-56 rounded-xl bg-white p-2 shadow-soft ring-1 ring-ink-200">
+              <ul className="absolute right-0 bottom-full mb-3 w-56 rounded-xl bg-white p-2 shadow-soft ring-1 ring-ink-200">
                 {nav.more.map((it) => {
                   const Icon = ICONS[it.icon];
                   return (

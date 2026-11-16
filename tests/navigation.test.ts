@@ -35,8 +35,8 @@ const instAdmin: NavContext = { ctx: ctx({ institutionRoles: [{ institutionId: "
 const staff = (platformRole: UserContext["platformRole"]): NavContext => ({ ctx: ctx({ platformRole }) });
 
 describe("menus by role", () => {
-  it("gives students Deals, Saved, Scan, Savings and Me, with Scan as the raised middle button", () => {
-    expect(labels("student", student)).toEqual(["Deals", "Saved", "Scan", "Savings", "Me"]);
+  it("gives students Home, Map, Scan, My deals and Me, with Scan as the raised middle button", () => {
+    expect(labels("student", student)).toEqual(["Home", "Map", "Scan", "My deals", "Me"]);
     expect(navFor("student", student).tabs.find((t) => t.emphasis)?.key).toBe("scan");
   });
 
@@ -80,7 +80,7 @@ describe("menus by role", () => {
   });
 
   it("gives the account pages a way back to the person's main area", () => {
-    expect(labels("account", student)).toEqual(["Deals", "Account", "Notifications"]);
+    expect(labels("account", student)).toEqual(["Home", "Account", "Notifications"]);
     expect(navFor("account", owner).tabs[0]).toMatchObject({ label: "Business", href: "/merchant" });
     expect(navFor("account", staff("admin")).tabs[0]).toMatchObject({ label: "Staff", href: "/admin" });
     expect(activeIn(navFor("account", student).tabs, "/account/notifications/settings")).toBe("notifications");

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DealCard } from "@/features/students/app/deal-card";
-import { ArrowRight, Search, Store } from "lucide-react";
+import { ArrowRight, Flame, LayoutGrid, Map as MapIcon, Search, Store } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
 import { getCategories } from "@/features/merchants/queries";
 import { money } from "@/features/offers/schemas";
-import { listDeals } from "@/features/offers/queries";
+import { DEAL_SORTS, listDeals, sortDeals, type DealSort } from "@/features/offers/queries";
+import { cn } from "@/lib/utils";
 import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
@@ -15,26 +16,29 @@ import { CategoryChip } from "@/features/students/app/bits";
 
 export const metadata: Metadata = { title: "Deals", robots: { index: false } };
 
-function greeting(now: Date) {
-  const h = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone: "Africa/Accra" }).format(now));
-  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
-}
+const SORTS: { value: DealSort | null; label: string; heading: string }[] = [
+  { value: null, label: "Nearest", heading: "All deals" },
+  { value: "top", label: "Top rated", heading: "Top rated by students" },
+  { value: "new", label: "New", heading: "Newest deals" },
+  { value: "hot", label: "Hot deals", heading: "Biggest savings" },
+];
 
 export default async function DealsPage({ searchParams }: PageProps<"/student">) {
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim().slice(0, 80) : "";
   const category = typeof params.category === "string" ? params.category : "";
+  const sort = DEAL_SORTS.find((x) => x === params.sort) ?? null;
   const [ctx, status, categories, deals, live, savings] = await Promise.all([
     getUserContext(),
     getMyStudentStatus(),
     getCategories(),
-    listDeals({ query: q || undefined, category: category || undefined }),
+    listDeals({ query: q || undefined, category: category || undefined }).then((list) => sortDeals(list, sort)),
     getMyLiveSession(),
     getSavingsSummary(),
   ]);
   const view = verificationView(status);
   const verified = view === "verified";
-  const filtering = Boolean(q || category);
+  const filtering = Boolean(q || category || sort);
   const near = filtering
     ? []
     : deals
@@ -45,10 +49,11 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   const anyHours = near.some((d) => d.has_hours);
   const campus = deals.find((d) => d.campus_name)?.campus_name ?? null;
   const chosen = categories.find((c) => c.slug === category);
-  const link = (next: { q?: string; category?: string }) => {
+  const link = (next: { q?: string; category?: string; sort?: string | null }) => {
     const sp = new URLSearchParams();
     if (next.q) sp.set("q", next.q);
     if (next.category) sp.set("category", next.category);
+    if (next.sort) sp.set("sort", next.sort);
     const s = sp.toString();
     return s ? `/student?${s}` : "/student";
   };
@@ -56,9 +61,31 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   return (
     <AreaShell area="student">
       <div className="-mx-4 sm:mx-0">
-        <div className="px-4 sm:px-0">
-          <p className="text-[0.9375rem] text-ink-600">{greeting(new Date())}</p>
-          <h1 className="font-display text-3xl leading-tight font-bold tracking-tight">{ctx?.firstName ?? ctx?.fullName ?? "Welcome"}</h1>
+        <div className="flex flex-col gap-4 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-0">
+          <div className="min-w-0">
+            <h1 className="font-display text-4xl leading-none font-black tracking-tight text-ink-900">Campus deals</h1>
+            <p className="mt-1.5 text-[0.9375rem] font-medium text-ink-600">
+              {ctx?.firstName ? `${ctx.firstName}, here's` : "Here's"} what&apos;s on near {campus ?? "your campus"}
+            </p>
+          </div>
+          <div
+            className="flex shrink-0 items-center gap-1 self-start rounded-2xl bg-ink-100 p-1 sm:self-auto"
+            role="group"
+            aria-label="View"
+          >
+            <span
+              aria-current="page"
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-bold text-blue-500 shadow-md"
+            >
+              <LayoutGrid className="size-4" aria-hidden /> Grid
+            </span>
+            <Link
+              href="/student/map"
+              className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-ink-600 hover:bg-white/60"
+            >
+              <MapIcon className="size-4" aria-hidden /> Map
+            </Link>
+          </div>
         </div>
 
         <div className="mt-4 space-y-3 px-4 sm:px-0">
@@ -147,13 +174,35 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
           />
         </form>
 
+        <nav aria-label="Sort deals" className="flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pt-4 sm:px-0">
+          {SORTS.map((o) => {
+            const active = (o.value ?? null) === sort;
+            return (
+              <Link
+                key={o.label}
+                href={link({ q, category, sort: o.value })}
+                aria-current={active ? "true" : undefined}
+                className={cn(
+                  "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-xs font-bold ring-1 transition-colors",
+                  active
+                    ? "bg-blue-500 text-white ring-blue-500"
+                    : "bg-white text-ink-700 ring-ink-200 hover:text-blue-500 hover:ring-blue-300",
+                )}
+              >
+                {o.value === "hot" && <Flame className={cn("size-3.5", active ? "text-white" : "text-orange-500")} aria-hidden />}
+                {o.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <nav
           aria-label="Categories"
           className="sticky top-16 z-10 flex [scrollbar-width:none] gap-2 overflow-x-auto bg-paper px-4 pt-3 pb-2 sm:px-0"
         >
-          <CategoryChip href={link({ q })} active={!category} label="All" />
+          <CategoryChip href={link({ q, sort })} active={!category} label="All" />
           {categories.map((c) => (
-            <CategoryChip key={c.id} href={link({ q, category: c.slug })} active={category === c.slug} icon={c.icon} label={c.name} />
+            <CategoryChip key={c.id} href={link({ q, category: c.slug, sort })} active={category === c.slug} icon={c.icon} label={c.name} />
           ))}
         </nav>
 
@@ -167,7 +216,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             </div>
             <ul className="flex snap-x [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
               {near.map((d) => (
-                <li key={d.offer_id} className="w-64 shrink-0 snap-start">
+                <li key={d.offer_id} className="w-60 shrink-0 snap-start">
                   <DealCard deal={d} back={link({ q, category })} locked={!verified} compact />
                 </li>
               ))}
@@ -178,7 +227,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
         <section aria-labelledby="all-h">
           <div className="flex items-baseline justify-between px-4 pt-5 pb-2 sm:px-0">
             <h2 id="all-h" className="font-display text-lg font-bold">
-              {q ? `Results for “${q}”` : chosen ? chosen.name : "All deals"}
+              {q ? `Results for “${q}”` : chosen ? chosen.name : sort ? SORTS.find((o) => o.value === sort)?.heading : "All deals"}
             </h2>
             <span className="text-[0.8125rem] font-medium text-ink-600">
               {deals.length} {deals.length === 1 ? "deal" : "deals"}
@@ -202,10 +251,10 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               )}
             </div>
           ) : (
-            <ul className="grid gap-4 px-4 pb-6 sm:grid-cols-2 sm:px-0">
+            <ul className="grid grid-cols-1 gap-5 px-4 pb-6 sm:grid-cols-2 sm:px-0 xl:grid-cols-3 [&>li]:min-w-0">
               {deals.map((d) => (
                 <li key={d.offer_id}>
-                  <DealCard deal={d} back={link({ q, category })} locked={!verified} />
+                  <DealCard deal={d} back={link({ q, category, sort })} locked={!verified} />
                 </li>
               ))}
             </ul>

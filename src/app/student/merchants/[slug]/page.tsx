@@ -19,7 +19,12 @@ import {
 import { AreaShell } from "@/components/layout/area-shell";
 import { cn } from "@/lib/utils";
 import { getPublicEnv, hasSupabaseEnv } from "@/lib/env";
-import { getMerchantPage, listDeals } from "@/features/offers/queries";
+import { getMerchantPage, getRatings, listDeals } from "@/features/offers/queries";
+import { deleteReview } from "@/features/reviews/actions";
+import { ReviewForm } from "@/features/reviews/components/review-form";
+import { RatingTag } from "@/features/students/app/deal-card";
+import { RatingSummary, ReviewList } from "@/features/reviews/components/review-list";
+import { getMyReview, listMerchantReviews } from "@/features/reviews/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { DealRow, HeartButton, MerchantAvatar, toneFor, walkLabel } from "@/features/students/app/bits";
@@ -73,7 +78,13 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound();
   const [shop, status] = await Promise.all([getMerchantPage(slug), getMyStudentStatus()]);
   if (!shop) notFound();
-  const deals = await listDeals({ merchantId: shop.id });
+  const [deals, reviews, mine, ratings] = await Promise.all([
+    listDeals({ merchantId: shop.id }),
+    listMerchantReviews(shop.id, 20),
+    getMyReview(shop.id),
+    getRatings([shop.id]),
+  ]);
+  const score = ratings.get(shop.id) ?? null;
   const verified = verificationView(status) === "verified";
   const back = `/student/merchants/${shop.slug}`;
   const tone = toneFor(shop.category_slug);
@@ -111,6 +122,11 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
               <p className="text-[0.9375rem] text-ink-600">
                 {[shop.category, nearest?.area, shop.price_range].filter(Boolean).join(" · ")}
               </p>
+              {score && (
+                <a href="#ratings" className="mt-1 inline-flex">
+                  <RatingTag rating={score.rating} reviews={score.reviews} className="text-[0.9375rem]" />
+                </a>
+              )}
               {(open || walk) && (
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.9375rem]">
                   {open && (
@@ -180,6 +196,43 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
             </ul>
           )}
         </Section>
+
+        <div id="ratings" className="scroll-mt-20">
+          <Section id="ratings-h" title="Ratings">
+            <RatingSummary rating={score?.rating ?? null} reviews={score?.reviews ?? 0} />
+            {mine?.can_review && (
+              <div className="mt-4">
+                {mine.hidden ? (
+                  <p className="rounded-2xl bg-ink-50 p-3 text-sm text-ink-700">Perqly hid your rating because it broke the rules.</p>
+                ) : (
+                  <>
+                    <ReviewForm
+                      merchantId={shop.id}
+                      merchantName={shop.display_name}
+                      back={`/student/merchants/${slug}`}
+                      initialRating={mine.rating}
+                      initialComment={mine.comment}
+                    />
+                    {mine.rating && (
+                      <form action={deleteReview} className="mt-2 text-right">
+                        <input type="hidden" name="merchantId" value={shop.id} />
+                        <input type="hidden" name="back" value={`/student/merchants/${slug}`} />
+                        <button type="submit" className="min-h-11 px-2 text-sm font-semibold text-ink-600 underline">
+                          Remove my rating
+                        </button>
+                      </form>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+            {reviews.length > 0 && (
+              <div className="mt-4">
+                <ReviewList reviews={reviews} />
+              </div>
+            )}
+          </Section>
+        </div>
 
         {(shop.description || shop.amenities.length > 0) && (
           <Section id="about-h" title="About">

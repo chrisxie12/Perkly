@@ -23,7 +23,8 @@ export function buildCsp({ supabaseUrl, isDev }: { supabaseUrl?: string; isDev: 
     "default-src": ["'self'"],
     "script-src": ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : [])],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "blob:", supabase].filter(Boolean),
+    // OpenStreetMap tiles for the student map.
+    "img-src": ["'self'", "data:", "blob:", supabase, "https://tile.openstreetmap.org"].filter(Boolean),
     "font-src": ["'self'"],
     "connect-src": ["'self'", supabase, supabaseRealtime, ...(isDev ? ["ws:"] : [])].filter(Boolean),
     "media-src": ["'self'", "blob:"],

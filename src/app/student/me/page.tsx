@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  Heart,
   MessageCircle,
   BadgeCheck,
   Bell,
@@ -130,6 +131,7 @@ export default async function MePage() {
           label="Photo for your pass"
           note={photoUrl ? "Added" : "Not added yet. Cashiers use it to check it's you"}
         />
+        <Row href="/student/favourites" icon={Heart} label="Saved shops" />
         <Row
           href="/student/messages"
           icon={MessageCircle}

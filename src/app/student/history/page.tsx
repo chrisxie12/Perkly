@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PiggyBank } from "lucide-react";
+import { PiggyBank, Star } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { money } from "@/features/offers/schemas";
@@ -9,7 +9,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { MerchantAvatar } from "@/features/students/app/bits";
 import { ShareSavings } from "@/features/students/app/share-savings";
 
-export const metadata: Metadata = { title: "Your savings", robots: { index: false } };
+export const metadata: Metadata = { title: "My deals", robots: { index: false } };
 
 const when = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Africa/Accra" });
 const monthName = (ym: string) =>
@@ -25,7 +25,7 @@ export default async function SavingsPage() {
     <AreaShell area="student">
       <div className="-mx-4 -mt-6 sm:mx-0 sm:mt-0">
         <div className="flex items-center px-4 py-1 sm:px-0">
-          <h1 className="flex-1 font-display text-xl font-bold">Your savings</h1>
+          <h1 className="flex-1 font-display text-4xl leading-none font-black tracking-tight">My deals</h1>
           {total > 0 && <ShareSavings text={`I've saved ${money(total)} with Perqly${school ? ` as a ${school} student` : ""}.`} />}
         </div>
         <section className="mx-4 mt-1 rounded-3xl bg-ink-900 px-5 pt-5 pb-4 text-white sm:mx-0" aria-label="Total saved">
@@ -94,6 +94,14 @@ export default async function SavingsPage() {
                   <span className="text-[0.8125rem] text-ink-600">
                     {r.merchant_name}, {when.format(new Date(r.redeemed_at))}
                   </span>
+                  {!r.voided && (
+                    <Link
+                      href={`/student/merchants/${r.merchant_slug}#ratings`}
+                      className="mt-0.5 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-blue-600"
+                    >
+                      <Star className="size-3.5" aria-hidden /> Rate {r.merchant_name}
+                    </Link>
+                  )}
                 </div>
                 {r.voided ? (
                   <span className="text-[0.8125rem] font-semibold text-ink-600">Cancelled by support</span>

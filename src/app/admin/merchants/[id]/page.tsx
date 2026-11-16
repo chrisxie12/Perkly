@@ -14,6 +14,9 @@ import { formatDate } from "@/features/students/components/status-card";
 import { getAgreementState } from "@/features/agreements/queries";
 import { ManualPaymentForm } from "@/features/billing/components/admin-billing-forms";
 import { formatGhs, getMerchantBilling } from "@/features/billing/queries";
+import { setReviewHidden } from "@/features/reviews/actions";
+import { ReviewList } from "@/features/reviews/components/review-list";
+import { listMerchantReviews } from "@/features/reviews/queries";
 
 export const metadata: Metadata = { title: "Business", robots: { index: false, follow: false } };
 
@@ -31,6 +34,7 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const [merchant, ctx] = await Promise.all([getMerchant(id), getUserContext()]);
   if (!merchant) notFound();
+  const reviews = await listMerchantReviews(id, 50);
   const [branches, team, categories, agreement, billing] = await Promise.all([
     getBranches(id),
     getTeam(id),
@@ -93,6 +97,26 @@ export default async function AdminMerchantPage({ params }: PageProps<"/admin/me
                   </li>
                 ))}
               </ul>
+            )}
+          </Card>
+          <Card>
+            <CardTitle className="mb-3">Student ratings</CardTitle>
+            {reviews.length === 0 ? (
+              <p className="text-ink-700">No ratings yet.</p>
+            ) : (
+              <ReviewList
+                reviews={reviews}
+                staffAction={(r) => (
+                  <form action={setReviewHidden} className="mt-1">
+                    <input type="hidden" name="reviewId" value={r.id} />
+                    <input type="hidden" name="hidden" value={r.hidden ? "false" : "true"} />
+                    <input type="hidden" name="back" value={`/admin/merchants/${merchant.id}`} />
+                    <button type="submit" className="min-h-9 text-sm font-semibold text-blue-600 underline">
+                      {r.hidden ? "Show again" : "Hide this rating"}
+                    </button>
+                  </form>
+                )}
+              />
             )}
           </Card>
           <Card>
