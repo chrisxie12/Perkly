@@ -2,11 +2,11 @@
 
 **How the production database is backed up, how a backup is checked, and how a restore is meant to work. A restore has not been tested yet.**
 
-|         |                                                                                                                                                                               |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status  | The nightly backup already runs. Everything marked **Proposed** is part of tasks 1.2, 1.4, 1.8 and 1.15. **No restore has been rehearsed**, so the restore steps are untested |
-| Updated | 2026-11-16                                                                                                                                                                    |
-| Related | `docs/PRODUCTION_SEPARATION.md`, `docs/SUPABASE_SETUP.md`, `docs/TEST_DATA_CLEANUP.md`                                                                                        |
+|         |                                                                                                                                                                                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Status  | The nightly backup already runs. Everything marked **Proposed** is part of tasks 1.2, 1.4, 1.8 and 1.15. **No restore has been rehearsed.** The backup system is **not reliable** yet and may not be described as reliable until the rehearsal in section 7 passes |
+| Updated | 2026-11-16                                                                                                                                                                                                                                                         |
+| Related | `docs/PRODUCTION_SEPARATION.md`, `docs/SUPABASE_SETUP.md`, `docs/TEST_DATA_CLEANUP.md`                                                                                                                                                                             |
 
 ## 1. What runs today
 
@@ -94,7 +94,14 @@ From task 1.4, **Migrate production** runs the same backup and the same checks a
 
 ## 6. Restore procedure (draft, untested)
 
-**Status: draft. Nobody has carried this out yet.** It will be corrected during the rehearsal in section 7. Until a rehearsal passes, don't describe Perqly's backups as restorable.
+**Status: draft. Nobody has carried this out yet.** It will be corrected during the rehearsal in section 7.
+
+Rules until the rehearsal has passed:
+
+1. **Not for production.** This procedure may only be run against a temporary project created for a rehearsal. It must not be run against the production project. A restored project must not be connected to Vercel Production, and Perqly's domains must not point at one.
+2. **Restoring Auth is experimental.** Copying the `auth` tables into a different Supabase project, or onto a different Supabase Auth version, is untested here. Treat it as experimental until a rehearsal shows sign-in, Google sign-in and two-factor working on the restored copy.
+3. **Permissions not yet checked.** Step 6 relies on `SET session_replication_role = replica`. Supabase's restore guide uses it on their platform, but it hasn't been tried as the `postgres` role over the Session pooler on a Perqly project. The rehearsal must confirm it. If it's refused, the rehearsal stops and section 6 is revised. No workaround is improvised on a live project.
+4. **If production is lost before a rehearsal has passed:** don't run this procedure against production or put a restored copy live. Contact Supabase support first, and treat any restore as a new decision for you, made with the risks above in view.
 
 Always restore into a **new, empty** Supabase project, never over the live one.
 
@@ -143,19 +150,27 @@ After a bad migration, it can be safer to restore everything into a scratch proj
 
 ## 7. Restore rehearsal (task 1.15)
 
-The rehearsal comes before Vercel's production branch moves to `production`. **It passes only if every item below is true:**
+The rehearsal is a **hard prerequisite**. Until it passes:
+
+- the backup system isn't described as reliable, in these documents or anywhere else;
+- section 6 may not be used on production (section 6, rule 1);
+- task 1.15 doesn't move Vercel's production branch to `production`.
+
+**It passes only if every item below is true:**
 
 1. Last night's backup restores into a temporary project using section 6, with no errors.
-2. Every orphan count from step 7 is 0.
-3. Row counts for every restored table match the source at the time of the backup.
-4. You can sign in on a preview build pointed at the temporary project, with your own account, including the two-factor step.
-5. A redemption, a chat and a notification look correct in that build.
-6. The time it took is written down.
+2. `SET session_replication_role = replica` is accepted for the `postgres` role over the connection used, and triggers really are off during the import. For example, no new notifications or audit entries appear for imported rows.
+3. The `auth` tables import cleanly into that project's Supabase Auth version. Record which version the source and the target were on.
+4. Every orphan count from section 6.2, step 7, is 0.
+5. Row counts for every restored table match the source at the time of the backup.
+6. You can sign in on a preview build pointed at the temporary project, with your own account, by email code and by Google, including the two-factor step.
+7. A redemption, a chat and a notification look correct in that build.
+8. The time it took is written down.
 
 Afterwards:
 
 - Write down the corrected steps and replace section 6 with them.
 - Delete the temporary project the same day. It holds real personal data.
-- Change the status line of this document to "Restore rehearsed on `<date>`".
+- Change the status line of this document to "Restore rehearsed on `<date>`". Only then may section 6 lose its "draft" label and its rules. If the rehearsal fails, record why. Section 6 stays a draft and the status line stays "not reliable".
 
 Repeat the rehearsal every three months, and after any change to the backup workflow or a major Supabase Auth upgrade.
