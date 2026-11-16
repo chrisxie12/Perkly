@@ -64,9 +64,17 @@ export default async function NotificationsPage() {
             return (
               <li key={n.id}>
                 {n.link ? (
-                  <Link href={n.link} className="block hover:bg-ink-50">
+                  // Through /open so tapping marks it read. No prefetch: that would mark it read on sight.
+                  <Link href={`/account/notifications/open/${n.id}`} prefetch={false} className="block hover:bg-ink-50">
                     {body}
                   </Link>
+                ) : !n.read_at ? (
+                  <form action={markNotificationsRead}>
+                    <input type="hidden" name="id" value={n.id} />
+                    <button type="submit" className="block w-full text-left hover:bg-ink-50">
+                      {body}
+                    </button>
+                  </form>
                 ) : (
                   body
                 )}

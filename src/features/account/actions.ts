@@ -46,10 +46,12 @@ export async function cancelDeletion(): Promise<void> {
   redirect("/account?deletion=cancelled");
 }
 
-export async function markNotificationsRead(): Promise<void> {
+/** Marks one notification read (when the form sends an id), or all of them. */
+export async function markNotificationsRead(formData?: FormData): Promise<void> {
   if (!hasSupabaseEnv()) return;
+  const id = z.uuid().safeParse(formData?.get("id"));
   const supabase = await createClient();
-  await supabase.rpc("mark_notifications_read", { p_ids: null });
+  await supabase.rpc("mark_notifications_read", { p_ids: id.success ? [id.data] : null });
   revalidatePath("/account/notifications");
 }
 

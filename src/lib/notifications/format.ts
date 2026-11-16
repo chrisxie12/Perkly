@@ -21,7 +21,8 @@ export function buildPushPayload(n: NotificationContent): PushPayload {
     id: n.id,
     title: n.title.slice(0, 120),
     body: (n.body ?? "").slice(0, 240),
-    url: safeNotificationPath(n.link),
+    // Tapping it marks it read, then opens what it's about.
+    url: `/account/notifications/open/${n.id}`,
     // One visible notification per thing: a newer one about the same kind replaces the older.
     tag: n.kind,
   };
