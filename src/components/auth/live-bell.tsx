@@ -59,6 +59,8 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
 
     const onMessage = (event: MessageEvent) => {
       if (event.data?.type === "PERQLY_NOTIFICATION") {
+        // Arrived as a phone notification first: chime here too (the sound module skips doubles).
+        if (document.visibilityState === "visible") playSound("notify");
         void recount();
         if (onInbox) router.refresh();
       }

@@ -13,8 +13,9 @@ export const SOUND_STORAGE_KEY = "perqly-sounds";
 // [frequency Hz, start s, length s] per note.
 const TUNES: Record<SoundName, [number, number, number][]> = {
   notify: [
-    [880, 0, 0.12],
-    [1175, 0.11, 0.18],
+    [880, 0, 0.14],
+    [1175, 0.12, 0.16],
+    [1568, 0.26, 0.28],
   ],
   message: [
     [988, 0, 0.09],
@@ -41,6 +42,7 @@ const VIBRATE: Partial<Record<SoundName, number | number[]>> = {
 };
 
 let ctx: AudioContext | null = null;
+let lastPlayed = 0;
 
 function context() {
   if (typeof window === "undefined") return null;
@@ -79,6 +81,10 @@ export function unlockAudioOnFirstTouch() {
 
 export function playSound(name: SoundName, { vibrate = true }: { vibrate?: boolean } = {}) {
   if (!soundsEnabled()) return;
+  // One sound per moment: the same event can arrive by two routes (live update and phone notification).
+  const now0 = Date.now();
+  if (now0 - lastPlayed < 1500) return;
+  lastPlayed = now0;
   try {
     if (vibrate && VIBRATE[name]) navigator.vibrate?.(VIBRATE[name]!);
   } catch {}
@@ -87,7 +93,7 @@ export function playSound(name: SoundName, { vibrate = true }: { vibrate?: boole
   if (c.state === "suspended") void c.resume();
   const now = c.currentTime + 0.01;
   const out = c.createGain();
-  out.gain.value = 0.18;
+  out.gain.value = name === "scan" ? 0.2 : 0.3;
   out.connect(c.destination);
   for (const [freq, start, length] of TUNES[name]) {
     const osc = c.createOscillator();
