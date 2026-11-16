@@ -36,8 +36,14 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
   }, []);
 
   /** Pop-up banner and chime, once per notification, unless you're already looking at what it's about. */
+  const pending = useRef<{ row: RowLike; at: number } | null>(null);
   const announce = useCallback((n: RowLike) => {
-    if (!n?.id || shown.current.has(n.id) || document.visibilityState !== "visible") return;
+    if (!n?.id || shown.current.has(n.id)) return;
+    // In the background: keep the latest and show it when the app comes back.
+    if (document.visibilityState !== "visible") {
+      pending.current = { row: n, at: Date.now() };
+      return;
+    }
     shown.current.add(n.id);
     const target = (n.link ?? n.url ?? "").split("?")[0];
     if (target && target === window.location.pathname) return;
@@ -87,7 +93,12 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
       }
     };
     const onVisible = () => {
-      if (document.visibilityState === "visible") void recount();
+      if (document.visibilityState !== "visible") return;
+      void recount();
+      const waiting = pending.current;
+      pending.current = null;
+      // Only if it's recent; older ones are in the bell.
+      if (waiting && Date.now() - waiting.at < 10 * 60 * 1000) announce(waiting.row);
     };
     navigator.serviceWorker?.addEventListener("message", onMessage);
     document.addEventListener("visibilitychange", onVisible);

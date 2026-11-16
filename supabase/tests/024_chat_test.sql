@@ -24,7 +24,7 @@ begin
   perform set_config('request.jwt.claims', '', true);
 end;
 $$;
-select plan(24);
+select plan(27);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 select id as food from public.merchant_categories where slug = 'food' \gset
@@ -82,7 +82,17 @@ select is((select count(*)::int from public.messages where conversation_id = :'c
 select tests.as_user(:'owner', 'aal2');
 select is((select unread from public.list_merchant_conversations(:'m')), 2, 'the shop sees two unread messages');
 select is(public.count_unread_chats(:'m'), 1, 'one unread chat for the shop');
+select public.mark_conversation_read(:'c');
+select tests.as_postgres();
+select is((select count(*)::int from public.notifications where user_id = :'owner' and kind = 'chat.message' and read_at is null), 0, 'opening the chat clears its notifications');
+select tests.as_user(:'s1'); select public.send_message(:'c', 'One more thing: do you open on Sunday?');
+select tests.as_postgres();
+select is((select count(*)::int from public.notifications where user_id = :'owner' and kind = 'chat.message'), 2, 'a new message after reading notifies again');
+select tests.as_user(:'owner', 'aal2');
 select public.send_message(:'c', 'Yes! Spicy or mild, your choice.');
+select tests.as_postgres();
+select is((select count(*)::int from public.notifications where user_id = :'owner' and kind = 'chat.message'), 2, 'your own messages never notify you');
+select tests.as_user(:'owner', 'aal2');
 select is((select unread from public.list_merchant_conversations(:'m')), 0, 'replying marks the chat read for the shop');
 select tests.as_user(:'s1');
 select is((select unread from public.list_my_conversations()), 1, 'the student has one unread reply');
