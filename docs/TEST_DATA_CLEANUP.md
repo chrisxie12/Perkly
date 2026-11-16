@@ -58,8 +58,11 @@ For a candidate **business** (never StudaData): **suspend and anonymise**. Set `
 The format is `deleted+<user id>@invalid.perqly`, the same as the runbook.
 
 - **Unique per account:** `<user id>` is the account's own UUID, so two anonymised accounts never get the same address.
-- **Not a real address:** `perqly` isn't a real top-level domain, so no mail can be delivered there. Nobody can confirm a sign-up with such an address, so no genuine account can hold one.
-- **Checked anyway:** the inventory counts existing accounts whose email ends in `@invalid.perqly`. The clean-up script stops if any of the addresses it is about to write already exists. Supabase Auth's own uniqueness rule on emails would also refuse a duplicate, and the whole transaction would be undone.
+- **Not expected to receive email:** `perqly` isn't currently a public top-level domain, so the address isn't expected to receive public email. That is not relied on to prevent collisions.
+- **What actually prevents a collision:**
+  1. **Inventory preflight check:** the inventory lists every existing account whose email ends in `@invalid.perqly`, and any that match a candidate's target address, before anything is proposed.
+  2. **Script aborts:** before changing anything, the clean-up script checks each target address. If any already exists in `auth.users`, the script stops and nothing changes.
+  3. **Supabase Auth's email uniqueness constraint:** if a duplicate somehow got past both checks, the database would refuse it and the whole transaction would be undone.
 - **Proposal for later, not made here:** the reserved top-level domain `.invalid` (RFC 6761) would be an even stronger guarantee, for example `deleted+<user id>@perqly.invalid`. Changing it means changing the runbook and this procedure together, so the two never differ. It's left as a decision for task 1.11 (account deletion as a tested function).
 
 ### 4.2 Cross-check with `docs/ACCOUNT_DELETION_RUNBOOK.md`
