@@ -125,9 +125,9 @@ The aim: `production` only ever changes through step D4.
 - **Narrow use:** D4 uses the key for one fast-forward push of `production` and nothing else. Every other git step uses read-only checkout.
 - **If it may have leaked:** delete the deploy key in GitHub and make a new one. Moving `production` stops until then, which is safe: the site keeps running.
 
-### 6.3 GitHub permissions that keep pull requests and other workflows out (proposed, task 1.2 and 1.4)
+### 6.3 GitHub permissions that keep pull requests, forks and other branches out (proposed, task 1.2 and 1.4)
 
-These are the settings that stop a pull request, or any workflow other than Migrate production, from moving `production` or reading production secrets. Each must be set as described. Task 1.2 records each one as checked.
+These settings stop pull requests, forks and other branches from moving `production` or reading production secrets. They can't stop another workflow that is already on `main` from naming the `production` environment. That part relies on reviewing every workflow change before it is merged (section 6.2). Each setting must be set as described. Task 1.2 records each one as checked.
 
 | Where                                                      | Setting                                                                                                                                                                                 | Why                                                                                                                                                     |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
