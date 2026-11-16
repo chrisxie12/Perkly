@@ -1,5 +1,6 @@
 "use client";
 
+import { playSound } from "@/lib/sound";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CameraOff, Flashlight, Keyboard, X } from "lucide-react";
@@ -40,9 +41,7 @@ export function Scanner({ allowedOrigins, message }: { allowedOrigins: string[];
       }
       stopped = true;
       setState("found");
-      try {
-        navigator.vibrate?.(40);
-      } catch {}
+      playSound("scan");
       // /r/<token> is a route handler that redirects, so this needs a full navigation.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign(`/r/${token}`);

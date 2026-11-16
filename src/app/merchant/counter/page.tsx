@@ -1,3 +1,4 @@
+import { SoundCue } from "@/components/sound/sound-cue";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BadgeCheck, Check, QrCode, X } from "lucide-react";
@@ -40,6 +41,8 @@ export default async function CounterPage({ searchParams }: PageProps<"/merchant
   return (
     <AreaShell area="merchant">
       <AutoRefresh />
+      {/* A chime each time a new student starts waiting at the counter. */}
+      {waiting[0] && <SoundCue sound="notify" onceKey={`counter:${waiting[0].session_id}`} />}
       <div className="-mx-4 -mt-6 sm:mx-0 sm:mt-0">
         <header className="flex flex-wrap items-center gap-3.5 border-b border-ink-200 bg-white px-4 py-4 sm:rounded-t-2xl">
           <MerchantAvatar name={merchant?.display_name ?? membership.displayName} category={null} />

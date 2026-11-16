@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { playSound } from "@/lib/sound";
 
 /**
  * The bell with its unread count, kept current without a refresh: Supabase
@@ -44,6 +45,7 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => {
           setUnread((n) => n + 1);
           setPulse(true);
+          if (document.visibilityState === "visible") playSound("notify");
           if (onInbox) router.refresh();
         })
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => {

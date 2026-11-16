@@ -12,6 +12,7 @@ import { SubmitButton } from "@/features/auth/components/submit-button";
 import { cancelDeletion, requestDeletion } from "@/features/account/actions";
 import { NameForm } from "@/features/account/components/name-form";
 import { DarkModeSwitch } from "@/components/theme/theme-toggle";
+import { SoundsSwitch } from "@/components/sound/sounds-switch";
 import { formatDate } from "@/features/students/components/status-card";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false } };
@@ -50,6 +51,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
           <Card>
             <CardTitle className="mb-4">Appearance</CardTitle>
             <DarkModeSwitch />
+            <hr className="my-4 border-ink-200" />
+            <SoundsSwitch />
           </Card>
         </div>
         <div className="space-y-6">

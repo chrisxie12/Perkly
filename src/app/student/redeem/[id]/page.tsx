@@ -1,3 +1,4 @@
+import { SoundCue } from "@/components/sound/sound-cue";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -199,6 +200,8 @@ export default async function RedeemPage({ params, searchParams }: PageProps<"/s
   const tone = s.status === "completed" ? "bg-emerald-700" : s.status === "rejected" ? "bg-red-700" : "bg-slate-700";
   return (
     <AreaShell area="student" immersive>
+      {s.status === "completed" && <SoundCue sound="success" onceKey={`redeemed:${s.id}`} />}
+      {s.status === "rejected" && <SoundCue sound="error" onceKey={`declined:${s.id}`} />}
       <div className={`pt-safe pb-safe flex min-h-dvh flex-col px-5 pb-5 text-white ${tone}`}>
         <div className="flex flex-col items-center pt-10 pb-5 text-center">
           <span className="grid size-26 place-items-center rounded-full bg-white">

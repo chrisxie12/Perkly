@@ -99,10 +99,17 @@ self.addEventListener("push", (event) => {
     (async () => {
       await self.registration.showNotification(data.title || "Perqly", {
         body: data.body || undefined,
-        icon: "/icon-192.png",
+        icon: "/icons/icon-192.png",
+        // Android shows this small white mark in the status bar.
+        badge: "/icons/badge-96.png",
         tag: data.tag,
+        // Ring and buzz again even when this replaces an earlier notification with the same tag.
+        renotify: Boolean(data.tag),
+        vibrate: [80, 40, 80],
+        silent: false,
         data: { url },
-      });
+        // renotify and vibrate work on Android but aren't in TypeScript's DOM types yet.
+      } as NotificationOptions & { renotify: boolean; vibrate: number[] });
       // Open tabs update their bell straight away.
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       for (const client of windows) client.postMessage({ type: "PERQLY_NOTIFICATION" });

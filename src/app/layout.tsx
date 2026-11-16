@@ -1,4 +1,5 @@
 import { SiteAnalytics } from "@/components/analytics";
+import { SoundUnlock } from "@/components/sound/sound-cue";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { SerwistProvider } from "@serwist/turbopack/react";
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <UpdatePrompt />
         </SerwistProvider>
         <SiteAnalytics />
+        <SoundUnlock />
       </body>
     </html>
   );

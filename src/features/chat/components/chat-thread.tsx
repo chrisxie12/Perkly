@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { SendHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { playSound } from "@/lib/sound";
 import { markConversationRead, sendMessage } from "../actions";
 import type { ChatMessage, ChatSide } from "../queries";
 
@@ -56,7 +57,10 @@ export function ChatThread({
           (payload) => {
             const m = payload.new as ChatMessage;
             setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
-            if (m.sender_side !== me && document.visibilityState === "visible") void markConversationRead(conversationId);
+            if (m.sender_side !== me && document.visibilityState === "visible") {
+              playSound("message");
+              void markConversationRead(conversationId);
+            }
           },
         )
         .subscribe();
