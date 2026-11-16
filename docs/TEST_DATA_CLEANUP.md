@@ -63,7 +63,7 @@ The format is `deleted+<user id>@invalid.perqly`, the same as the runbook.
   1. **Inventory preflight check:** the inventory lists every existing account whose email ends in `@invalid.perqly`, and any that match a candidate's target address, before anything is proposed.
   2. **Script aborts:** before changing anything, the clean-up script checks each target address. If any already exists in `auth.users`, the script stops and nothing changes.
   3. **Supabase Auth's email uniqueness constraint:** if a duplicate somehow got past both checks, the database would refuse it and the whole transaction would be undone.
-- **Proposal for later, not made here:** the reserved top-level domain `.invalid` (RFC 6761) would be an even stronger guarantee, for example `deleted+<user id>@perqly.invalid`. Changing it means changing the runbook and this procedure together, so the two never differ. It's left as a decision for task 1.11 (account deletion as a tested function).
+- **Proposal for later, not made here:** the reserved top-level domain `.invalid` (RFC 6761) would provide a stronger guarantee that the anonymised address cannot receive public email, for example `deleted+<user id>@perqly.invalid`. It does not replace the inventory check, script abort or database uniqueness constraint used to prevent collisions. Changing it means changing the runbook and this procedure together, so the two never differ. It's left as a decision for task 1.11 (account deletion as a tested function).
 
 ### 4.2 Cross-check with `docs/ACCOUNT_DELETION_RUNBOOK.md`
 
