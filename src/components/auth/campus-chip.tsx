@@ -11,8 +11,12 @@ export async function CampusChip() {
   const school = status.profile?.institution_short_name;
   if (!school) {
     return (
-      <Link href="/student/profile" className="flex h-9 items-center gap-1.5 rounded-xl bg-blue-50 px-3 text-sm font-bold text-blue-600">
-        <MapPin className="size-4" aria-hidden /> Choose school
+      <Link
+        href="/student/profile"
+        aria-label="Choose your school"
+        className="flex h-9 items-center gap-1 rounded-xl bg-blue-50 px-2.5 text-sm font-bold text-blue-600"
+      >
+        <MapPin className="size-4" aria-hidden /> School
       </Link>
     );
   }
@@ -23,12 +27,13 @@ export async function CampusChip() {
     <Link
       href="/student/profile"
       aria-label={`Your campus: ${school}${campus ? `, ${campus}` : ""}. Change in School details`}
-      className="flex h-9 max-w-[11rem] min-w-0 items-center gap-1.5 rounded-xl bg-blue-50 px-3 text-sm font-bold text-blue-600 hover:bg-blue-100"
+      className="flex h-9 max-w-[11rem] min-w-fit items-center gap-1 rounded-xl bg-blue-50 px-2.5 text-sm font-bold text-blue-600 hover:bg-blue-100"
     >
-      <MapPin className="size-4 shrink-0" aria-hidden />
-      <span className="truncate">
+      <MapPin className="hidden size-4 shrink-0 min-[380px]:block" aria-hidden />
+      <span className="truncate whitespace-nowrap">
         {school}
-        {campus ? `, ${campus}` : ""}
+        {/* Narrow phones: school only, so the logo keeps its name. */}
+        {campus && <span className="hidden min-[420px]:inline">, {campus}</span>}
       </span>
     </Link>
   );

@@ -40,8 +40,7 @@ export async function AreaFrame({ area, children }: { area: NavArea; children: R
           <div className="flex h-16 items-center justify-between gap-2 px-4 md:px-5">
             <div className="flex items-center gap-3">
               <Link href="/" aria-label="Perqly home" className="shrink-0 rounded-lg">
-                {/* Students' header also carries the campus chip, so phones show just the mark. */}
-                <Logo className={area === "student" ? "[&>span]:hidden min-[440px]:[&>span]:inline" : undefined} />
+                <Logo />
               </Link>
               <span className="hidden rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700 sm:inline">
                 {AREA_TITLE[area]}
