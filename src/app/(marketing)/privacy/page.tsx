@@ -13,6 +13,10 @@ export default function PrivacyPage() {
       <p>
         Perqly does not collect any personal information yet. Sign-up and verification are not open, and this site sets no tracking cookies.
       </p>
+      <p>
+        To see which pages are used and how fast they load, Perqly uses Vercel Web Analytics and Speed Insights. They use no cookies, and
+        Perqly removes search terms and record numbers from page addresses before anything is sent.
+      </p>
     </DraftLegalPage>
   );
 }

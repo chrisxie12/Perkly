@@ -1,3 +1,4 @@
+import { SiteAnalytics } from "@/components/analytics";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { SerwistProvider } from "@serwist/turbopack/react";
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <UpdatePrompt />
         </SerwistProvider>
+        <SiteAnalytics />
       </body>
     </html>
   );
