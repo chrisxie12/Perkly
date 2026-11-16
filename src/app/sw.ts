@@ -82,7 +82,7 @@ self.addEventListener("message", (event) => {
 });
 
 // Phone notifications -----------------------------------------------------------------
-type PushPayload = { id?: string; title?: string; body?: string; url?: string; tag?: string };
+type PushPayload = { id?: string; title?: string; body?: string; url?: string; link?: string; tag?: string };
 
 const samePath = (url: unknown) =>
   typeof url === "string" && /^\/[A-Za-z0-9/_?=&.-]*$/.test(url) && !url.startsWith("//") ? url : "/account/notifications";
@@ -112,7 +112,11 @@ self.addEventListener("push", (event) => {
       } as NotificationOptions & { renotify: boolean; vibrate: number[] });
       // Open tabs update their bell straight away.
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-      for (const client of windows) client.postMessage({ type: "PERQLY_NOTIFICATION" });
+      for (const client of windows)
+        client.postMessage({
+          type: "PERQLY_NOTIFICATION",
+          notification: { id: data.id, title: data.title, body: data.body, link: data.link },
+        });
     })(),
   );
 });

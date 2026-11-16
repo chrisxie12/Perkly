@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { playSound } from "@/lib/sound";
+import { NotificationToast, type ToastNotification } from "./notification-toast";
+
+type RowLike = { id: string; title?: string; body?: string | null; link?: string | null; url?: string | null };
 
 /**
  * The bell with its unread count, kept current without a refresh: Supabase
@@ -16,6 +19,9 @@ import { playSound } from "@/lib/sound";
 export function LiveBell({ userId, initialUnread }: { userId: string; initialUnread: number }) {
   const [unread, setUnread] = useState(initialUnread);
   const [pulse, setPulse] = useState(false);
+  const [toast, setToast] = useState<ToastNotification | null>(null);
+  const shown = useRef(new Set<string>());
+  const closeToast = useCallback(() => setToast(null), []);
   const pathname = usePathname();
   const router = useRouter();
   const onInbox = pathname === "/account/notifications";
@@ -27,6 +33,16 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
     } catch {
       // Offline or no Supabase here: keep the last count.
     }
+  }, []);
+
+  /** Pop-up banner and chime, once per notification, unless you're already looking at what it's about. */
+  const announce = useCallback((n: RowLike) => {
+    if (!n?.id || shown.current.has(n.id) || document.visibilityState !== "visible") return;
+    shown.current.add(n.id);
+    const target = (n.link ?? n.url ?? "").split("?")[0];
+    if (target && target === window.location.pathname) return;
+    playSound("notify");
+    setToast({ id: n.id, title: n.title ?? "Perqly", body: n.body ?? null, hasLink: Boolean(n.link ?? n.url) });
   }, []);
 
   // A fresh server render (navigation, refresh) brings the true count.
@@ -42,12 +58,16 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
       const supabase = createClient();
       const channel = supabase
         .channel(`notifications:${userId}`)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => {
-          setUnread((n) => n + 1);
-          setPulse(true);
-          if (document.visibilityState === "visible") playSound("notify");
-          if (onInbox) router.refresh();
-        })
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+          (payload) => {
+            setUnread((n) => n + 1);
+            setPulse(true);
+            announce(payload.new as RowLike);
+            if (onInbox) router.refresh();
+          },
+        )
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => {
           void recount();
         })
@@ -59,8 +79,9 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
 
     const onMessage = (event: MessageEvent) => {
       if (event.data?.type === "PERQLY_NOTIFICATION") {
-        // Arrived as a phone notification first: chime here too (the sound module skips doubles).
-        if (document.visibilityState === "visible") playSound("notify");
+        // Arrived as a phone notification first: show it here too (doubles are skipped).
+        if (event.data.notification) announce(event.data.notification as RowLike);
+        else if (document.visibilityState === "visible") playSound("notify");
         void recount();
         if (onInbox) router.refresh();
       }
@@ -75,7 +96,7 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
       navigator.serviceWorker?.removeEventListener("message", onMessage);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [userId, onInbox, recount, router]);
+  }, [userId, onInbox, recount, router, announce]);
 
   useEffect(() => {
     if (!pulse) return;
@@ -84,23 +105,23 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
   }, [pulse]);
 
   return (
-    <Link
-      href="/account/notifications"
-      className="relative grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
-      aria-label={unread > 0 ? `Notifications, ${unread} new` : "Notifications"}
-    >
-      <Bell className={pulse ? "size-5 motion-safe:animate-[bell-ring_0.6s_ease-in-out_2]" : "size-5"} aria-hidden />
-      {unread > 0 && (
-        <span
-          className="absolute top-1 right-1 grid min-w-4 place-items-center rounded-full bg-orange-500 px-1 text-[0.6875rem] leading-4 font-bold text-white"
-          aria-hidden
-        >
-          {unread > 9 ? "9+" : unread}
-        </span>
-      )}
-      <span className="sr-only" aria-live="polite">
-        {pulse ? "New notification" : ""}
-      </span>
-    </Link>
+    <>
+      <NotificationToast key={toast?.id ?? "none"} toast={toast} onClose={closeToast} />
+      <Link
+        href="/account/notifications"
+        className="relative grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
+        aria-label={unread > 0 ? `Notifications, ${unread} new` : "Notifications"}
+      >
+        <Bell className={pulse ? "size-5 motion-safe:animate-[bell-ring_0.6s_ease-in-out_2]" : "size-5"} aria-hidden />
+        {unread > 0 && (
+          <span
+            className="absolute top-1 right-1 grid min-w-4 place-items-center rounded-full bg-orange-500 px-1 text-[0.6875rem] leading-4 font-bold text-white"
+            aria-hidden
+          >
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </Link>
+    </>
   );
 }

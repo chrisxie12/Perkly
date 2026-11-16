@@ -9,7 +9,7 @@ export type NotificationContent = {
   link: string | null;
 };
 
-export type PushPayload = { id: string; title: string; body: string; url: string; tag: string };
+export type PushPayload = { id: string; title: string; body: string; url: string; link: string; tag: string };
 
 /** Only same-site paths are ever opened from a notification. */
 export function safeNotificationPath(link: string | null | undefined): string {
@@ -23,6 +23,8 @@ export function buildPushPayload(n: NotificationContent): PushPayload {
     body: (n.body ?? "").slice(0, 240),
     // Tapping it marks it read, then opens what it's about.
     url: `/account/notifications/open/${n.id}`,
+    // What it's about, so an open app can skip the pop-up when you're already there.
+    link: safeNotificationPath(n.link),
     // One visible notification per thing: a newer one about the same kind replaces the older.
     tag: n.kind,
   };

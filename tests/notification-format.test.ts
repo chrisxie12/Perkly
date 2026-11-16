@@ -23,6 +23,7 @@ describe("notification formatting", () => {
       title: base.title,
       body: "Haircut",
       url: `/account/notifications/open/${base.id}`,
+      link: "/student/offers/abc",
       tag: "deal.new",
     });
   });

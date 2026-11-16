@@ -544,3 +544,14 @@
 .text-on-lime {
   color: #0b1220;
 }
+
+@keyframes toast-in {
+  from {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
