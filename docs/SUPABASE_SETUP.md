@@ -1,230 +1,172 @@
 # Supabase setup and environment variables
 
-**How to configure `perqly-staging` (and later `perqly-production`), and every environment variable the app uses**
+**The settings each Supabase project needs, how to create the new staging project, and every environment variable the app uses.**
 
-|            |                                                                                                          |
-| ---------- | -------------------------------------------------------------------------------------------------------- |
-| Status     | Ready for you to follow when you create `perqly-staging`. Nothing has been applied to any hosted project |
-| Date       | 2026-11-14                                                                                               |
-| Applies to | Roadmap steps 1.1 (Supabase foundation) and 1.2 (authentication)                                         |
+|         |                                                                                                                                                           |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status  | **Proposed.** Production already runs with these settings. Staging does not exist yet; you create it in task 1.2. Nothing here has been applied by Claude |
+| Updated | 2026-11-16                                                                                                                                                |
+| Related | `docs/PRODUCTION_SEPARATION.md` (why and in what order), `docs/BACKUPS.md`                                                                                |
 
-## 1. Rules that keep staging and production apart
+## 1. The two projects
 
-1. **Two separate Supabase projects:** `perqly-staging` and `perqly-production`. Each has its own database password, its own API keys and its own auth settings. Nothing is shared between them.
-2. **Each environment points at exactly one project:**
+|                | Production                                                              | Staging                                    |
+| -------------- | ----------------------------------------------------------------------- | ------------------------------------------ |
+| Dashboard name | `perqly-production` (today shown as `perqly-staging`; relabel it first) | `perqly-staging` (new)                     |
+| Ref            | `wktijbmvogxbbwwvqlhq` (unchanged)                                      | assigned when created                      |
+| Region         | London (`eu-west-2`)                                                    | London (`eu-west-2`)                       |
+| Plan           | Free                                                                    | Free                                       |
+| Serves         | perqly.online                                                           | Vercel Preview and Development, laptops    |
+| Data           | Real students and businesses                                            | Testers and businesses named `TEST …` only |
 
-   | Where the app runs                                  | Supabase project                                                                                                                              |
-   | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-   | Your laptop (`npm run dev`)                         | `perqly-staging`, or a local Supabase started with `supabase start`                                                                           |
-   | Vercel **Preview** and **Development** environments | `perqly-staging`                                                                                                                              |
-   | Vercel **Production** environment                   | `perqly-production`, set only at roadmap step 1.9. Until then, Production has **no** Supabase variables, so the live site can't touch staging |
+Rules:
 
-3. **No real student data in staging.** Use your own and teammates' test accounts and obviously fictional names. Never copy production data into staging.
-4. **Secrets never go into git.** That means the database password, the secret API key (`sb_secret_…`), the Resend API key, access tokens and service-role keys. `.env.local` is git-ignored; `.env.example` holds only names and placeholders. The app's environment check (`src/lib/env.ts`) refuses a secret key placed in a `NEXT_PUBLIC_` variable.
-5. **Separate Resend API keys per project.** One key for staging, another for production, each restricted to "Sending access" for the Perqly domain, so one can be revoked without touching the other.
-6. **Migrations go to staging first,** and only reach production after they've passed on staging. They're applied only with your approval.
+1. Nothing is shared between them: database password, API keys, auth settings, Google client, Resend key and push keys are all separate.
+2. **Production settings are only changed on purpose,** with a note in the pull request or change log. Change staging first, check it, then production.
+3. Secrets never go into git, chat or issues. `.env.local` is git-ignored; `.env.example` holds names and placeholders only. `src/lib/env.ts` refuses a secret key placed in a `NEXT_PUBLIC_` variable.
 
-## 2. Create `perqly-staging`
+## 2. Create `perqly-staging` (task 1.2, you)
 
-| Setting                                        | Value                                                                    | Why                                                                                                        |
-| ---------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Organization                                   | Your Supabase organization                                               |                                                                                                            |
-| Project name                                   | `perqly-staging`                                                         |                                                                                                            |
-| Database password                              | Generate a strong one in the dashboard; save it in your password manager | Needed only for the Supabase CLI and direct database connections. Never paste it into chat, code or Vercel |
-| Region                                         | **West EU (London)** `eu-west-2`                                         | Supabase has no African region; London has the lowest latency from Accra of the available regions          |
-| Plan                                           | Free                                                                     |                                                                                                            |
-| Postgres version                               | The default offered (17)                                                 | Matches `supabase/config.toml` (`major_version = 17`)                                                      |
-| Data API                                       | Enabled; schemas: `public` only (`graphql_public` can stay)              | Migrations keep helper functions in a `private` schema that must **not** be exposed                        |
-| "Automatically expose new tables" (if offered) | Either setting works                                                     | Perqly's migrations grant table access explicitly and enable RLS on every table                            |
+1. **Relabel production first.** Supabase → the live project → Project Settings → General → Project name: `perqly-production`. Only the label changes.
+2. **New project** in the same organization:
 
-Recommended at the same time (Vercel, needs your approval): set the Vercel project's **Function Region** to London (`lhr1`) so server code runs next to the database instead of in Washington (`iad1`, the current default).
+| Setting           | Value                                                                           | Why                                                           |
+| ----------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Name              | `perqly-staging`                                                                |                                                               |
+| Database password | Generate in the dashboard; save in your password manager as "Perqly staging DB" | Different from production's                                   |
+| Region            | **West EU (London)** `eu-west-2`                                                | Same as production; nearest to Accra; next to Vercel's `lhr1` |
+| Postgres          | Default (17)                                                                    | Matches `supabase/config.toml`                                |
+| Data API          | On; expose `public` only                                                        | The `private` schema must never be exposed                    |
 
-## 3. Dashboard configuration, step by step
+3. Leave the database empty. The **Migrate staging** workflow (task 1.4) builds it from `supabase/migrations`. Don't paste SQL into it by hand, so the two projects can't drift.
+
+## 3. Dashboard settings for both projects
+
+Set these on staging when you create it. They should already match production; check production against this list once, read-only, and note any difference rather than changing it straight away.
 
 ### 3.1 Authentication → Sign In / Providers
 
-| Setting                    | Value                                            |
-| -------------------------- | ------------------------------------------------ |
-| Allow new users to sign up | On                                               |
-| Allow anonymous sign-ins   | Off                                              |
-| Allow manual linking       | Off                                              |
-| **Email** provider         | Enabled                                          |
-| Confirm email              | **On**                                           |
-| Secure email change        | On                                               |
-| Email OTP expiration       | **600** seconds (10 minutes)                     |
-| Email OTP length           | **6**                                            |
-| Phone provider             | **Off** (phone sign-in comes later, decision D6) |
-| Google                     | **On** (section 3.9)                             |
-| Other social providers     | Off                                              |
+| Setting                            | Value                                            |
+| ---------------------------------- | ------------------------------------------------ |
+| Allow new users to sign up         | On                                               |
+| Anonymous sign-ins, manual linking | Off                                              |
+| Email provider                     | On; confirm email **on**; secure email change on |
+| Email OTP                          | expiry **600** s, length **6**                   |
+| Phone provider                     | Off                                              |
+| Google                             | On (section 3.7), with each project's own client |
+| Other social providers             | Off                                              |
 
 ### 3.2 Authentication → URL Configuration
 
-| Setting       | Staging value                                                                                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site URL      | The stable staging address: your Vercel preview branch alias (for example `https://perqly-git-staging-vision61-studios.vercel.app`) once you choose one. Until then, `http://localhost:3000` |
-| Redirect URLs | `http://localhost:3000/**` and `https://perqly-*-vision61-studios.vercel.app/**` (all Perqly preview deployments)                                                                            |
+|               | Production                      | Staging                                                                                                                                  |
+| ------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL      | `https://perqly.online`         | your stable Preview address, or `http://localhost:3000` until there is one                                                               |
+| Redirect URLs | `https://perqly.online/**` only | `http://localhost:3000/**` and the Vercel Preview pattern for the `perqly` project (`https://perqly-*-<vercel team slug>.vercel.app/**`) |
 
-For production (step 1.9), the Site URL becomes the production domain and the redirect list contains only production URLs.
+Production's list must not contain localhost or preview addresses. Staging's must not contain perqly.online.
 
-### 3.3 Authentication → Emails → Templates
+### 3.3 Email templates
 
-Perqly signs people in with a **6-digit code**, with a link as a backup. Supabase sends the **Confirm signup** template to new users and the **Magic Link** template to returning users, so both must contain `{{ .Token }}`.
+Both projects use the files in the repository: **Confirm signup** ← `supabase/templates/confirmation.html`, **Magic Link** ← `supabase/templates/magic_link.html`, subject `Your Perqly code` for both. Change the file first, then paste into staging, check, then production.
 
-| Template       | Subject            | Body                                        |
-| -------------- | ------------------ | ------------------------------------------- |
-| Confirm signup | `Your Perqly code` | Copy `supabase/templates/confirmation.html` |
-| Magic Link     | `Your Perqly code` | Copy `supabase/templates/magic_link.html`   |
+### 3.4 SMTP (Resend)
 
-The repository files are the source of truth: if a template changes, change the file first, then paste it into both projects. The link in the templates goes to `/auth/confirm` on whichever Perqly address requested the code (`{{ .RedirectTo }}`), which must be in the redirect list above.
+| Setting                | Value                                                                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Host / port / username | `smtp.resend.com` / `465` / `resend`                                                                                   |
+| Password               | A Resend API key restricted to sending, **one key per project**                                                        |
+| Sender                 | Production: the current sender, unchanged. Staging: sender name "Perqly Staging", so testers can tell the emails apart |
+| Minimum interval       | 60 s                                                                                                                   |
 
-### 3.4 Authentication → Emails → SMTP Settings (Resend)
+Resend's free plan allows 100 emails a day across both projects (checked 2026-11-14). Keep staging testing light, and review before the full GCTU launch.
 
-Supabase's built-in email service is only for trying things out: it **only delivers to members of your Supabase organization** and allows very few messages an hour. Real testers need custom SMTP.
+### 3.5 Rate limits, MFA and other settings
 
-| Setting                         | Value                                                                       |
-| ------------------------------- | --------------------------------------------------------------------------- |
-| Enable custom SMTP              | On                                                                          |
-| Host                            | `smtp.resend.com`                                                           |
-| Port                            | `465`                                                                       |
-| Username                        | `resend`                                                                    |
-| Password                        | A Resend API key created for **staging only** (restricted to sending)       |
-| Sender email                    | `no-reply@<your verified domain>`, for example `no-reply@auth.perqly.<tld>` |
-| Sender name                     | `Perqly`                                                                    |
-| Minimum interval between emails | 60 seconds                                                                  |
+| Area                                  | Setting                                                                                                                                                                                             |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rate limits                           | Emails 30 an hour; sign-ins and verifications 30 per 5 minutes per IP (defaults)                                                                                                                    |
+| Multi-factor                          | TOTP on; phone MFA off. The app requires TOTP for staff and business owners and managers                                                                                                            |
+| Database → SSL                        | Enforce SSL on                                                                                                                                                                                      |
+| Extensions, Storage buckets, Realtime | Nothing by hand: migrations create `pgcrypto`, `citext`, `pg_trgm`, the four buckets (`pass-photos`, `verification-documents`, `merchant-photos`, `institution-logos`) and the realtime publication |
+| Advisors                              | Run Security Advisor after every migration; no errors allowed (expected warnings: `docs/PRODUCTION_SEPARATION.md`, section 9)                                                                       |
 
-**What Resend needs first:** a domain you own, verified in Resend with its DNS records (SPF and DKIM; add DMARC as well). Resend won't send to arbitrary addresses without one. Perqly doesn't have a domain yet, so:
+### 3.6 API keys
 
-- **Until a domain is verified:** leave custom SMTP off. Supabase's built-in service will deliver codes to you and anyone you add to your Supabase organization. That's enough to test sign-in on staging.
-- **Free-tier suitability:** Resend's free plan allows 100 emails a day and 3,000 a month, with up to 3 verified domains (Resend pricing, checked 2026-11-14). That's comfortable for staging and a small soft launch. A full GCTU launch with many sign-ups on day one could pass 100 in a day, so plan to review this before the public pilot (pre-launch checklist).
-- A subdomain such as `auth.<domain>` for sign-in emails keeps their reputation separate from any future marketing email.
+| Key                              | Use                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| Publishable (`sb_publishable_…`) | Browser and server. RLS protects the data                                            |
+| Secret (`sb_secret_…`)           | Server only: institutional-email codes, decision emails, daily job, account deletion |
+| Legacy `anon` / `service_role`   | Not used                                                                             |
 
-### 3.5 Authentication → Rate Limits
+### 3.7 Google sign-in
 
-After custom SMTP is on, Supabase starts at 30 emails an hour. For staging set:
+Each project gets **its own OAuth client** in Google Cloud, so a staging problem can't affect production sign-in.
 
-| Limit                                      | Staging value                         |
-| ------------------------------------------ | ------------------------------------- |
-| Emails sent per hour                       | 30 (keep it under Resend's 100 a day) |
-| Sign-ups and sign-ins per 5 minutes per IP | 30 (default)                          |
-| Token verifications per 5 minutes per IP   | 30 (default)                          |
+|                               | Production client (existing)                                | Staging client (new)                                 |
+| ----------------------------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| Authorised JavaScript origins | `https://perqly.online`                                     | `http://localhost:3000`, your Preview address        |
+| Authorised redirect URI       | `https://wktijbmvogxbbwwvqlhq.supabase.co/auth/v1/callback` | `https://<staging ref>.supabase.co/auth/v1/callback` |
+| Consent screen                | Published                                                   | Can stay in Testing, with testers listed             |
 
-### 3.6 Authentication → Multi-Factor
+Paste each client's ID and secret into its own Supabase project only (Authentication → Providers → Google). They are never stored in Vercel or the repository. The production client secret is rotated in task 1.8 because it has been handled outside a password manager.
 
-| Setting                  | Value                       |
-| ------------------------ | --------------------------- |
-| TOTP (authenticator app) | Enabled (free on all plans) |
-| Phone MFA                | Off (a paid add-on)         |
+## 4. Migrations
 
-Perqly requires TOTP for platform staff (and, later, institution admins and merchant owners). The app enforces this; there's no dashboard switch for "required".
+The full workflow is in `docs/PRODUCTION_SEPARATION.md`, section 5. In short:
 
-### 3.7 Other settings
+- **Today:** you run `npx supabase db push` against production from your laptop (or `scripts/db/push.ps1`).
+- **After task 1.4:** merging to `main` migrates staging automatically; production is migrated only by the **Migrate production** workflow, after your approval and a fresh backup. Manual `db push` to production stops, except in an emergency you've decided on.
+- **Writing migrations:** expand, then contract; never insert test accounts; every migration comes with a pgTAP test in `supabase/tests`.
 
-| Area                      | Setting                                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Database → Settings → SSL | Enforce SSL on incoming connections: on                                                                                          |
-| Database → Extensions     | Nothing to enable by hand: migrations create `pgcrypto`, `citext` and `pg_trgm` in the `extensions` schema                       |
-| Integrations → GraphQL    | Perqly doesn't use GraphQL. Leaving it on is safe because RLS still applies; turning off `pg_graphql` reduces the attack surface |
-| Storage, Realtime         | Nothing until steps 1.3 and 1.6; migrations create buckets and publications                                                      |
-| Advisors                  | Run the Security Advisor after every migration; it must show no errors                                                           |
+### First super admin on staging
 
-### 3.8 API keys
-
-Settings → API Keys shows two kinds of key:
-
-| Key                                      | Use in Perqly                                                                                                                                                               |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Publishable** key (`sb_publishable_…`) | The app's only key. Safe in the browser because RLS protects the data                                                                                                       |
-| **Secret** key (`sb_secret_…`)           | Optional, server only: lets the server issue institutional-email confirmation codes (step 1.3). Never in the browser, never in a `NEXT_PUBLIC_` variable, never in the repo |
-| Legacy `anon` / `service_role` keys      | Not used                                                                                                                                                                    |
-
-### 3.9 Google sign-in
-
-Perqly offers "Continue with Google" on `/login` and "Sign up with Google" on `/register`. Google returns to Supabase, which returns to `/auth/callback` on the Perqly address that started it.
-
-1. **Google Cloud Console → APIs & Services → OAuth consent screen.** App name Perqly, your support email, user type External. Scopes: `openid`, `email`, `profile` only. Add the Perqly domain under Authorised domains once there is one. While the app is in Testing, only the test users you list can sign in; publish it before students use it.
-2. **Credentials → Create credentials → OAuth client ID → Web application.**
-   - Authorised JavaScript origins: `https://perqly-eta.vercel.app` and `http://localhost:3000`.
-   - Authorised redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback` (shown in Supabase on the Google provider page).
-3. **Supabase → Authentication → Sign In / Providers → Google.** Turn it on and paste the Client ID and Client secret there. They are never stored in this repository or in Vercel.
-4. **Supabase → Authentication → URL Configuration → Redirect URLs.** Add `https://perqly-eta.vercel.app/**` (and the production domain later). Without it, Supabase sends people to the Site URL instead of back to `/auth/callback`.
-
-New Google accounts get their name from Google. On `/register` the person still picks student or business and ticks the terms box before the button works; `/auth/callback` records the choice with `set_signup_intent` (migration 0018). On `/login`, the page tells new people that continuing creates an account and means they agree to the terms.
-
-Staff who need two-step verification still get the authenticator step after Google, the same as after an email code.
-
-## 4. Applying the database migrations
-
-The migrations live in `supabase/migrations/`. Two ways to apply them to staging, both only after you approve:
-
-1. **You run the Supabase CLI** on your laptop:
-   ```
-   npx supabase login
-   npx supabase link --project-ref <staging project ref>    # asks for the database password
-   npx supabase db push                                       # applies new migrations
-   npx supabase db push --include-seed                        # first time only: also runs seed.sql
-   ```
-2. **I apply them** through the Supabase connector in this chat, one migration at a time, after you confirm the project is `perqly-staging`.
-
-Either way, check the Security Advisor afterwards.
-
-### Making yourself the first super admin
-
-Platform roles can only be granted by an existing super admin, so the first one is created once by hand. After you've signed in to staging once, run this in the SQL Editor of **staging** (replace the email):
+Platform roles can only be granted by an existing super admin. After signing in to staging once, run this in the **staging** SQL editor with your own staging email:
 
 ```sql
 insert into public.platform_staff (user_id, role)
-select id, 'super_admin' from auth.users where email = 'you@example.com';
+select id, 'super_admin' from auth.users where email = '<your staging email>';
 ```
 
-You'll then be asked to set up an authenticator app the next time you open `/admin`.
+Production already has its super admin; don't run this there.
 
 ## 5. Environment variables
 
-| Variable                               | Exposed to the browser? | Local (`.env.local`)                  | Vercel Preview + Development                           | Vercel Production                             | Needed from                 | Notes                                                                                                                                                                        |
-| -------------------------------------- | ----------------------- | ------------------------------------- | ------------------------------------------------------ | --------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Yes                     | Staging URL                           | Staging URL                                            | **Unset** until step 1.9, then production URL | Step 1.1                    | `https://<ref>.supabase.co`                                                                                                                                                  |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes                     | Staging publishable key               | Staging publishable key                                | **Unset** until 1.9                           | Step 1.1                    | Must start with `sb_publishable_` (or be a legacy anon key). The app rejects secret keys here                                                                                |
-| `NEXT_PUBLIC_SITE_URL`                 | Yes                     | `http://localhost:3000`               | Leave unset: the app uses the deployment's own address | Production domain                             | Now                         | Used for metadata and the sitemap                                                                                                                                            |
-| `RESEND_API_KEY`                       | **No** (server only)    | Optional                              | Optional, staging Resend key                           | Unset until 1.9                               | Step 1.3 (optional feature) | Sends institutional-email codes and verification decision emails (booking emails from 1.7). Separate key per environment                                                     |
-| `RESEND_FROM_EMAIL`                    | **No** (server only)    | Optional                              | e.g. `Perqly <no-reply@auth.your-domain>`              | Unset until 1.9                               | With `RESEND_API_KEY`       | Must be on a domain verified in Resend                                                                                                                                       |
-| `SUPABASE_SECRET_KEY`                  | **No** (server only)    | Optional                              | Optional, staging secret key                           | Unset until 1.9                               | Step 1.3 (optional feature) | Server only. Issues institutional-email codes, looks up a student's email for decision emails, and runs the daily job. Without it those switch off and everything else works |
-| `CRON_SECRET`                          | **No** (server only)    | Optional                              | Not needed (cron runs on Production only)              | A random string of 32+ characters             | Step 1.3                    | Vercel Cron sends it to `/api/cron/daily`. Without it (or if shorter than 32 characters) the job refuses every call                                                          |
-| Database password                      | **No**                  | Never stored in the repo              | Never                                                  | Never                                         | —                           | Only in your password manager and typed into the CLI when it asks                                                                                                            |
-| `SUPABASE_ACCESS_TOKEN`                | **No**                  | Your machine only, if you use the CLI | —                                                      | —                                             | Optional                    | Personal token for `supabase login`. GitHub secret only if migrations are later automated                                                                                    |
+Vercel: project `perqly` → Settings → Environment Variables. A production value is ticked for **Production** only; a staging value for **Preview** and **Development** only.
 
-### Phone notifications (web push)
+| Variable                               | Browser? | Production                                 | Staging (Preview, Development, `.env.local`)      | Notes                                                                            |
+| -------------------------------------- | -------- | ------------------------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Yes      | `https://wktijbmvogxbbwwvqlhq.supabase.co` | `https://<staging ref>.supabase.co`               | Required                                                                         |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes      | production publishable key                 | staging publishable key                           | Required; must start `sb_publishable_`                                           |
+| `NEXT_PUBLIC_SITE_URL`                 | Yes      | `https://perqly.online`                    | unset (Vercel) / `http://localhost:3000` (laptop) | Metadata, sitemap, links in emails                                               |
+| `NEXT_PUBLIC_APP_ENV`                  | Yes      | `production`                               | `staging`                                         | **New in task 1.3.** Shows a Staging banner and keeps search engines off staging |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`         | Yes      | current key, never changed                 | separate staging key                              | Push notifications                                                               |
+| `SUPABASE_SECRET_KEY`                  | No       | production secret key                      | staging secret key                                | Optional; features that need it switch off without it                            |
+| `RESEND_API_KEY`                       | No       | production Resend key                      | staging Resend key                                | Optional                                                                         |
+| `RESEND_FROM_EMAIL`                    | No       | current sender                             | "Perqly Staging" sender                           | With `RESEND_API_KEY`                                                            |
+| `CRON_SECRET`                          | No       | random, 32+ characters                     | unset                                             | Daily job at 02:30 UTC (`vercel.json`); Vercel runs crons on Production only     |
+| `VAPID_PRIVATE_KEY`                    | No       | current key, marked Sensitive              | separate staging key                              | Generate with `npx web-push generate-vapid-keys` on your own machine             |
+| `VAPID_SUBJECT`                        | No       | `mailto:` an address you read              | same                                              |                                                                                  |
+| `PAYSTACK_SECRET_KEY`                  | No       | live key, only once Paystack is activated  | `sk_test_…` only                                  | Billing (`docs/BILLING.md`)                                                      |
 
-Three more variables, all on Vercel **Production** (and Preview if you want to test there):
+Never in Vercel or the repository: database passwords, Google client secrets, the backup passphrase, your Supabase access token.
 
-- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: the public half. Safe in the browser.
-- `VAPID_PRIVATE_KEY`: the private half. Server only. Mark it **Sensitive**.
-- `VAPID_SUBJECT`: `mailto:` plus an address you read, e.g. `mailto:support@your-domain`. Push services use it to contact you.
+GitHub (task 1.2 creates the environments, task 1.4 uses them):
 
-Make the pair on your own machine with `npx web-push generate-vapid-keys` and paste the values straight into Vercel. Don't commit them or send them to anyone. Generate them once and keep them: new keys cut off every phone that has already turned notifications on. Without them, people still get in-app notifications and emails, and the "Turn on notifications" button stays hidden.
-
-The Resend API key used for SMTP is entered in the **Supabase dashboard** (section 3.4), not in Vercel or the repo.
-
-Where to set Vercel variables: Project `perqly` → Settings → Environment Variables. Tick **Preview** and **Development** for the staging values and leave **Production** unticked.
-
-### Daily job
-
-`vercel.json` schedules `GET /api/cron/daily` at 02:30 UTC (Vercel runs crons on Production deployments only). It marks lapsed verifications as expired and deletes verification photos 30 days after a decision or withdrawal, then redacts the student ID number on that application. It needs `SUPABASE_SECRET_KEY` and `CRON_SECRET`; without them it returns an error and changes nothing. Open applications (draft, submitted, changes requested) are never touched.
+| Secret              | `staging`                  | `production` (your approval)          | `production-backup` (`main` only) |
+| ------------------- | -------------------------- | ------------------------------------- | --------------------------------- |
+| `SUPABASE_DB_URL`   | staging Session pooler URL | production Session pooler URL         | same as `production`              |
+| `BACKUP_PASSPHRASE` | —                          | backup passphrase (`docs/BACKUPS.md`) | same as `production`              |
 
 ## 6. Local development
 
-Two options:
+- **Normal:** `.env.local` with staging values. Never production values.
+- **Fully local:** `npx supabase start` (needs Docker); `supabase/config.toml` mirrors the settings above and `supabase/seed.sql` loads sample data. Database tests: `npx supabase test db`.
 
-- **Point at staging:** copy `.env.example` to `.env.local` and fill in the staging URL and publishable key. Simplest; uses real emails.
-- **Fully local:** install Docker and run `npx supabase start`. `supabase/config.toml` mirrors the staging settings above (6-digit codes, 10-minute expiry, confirmations on, TOTP on, Perqly templates). Emails appear in the local Mailpit inbox it prints, and the local URL and publishable key go in `.env.local`. Database tests run with `npx supabase test db`.
+## 7. Checklist for task 1.2
 
-## 7. Checklist once `perqly-staging` exists
-
-- [ ] Project in London, Data API exposing `public` only
-- [ ] Email provider: confirm email on, OTP 600 s, length 6; phone and social off
-- [ ] URL configuration: Site URL and redirect URLs set
-- [ ] Both templates pasted with the subject `Your Perqly code`
-- [ ] TOTP MFA enabled
-- [ ] (When a domain is verified) Resend SMTP configured with a staging-only key; rate limit 30/hour
-- [ ] Staging URL and publishable key added to Vercel **Preview + Development only**
-- [ ] Migrations applied (after approval), Security Advisor clean
-- [ ] Your account made super admin with the SQL above
+- [ ] Live project relabelled `perqly-production`; ref unchanged
+- [ ] `perqly-staging` created in London; Data API exposes `public` only
+- [ ] Staging auth, URLs, templates, MFA and rate limits set as in section 3
+- [ ] Staging Google client and Resend key created and entered in staging only
+- [ ] GitHub environments `staging`, `production` (you as required reviewer) and `production-backup` (`main` only) created
+- [ ] Production settings compared with section 3; differences noted, not yet changed
