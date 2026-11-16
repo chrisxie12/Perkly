@@ -3,13 +3,14 @@ import Link from "next/link";
 import { ChevronRight, Heart } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
-import { listFavourites } from "@/features/offers/queries";
+import { getCoverPhotos, listFavourites } from "@/features/offers/queries";
 import { MerchantAvatar } from "@/features/students/app/bits";
 
 export const metadata: Metadata = { title: "Saved shops", robots: { index: false } };
 
 export default async function SavedPage() {
   const favourites = await listFavourites();
+  const covers = await getCoverPhotos(favourites.map((f) => f.merchant_id));
   return (
     <AreaShell area="student">
       <h1 className="mb-3 font-display text-xl font-bold">Saved shops</h1>
@@ -32,7 +33,7 @@ export default async function SavedPage() {
                 href={`/student/merchants/${f.slug}`}
                 className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-ink-200/70"
               >
-                <MerchantAvatar name={f.display_name} category={null} />
+                <MerchantAvatar name={f.display_name} category={null} photo={covers.get(f.merchant_id)} />
                 <span className="min-w-0 flex-1">
                   <span className="block font-bold text-ink-900">{f.display_name}</span>
                   <span className="text-sm text-ink-600">

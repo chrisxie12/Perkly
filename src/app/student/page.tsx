@@ -171,7 +171,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
                     href={`/student/offers/${d.offer_id}`}
                     className="flex h-full flex-col gap-2.5 rounded-2xl bg-white p-3.5 ring-1 ring-ink-200/70"
                   >
-                    <MerchantAvatar name={d.merchant_name} category={d.category_slug} />
+                    <MerchantAvatar name={d.merchant_name} category={d.category_slug} photo={d.cover_url} />
                     <span className="min-h-11 font-display text-lg leading-tight font-bold">{d.title}</span>
                     <span className="text-sm leading-snug text-ink-600">{d.merchant_name}</span>
                     <span className="mt-auto flex items-center justify-between border-t border-ink-200 pt-2.5 text-[0.8125rem] text-ink-600">

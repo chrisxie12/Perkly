@@ -1,5 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getPublicEnv } from "@/lib/env";
+import { shopPhotoUrl } from "@/features/merchants/shop";
 import type { DiscountType, LimitPeriod } from "./schemas";
 
 export type OfferListing = {
@@ -271,6 +273,7 @@ export type Deal = {
   open_now: boolean | null;
   open_until: string | null;
   opens_next: string | null;
+  cover_url?: string | null;
 };
 
 /** Live deals with the nearest branch and its distance from the student's campus. */
@@ -283,5 +286,19 @@ export async function listDeals(params: { query?: string; category?: string; mer
     p_limit: 60,
   });
   if (error) throw new Error(`Could not load deals (${error.code ?? "unknown"})`);
-  return (data ?? []) as Deal[];
+  const deals = (data ?? []) as Deal[];
+  const covers = await getCoverPhotos(deals.map((d) => d.merchant_id));
+  return deals.map((d) => ({ ...d, cover_url: covers.get(d.merchant_id) ?? null }));
+}
+
+/** Public URL of each listed business's cover photo (first in its gallery), by business id. */
+export async function getCoverPhotos(merchantIds: string[]) {
+  const ids = [...new Set(merchantIds)];
+  const map = new Map<string, string>();
+  if (ids.length === 0) return map;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("merchant_cover_photos", { p_merchant_ids: ids });
+  const base = getPublicEnv().NEXT_PUBLIC_SUPABASE_URL;
+  for (const row of (data ?? []) as { merchant_id: string; path: string }[]) map.set(row.merchant_id, shopPhotoUrl(base, row.path));
+  return map;
 }

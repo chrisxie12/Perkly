@@ -15,13 +15,27 @@ export function MerchantAvatar({
   category,
   size = "md",
   className,
+  photo,
 }: {
   name: string;
   category: string | null;
   size?: "sm" | "md" | "lg";
   className?: string;
+  /** The shop's cover photo; initials are shown when there is none. */
+  photo?: string | null;
 }) {
   const tone = toneFor(category);
+  const box = cn(
+    "shrink-0",
+    size === "sm" && "size-9 rounded-lg",
+    size === "md" && "size-11 rounded-xl",
+    size === "lg" && "size-16 rounded-2xl",
+    className,
+  );
+  if (photo) {
+    // eslint-disable-next-line @next/next/no-img-element -- public storage URL
+    return <img src={photo} alt="" aria-hidden loading="lazy" className={cn(box, "bg-ink-100 object-cover")} />;
+  }
   return (
     <span
       aria-hidden
@@ -55,7 +69,7 @@ export function DealRow({ deal, back, locked }: { deal: Deal; back: string; lock
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-white py-3 pr-1 pl-3 ring-1 ring-ink-200/70">
       <Link href={`/student/offers/${deal.offer_id}`} className="flex min-w-0 flex-1 items-center gap-3">
-        <MerchantAvatar name={deal.merchant_name} category={deal.category_slug} />
+        <MerchantAvatar name={deal.merchant_name} category={deal.category_slug} photo={deal.cover_url} />
         <span className="min-w-0 flex-1">
           <span className="block leading-snug font-bold text-ink-900">{deal.title}</span>
           <span className="block truncate text-sm text-ink-600">

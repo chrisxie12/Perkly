@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CalendarClock, ChevronLeft, Clock, FileText, Footprints, Lock, MapPin, Repeat, ScanLine } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
-import { getOffer, listDeals } from "@/features/offers/queries";
+import { getCoverPhotos, getOffer, listDeals } from "@/features/offers/queries";
 import { discountLabel, limitLabel, money } from "@/features/offers/schemas";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
@@ -18,6 +18,7 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const [offer, status] = await Promise.all([getOffer(id), getMyStudentStatus()]);
+  const cover = offer ? ((await getCoverPhotos([offer.merchant.id])).get(offer.merchant.id) ?? null) : null;
   if (!offer) notFound();
   const merchantDeals = await listDeals({ merchantId: offer.merchant.id });
   const here = merchantDeals.find((d) => d.offer_id === offer.offer_id);
@@ -41,7 +42,13 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
 
         <section className="mx-4 flex flex-col gap-3.5 rounded-3xl p-5 sm:mx-0" style={{ background: tone.bg, color: tone.fg }}>
           <Link href={`/student/merchants/${offer.merchant.slug}`} className="flex items-center gap-3 rounded-2xl hover:opacity-90">
-            <MerchantAvatar name={offer.merchant.display_name} category={here?.category_slug ?? null} size="lg" className="!bg-white" />
+            <MerchantAvatar
+              name={offer.merchant.display_name}
+              category={here?.category_slug ?? null}
+              size="lg"
+              className="!bg-white"
+              photo={cover}
+            />
             <div>
               <b className="block underline-offset-2 hover:underline">{offer.merchant.display_name}</b>
               <span className="text-sm opacity-80">

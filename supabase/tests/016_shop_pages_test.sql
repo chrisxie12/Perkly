@@ -30,7 +30,7 @@ returns void language sql as $$
      set verification_status = 'verified', verified_at = now() - interval '2 years', verified_until = now() + p_until
    where user_id = p_user;
 $$;
-select plan(19);
+select plan(22);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 select id as food from public.merchant_categories where slug = 'food' \gset
@@ -88,6 +88,11 @@ select is((public.get_merchant_page(:'slug') -> 'photos' -> 1 ->> 'caption'), 'J
 select is((public.get_merchant_page(:'slug') -> 'branches' -> 0 ->> 'landmark'), 'Opposite the GCTU main gate', 'the landmark is on the shop page');
 select is((public.get_merchant_page(:'slug') -> 'payment_methods'), '["Cash", "MTN MoMo"]'::jsonb, 'ways to pay are on the shop page');
 select is((select count(*)::int from public.merchant_photos), 0, 'students cannot read the photos table directly');
+select is((select path from public.merchant_cover_photos(array[:'m'::uuid, :'m2'::uuid])), :'p2', 'deal cards get the cover photo of a listed shop');
+select is((select count(*)::int from public.merchant_cover_photos(array[:'m'::uuid, :'m2'::uuid])), 1, 'one cover per shop, none for unlisted shops');
+select tests.as_postgres(); set local role anon;
+select throws_ok(format('select * from public.merchant_cover_photos(array[%L::uuid])', :'m'), '42501', null, 'signed-out visitors cannot list shop photos');
+reset role;
 
 select * from finish();
 rollback;
