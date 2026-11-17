@@ -40,6 +40,7 @@ jobs:
             echo "**Backup failed:** secrets are missing from the production-backup environment." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
+          scripts/ci/check-db-url.sh production
 
       - name: Install the Postgres 17 client
         run: scripts/ci/install-pg-client.sh

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Checks that SUPABASE_DB_URL is a well-formed connection string for the expected
+# project, WITHOUT ever printing it or any part of it.
+#
+# Why: a password with a character such as @ / # ? in it, not percent-encoded, makes
+# psql and pg_dump split the string in the wrong place. They then print the "host"
+# they tried, which is really a piece of the password. GitHub masks only the whole
+# secret, so that piece shows in the (public) log. This check stops the job first.
+#
+# Usage: check-db-url.sh staging|production
+# Needs: SUPABASE_DB_URL
+# On success it also tells GitHub to mask the password, raw and decoded.
+set -euo pipefail
+
+fail() { echo "::error::SUPABASE_DB_URL: $1 (the value is not shown)"; exit 1; }
+
+PRODUCTION_REF=wktijbmvogxbbwwvqlhq
+STAGING_REF=gzmxqjlyhizvmvywbxhn
+
+case "${1:-}" in
+  production) want=$PRODUCTION_REF; other=$STAGING_REF ;;
+  staging) want=$STAGING_REF; other=$PRODUCTION_REF ;;
+  *) echo "usage: check-db-url.sh staging|production" >&2; exit 2 ;;
+esac
+
+url=${SUPABASE_DB_URL:-}
+[ -n "$url" ] || fail "it is not set for this job"
+
+# Unreserved characters, or %XX escapes. Nothing else may appear in the user or password.
+safe='([A-Za-z0-9._~-]|%[0-9A-Fa-f]{2})+'
+re="^postgres(ql)?://(${safe}):(${safe})@([A-Za-z0-9.-]+):([0-9]{1,5})/([A-Za-z0-9_-]+)(\?[A-Za-z0-9._~%=&-]*)?$"
+
+if ! [[ $url =~ $re ]]; then
+  fail "it isn't in the form postgresql://USER:PASSWORD@HOST:PORT/DATABASE. If the password has symbols, percent-encode them, or reset it to letters and numbers only"
+fi
+user=${BASH_REMATCH[2]}
+password=${BASH_REMATCH[4]}
+host=${BASH_REMATCH[6]}
+
+# Mask the password before anything else can print it, as written and decoded.
+echo "::add-mask::$password"
+decoded=$(printf '%b' "${password//%/\\x}")
+[ "$decoded" = "$password" ] || echo "::add-mask::$decoded"
+
+case "$host" in
+  *.supabase.com | *.supabase.co) ;;
+  *) fail "the host isn't a Supabase host" ;;
+esac
+
+# The project ref sits in the user (pooler: postgres.REF) or the host (direct: db.REF.supabase.co).
+case "$user@$host" in
+  *"$other"*) fail "it points at the wrong project (expected $1)" ;;
+  *"$want"*) ;;
+  *) fail "it doesn't name the $1 project" ;;
+esac
+
+echo "SUPABASE_DB_URL looks right for $1."
