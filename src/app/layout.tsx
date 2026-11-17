@@ -3,9 +3,10 @@ import { SoundUnlock } from "@/components/sound/sound-cue";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { SerwistProvider } from "@serwist/turbopack/react";
+import { EnvironmentBanner } from "@/components/shared/environment-banner";
 import { UpdatePrompt } from "@/components/shared/update-prompt";
 import { siteConfig } from "@/config/site";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, isProductionEnv } from "@/lib/env";
 import "./globals.css";
 import { THEME_COLORS, themeScript } from "@/lib/theme/script";
 
@@ -39,6 +40,8 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   formatDetection: { telephone: false },
+  // Staging and laptops are never indexed; only the real perqly.online is.
+  ...(isProductionEnv() ? {} : { robots: { index: false, follow: false } }),
   icons: {
     icon: [
       { url: "/icons/icon.svg", type: "image/svg+xml" },
@@ -83,6 +86,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <UpdatePrompt />
         </SerwistProvider>
+        <EnvironmentBanner />
         <SiteAnalytics />
         <SoundUnlock />
       </body>

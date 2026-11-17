@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getPublicEnv } from "@/lib/env";
+import { getRequestOrigin } from "@/lib/auth/origin";
+import { getPublicEnv, isProductionEnv } from "@/lib/env";
 import { Scanner } from "@/features/redemptions/components/scanner";
 import { getMyLiveSession } from "@/features/redemptions/queries";
 import { redemptionErrorMessage } from "@/features/redemptions/schemas";
@@ -14,6 +15,8 @@ import { verificationView } from "@/features/students/status";
 export const metadata: Metadata = { title: "Scan", robots: { index: false } };
 // The camera screen is black, so the phone's bars go black with it.
 export const viewport: Viewport = { themeColor: "#000000" };
+
+const LEGACY_PRODUCTION_ORIGIN = "https://perqly-eta.vercel.app";
 
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
 
@@ -49,7 +52,12 @@ export default async function ScanPage({ searchParams }: PageProps<"/student/sca
         ? redemptionErrorMessage(error, { merchant_name: str(params.merchant) })
         : null;
   const site = getPublicEnv().NEXT_PUBLIC_SITE_URL;
-  const origins = [site ? new URL(site).origin : null, "https://perqly-eta.vercel.app"].filter((o): o is string => Boolean(o));
+  // Posters printed before perqly.online was set up carry perqly-eta.vercel.app,
+  // which still serves production, so production keeps accepting it. Staging doesn't.
+  const legacy = isProductionEnv() ? [LEGACY_PRODUCTION_ORIGIN] : [];
+  const origins = [...new Set([site ? new URL(site).origin : null, await getRequestOrigin(), ...legacy])].filter((o): o is string =>
+    Boolean(o),
+  );
 
   return (
     <AreaShell area="student" immersive>

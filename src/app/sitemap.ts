@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, isProductionEnv } from "@/lib/env";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (!isProductionEnv()) return [];
   const base = getSiteUrl();
   return [
     { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
