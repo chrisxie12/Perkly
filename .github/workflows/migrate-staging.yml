@@ -1,0 +1,74 @@
+name: Migrate staging
+
+# Applies pending migrations to the staging project after every merge to main, so
+# staging always has exactly the migrations in main. Migrate production later checks
+# that the commit it releases was migrated here first. See docs/PRODUCTION_SEPARATION.md.
+#
+# Secret from the `staging` environment:
+#   SUPABASE_DB_URL   staging Session pooler connection string, with the password
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate-staging
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the secret
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::SUPABASE_DB_URL is missing from the staging environment."
+            exit 1
+          fi
+          case "$SUPABASE_DB_URL" in
+            *wktijbmvogxbbwwvqlhq*) echo "::error::This connection string is for PRODUCTION, not staging."; exit 1 ;;
+          esac
+
+      - name: Install the Postgres 17 client
+        run: scripts/ci/install-pg-client.sh
+
+      - uses: supabase/setup-cli@v1
+        with:
+          # Pinned: a new CLI release shouldn't change how production is migrated.
+          # Tested with 3.1.0. Raise it deliberately, after trying it on staging.
+          version: 3.1.0
+
+      - name: Apply pending migrations
+        run: |
+          set -euo pipefail
+          scripts/ci/migration-versions.sh applied > before.txt
+          scripts/ci/migration-versions.sh files > files.txt
+          if comm -23 before.txt files.txt | grep -q .; then
+            echo "::error::Staging has migrations that main doesn't have: $(comm -23 before.txt files.txt | tr '\n' ' ')"
+            exit 1
+          fi
+          supabase db push --remote="$SUPABASE_DB_URL" --yes
+
+      - name: Check staging matches main
+        run: |
+          set -euo pipefail
+          scripts/ci/migration-versions.sh applied > after.txt
+          if ! diff -u files.txt after.txt; then
+            echo "::error::Staging's migration history doesn't match main after migrating."
+            exit 1
+          fi
+          {
+            echo "Staging migrated for commit \`${GITHUB_SHA}\`."
+            echo "Applied $(comm -13 before.txt after.txt | wc -l | tr -d ' ') migration(s); staging now has $(wc -l < after.txt | tr -d ' ')."
+          } >> "$GITHUB_STEP_SUMMARY"

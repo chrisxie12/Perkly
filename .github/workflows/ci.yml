@@ -51,4 +51,5 @@ jobs:
       - name: pgTAP tests (RLS, functions, constraints)
         run: supabase test db
       - name: Schema lint
-        run: supabase db lint --level error
+        # --fail-on: without it, lint reports errors but still exits successfully.
+        run: supabase db lint --level error --fail-on error
