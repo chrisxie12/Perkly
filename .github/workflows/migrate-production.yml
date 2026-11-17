@@ -1,0 +1,231 @@
+name: Migrate production
+
+# Releases one commit to production: checks it, waits for your approval, takes a
+# verified backup, applies its migrations, checks the result, and only then moves the
+# `production` branch to it. Any failed step stops the run; nothing after it happens.
+# The steps are numbered as in docs/PRODUCTION_SEPARATION.md, section 6.
+#
+# Secrets:
+#   staging environment:     SUPABASE_DB_URL (staging, read here only to compare)
+#   production environment:  SUPABASE_DB_URL, BACKUP_PASSPHRASE, PRODUCTION_DEPLOY_KEY
+# Only the last step (D4) uses PRODUCTION_DEPLOY_KEY. GitHub doesn't enforce that;
+# reviewing every change to .github/workflows does (section 6.2).
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Full 40-character commit SHA on main to release"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+env:
+  SHA: ${{ inputs.sha }}
+
+jobs:
+  preconditions:
+    name: "A1–A4: commit, CI and staging"
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+    outputs:
+      files: ${{ steps.files.outputs.list }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "A1: full SHA on main"
+        run: |
+          set -euo pipefail
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Enter the full 40-character SHA."; exit 1; }
+          git cat-file -e "$SHA^{commit}" 2>/dev/null || { echo "::error::Commit $SHA doesn't exist."; exit 1; }
+          git merge-base --is-ancestor "$SHA" origin/main || { echo "::error::Commit $SHA isn't on main."; exit 1; }
+
+      - name: "A2: CI passed for exactly this commit"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for job in check database; do
+            result=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/check-runs?check_name=${job}&per_page=100" \
+              --jq '[.check_runs[] | select(.app.slug == "github-actions")] | sort_by(.completed_at) | last | .conclusion // "missing"')
+            [ "$result" = "success" ] || { echo "::error::CI job '${job}' is '${result}' for ${SHA}."; exit 1; }
+          done
+
+      - name: "A3–A4: Migrate staging succeeded for this commit, and nothing newer changed migrations"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/migrate-staging.yml/runs?branch=main&status=success&per_page=100" \
+            --jq '.workflow_runs[].head_sha')
+          grep -qx "$SHA" <<<"$runs" || { echo "::error::Migrate staging has no successful run for ${SHA}."; exit 1; }
+          latest=$(head -n1 <<<"$runs")
+          if [ "$latest" != "$SHA" ]; then
+            git merge-base --is-ancestor "$SHA" "$latest" || { echo "::error::Staging was last migrated for ${latest}, which doesn't contain ${SHA}."; exit 1; }
+            if ! git diff --quiet "$SHA" "$latest" -- supabase/migrations; then
+              echo "::error::Staging has since been migrated for ${latest}, which changes migrations. Release ${latest} instead, once it's checked."
+              exit 1
+            fi
+          fi
+
+      - name: Migration files in this commit
+        id: files
+        run: |
+          set -euo pipefail
+          git checkout -q "$SHA"
+          list=$(scripts/ci/migration-versions.sh files | paste -sd' ' -)
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Release candidate"
+            echo "Commit \`${SHA}\`: $(git log -1 --format=%s "$SHA")"
+            echo "Migrations in this commit: $(wc -w <<<"$list" | tr -d ' ')"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  staging-check:
+    name: "A5: staging matches the commit"
+    needs: preconditions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      FILES: ${{ needs.preconditions.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+      - name: Install the Postgres 17 client
+        run: scripts/ci/install-pg-client.sh
+      - name: "A5: compare"
+        run: |
+          set -euo pipefail
+          tr ' ' '\n' <<<"$FILES" | sed '/^$/d' > files.txt
+          scripts/ci/migration-versions.sh applied > staging.txt
+          diff -u files.txt staging.txt || { echo "::error::Staging's migration history doesn't match ${SHA}."; exit 1; }
+
+  production-check:
+    name: "A6–A8: production checks (read-only, before approval)"
+    needs: [preconditions, staging-check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Read-only. Uses the production-backup environment (main only, no reviewer) so the
+    # pending list is in the summary before you're asked to approve.
+    environment: production-backup
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      FILES: ${{ needs.preconditions.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+      - name: Install the Postgres 17 client
+        run: scripts/ci/install-pg-client.sh
+      - uses: supabase/setup-cli@v1
+        with:
+          # Pinned: a new CLI release shouldn't change how production is migrated.
+          # Tested with 3.1.0. Raise it deliberately, after trying it on staging.
+          version: 3.1.0
+      - name: "A6–A8"
+        run: scripts/ci/check-production.sh
+
+  production:
+    name: "B: your approval, then A6–A8 again, backup, migrate, verify, release"
+    needs: [preconditions, staging-check, production-check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      HAS_DEPLOY_KEY: ${{ secrets.PRODUCTION_DEPLOY_KEY != '' }}
+      FILES: ${{ needs.preconditions.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+
+      - name: Check secrets
+        run: |
+          missing=""
+          [ -n "$SUPABASE_DB_URL" ] || missing="$missing SUPABASE_DB_URL"
+          [ -n "$BACKUP_PASSPHRASE" ] || missing="$missing BACKUP_PASSPHRASE"
+          [ "$HAS_DEPLOY_KEY" = "true" ] || missing="$missing PRODUCTION_DEPLOY_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing from the production environment:$missing"
+            exit 1
+          fi
+
+      - name: Install the Postgres 17 client
+        run: scripts/ci/install-pg-client.sh
+
+      - uses: supabase/setup-cli@v1
+        with:
+          # Pinned: a new CLI release shouldn't change how production is migrated.
+          # Tested with 3.1.0. Raise it deliberately, after trying it on staging.
+          version: 3.1.0
+
+      # Again, right before changing anything: production may have changed since the check above.
+      - name: "A6–A8 again"
+        id: pending
+        run: scripts/ci/check-production.sh
+
+      - name: "C1–C2: backup and checks"
+        id: backup
+        if: steps.pending.outputs.count != '0'
+        run: scripts/ci/backup.sh out
+
+      - name: "C3: keep the backup"
+        if: steps.pending.outputs.count != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: perqly-db-before-${{ steps.backup.outputs.stamp }}
+          path: out/*.gpg
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: "D1: apply the pending migrations"
+        if: steps.pending.outputs.count != '0'
+        run: supabase db push --remote="$SUPABASE_DB_URL" --yes
+
+      - name: "D2: production matches the commit"
+        run: |
+          set -euo pipefail
+          scripts/ci/migration-versions.sh applied > after.txt
+          diff -u files.txt after.txt || { echo "::error::Production's migration history doesn't match ${SHA} after migrating."; exit 1; }
+
+      # The Security Advisor from the Supabase dashboard. Read-only. (Schema lint already
+      # runs in CI on a fresh database with the same migrations.)
+      - name: "D3: Security Advisor shows no errors"
+        run: supabase db advisors --remote="$SUPABASE_DB_URL" --type security --level error --fail-on error
+
+      - name: "D4: move the production branch"
+        env:
+          DEPLOY_KEY: ${{ secrets.PRODUCTION_DEPLOY_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          keydir=$(mktemp -d)
+          trap 'shred -u "$keydir/key" 2>/dev/null; rm -rf "$keydir"' EXIT
+          printf '%s\n' "$DEPLOY_KEY" > "$keydir/key"
+          # GitHub's SSH host keys, from its API over HTTPS.
+          gh api meta --jq '.ssh_keys[]' | sed 's/^/github.com /' > "$keydir/known_hosts"
+          export GIT_SSH_COMMAND="ssh -i $keydir/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$keydir/known_hosts"
+          # No --force: GitHub refuses anything that isn't a fast-forward.
+          git push "git@github.com:${GITHUB_REPOSITORY}.git" "${SHA}:refs/heads/production"
+          echo "production moved to \`${SHA}\`." >> "$GITHUB_STEP_SUMMARY"

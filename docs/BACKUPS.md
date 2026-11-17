@@ -2,11 +2,11 @@
 
 **How the production database is backed up, how a backup is checked, and how a restore is meant to work. A restore has not been tested yet.**
 
-|         |                                                                                                                                                                                                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status  | The nightly backup already runs. Everything marked **Proposed** is part of tasks 1.2, 1.4, 1.8 and 1.15. **No restore has been rehearsed.** The backup system is **not reliable** yet and may not be described as reliable until the rehearsal in section 7 passes |
-| Updated | 2026-11-17                                                                                                                                                                                                                                                         |
-| Related | `docs/PRODUCTION_SEPARATION.md`, `docs/SUPABASE_SETUP.md`, `docs/TEST_DATA_CLEANUP.md`                                                                                                                                                                             |
+|         |                                                                                                                                                                                                                                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Status  | The nightly backup runs, and since task 1.4 every run checks its own backup (section 4). Items still marked **Proposed** are part of tasks 1.8 and 1.15. **No restore has been rehearsed.** The backup system is **not reliable** yet and may not be described as reliable until the rehearsal in section 7 passes |
+| Updated | 2026-11-17                                                                                                                                                                                                                                                                                                         |
+| Related | `docs/PRODUCTION_SEPARATION.md`, `docs/SUPABASE_SETUP.md`, `docs/TEST_DATA_CLEANUP.md`                                                                                                                                                                                                                             |
 
 ## 1. What runs today
 
@@ -54,7 +54,7 @@ Environment secrets and protection rules depend on whether the repository is pub
 - In a private repository, environments, environment secrets and branch restrictions on environments need GitHub Pro, Team or Enterprise.
 - Required reviewers on an environment are only available in public repositories, unless you have GitHub Enterprise.
 
-**Checked in task 1.2: the repository is public**, so the first row applies. The `production` and `production-backup` environments now exist, empty. The backup secrets stay repository secrets until task 1.4 updates `backup.yml` to use `production-backup`; moving them earlier would break the nightly backup. The table below is kept for reference:
+**Checked in task 1.2: the repository is public**, so the first row applies. The `production` and `production-backup` environments now exist, empty. Task 1.4 changes `backup.yml` to read its secrets from `production-backup`, so they must be added there before that change is merged (`docs/PRODUCTION_SEPARATION.md`, section 6.4). The old repository secrets are deleted afterwards. The table below is kept for reference:
 
 | Repository and plan                          | Nightly backup secrets                                          | Migrate production secrets                                                                                                                                                                                                        |
 | -------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -64,7 +64,7 @@ Environment secrets and protection rules depend on whether the repository is pub
 
 The nightly backup has its own environment because a required reviewer would otherwise hold up every scheduled run until you approved it.
 
-## 4. Proposed: checks on every backup (task 1.4)
+## 4. Checks on every backup (built in task 1.4, `scripts/ci/backup.sh`)
 
 The backup job **fails, with a red cross, whenever anything is wrong**. None of the checks below may be skipped.
 
@@ -73,7 +73,7 @@ The backup job **fails, with a red cross, whenever anything is wrong**. None of 
 | Secrets present       | `SUPABASE_DB_URL` or `BACKUP_PASSPHRASE` is empty. Replaces today's silent skip                                                                                                         |
 | Dump readable         | `pg_restore --list` can't read the archive                                                                                                                                              |
 | Dump complete         | The archive's table of contents is missing table data for any of these: `auth.users`, `public.profiles`, `public.merchants`, `public.offers`, `public.redemptions`, `public.audit_logs` |
-| Size plausible        | The archive is smaller than a fixed minimum, set after the first good runs                                                                                                              |
+| Size plausible        | The dump is smaller than `MIN_BACKUP_BYTES`: 20 000 bytes for now. Raise it once real backup sizes are known                                                                            |
 | Encryption reversible | Decrypting the encrypted file with the same passphrase and listing it again fails, or gives a different SHA-256 than the original                                                       |
 | Upload                | The artifact upload fails or uploads no file                                                                                                                                            |
 
@@ -88,7 +88,7 @@ The job summary records the date, the size, the SHA-256 of the encrypted file an
 
 These checks prove the file is readable and complete. **They don't prove a restore works.** Only a rehearsal does (section 7).
 
-## 5. Proposed: a backup before every production change
+## 5. A backup before every production change (built in task 1.4)
 
 From task 1.4, **Migrate production** runs the same backup and the same checks as the first step after its preconditions. **If any check fails, the workflow stops and changes nothing.** The test-data clean-up (`docs/TEST_DATA_CLEANUP.md`) also starts with a fresh, checked backup. These backups are also kept for 14 days. Download any you want to keep longer.
 
