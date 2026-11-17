@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { QrCode } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { EmptyState } from "@/components/shared/states";
+import { getRequestOrigin } from "@/lib/auth/origin";
 import { getPublicEnv } from "@/lib/env";
 import { getActiveMembership, getMerchant } from "@/features/merchants/queries";
 import { PrintPosterButton, ReissueForm } from "@/features/redemptions/components/code-tools";
@@ -19,7 +20,9 @@ export default async function CodesPage() {
   if (!membership || !canManage(membership) || membership.status !== "approved") redirect("/merchant");
   const [merchant, codes] = await Promise.all([getMerchant(membership.merchantId), getBranchCodes(membership.merchantId)]);
   if (!merchant) redirect("/merchant");
-  const base = getPublicEnv().NEXT_PUBLIC_SITE_URL ?? "https://perqly-eta.vercel.app";
+  // Codes point at this deployment's own address: perqly.online in production,
+  // the preview's address on staging. Never at another environment.
+  const base = getPublicEnv().NEXT_PUBLIC_SITE_URL ?? (await getRequestOrigin());
   const withSvg = await Promise.all(
     (codes ?? []).map(async (c) => ({
       ...c,

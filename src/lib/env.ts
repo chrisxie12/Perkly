@@ -62,3 +62,30 @@ export function hasSupabaseEnv(): boolean {
 export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
+
+export type AppEnv = "production" | "staging" | "development";
+
+const APP_ENVS: readonly AppEnv[] = ["production", "staging", "development"];
+
+/**
+ * Which environment this deployment is (docs/PRODUCTION_SEPARATION.md, section 3).
+ * NEXT_PUBLIC_APP_ENV wins when set. Otherwise Vercel's own VERCEL_ENV decides:
+ * its Production environment is production and its Preview environment is staging.
+ * Anything else (a laptop, CI) counts as development. Exported for unit tests.
+ */
+export function resolveAppEnv(explicit: string | undefined, vercelEnv: string | undefined): AppEnv {
+  const wanted = explicit?.trim().toLowerCase();
+  if (wanted && (APP_ENVS as readonly string[]).includes(wanted)) return wanted as AppEnv;
+  if (vercelEnv === "production") return "production";
+  if (vercelEnv === "preview") return "staging";
+  return "development";
+}
+
+export function getAppEnv(): AppEnv {
+  return resolveAppEnv(process.env.NEXT_PUBLIC_APP_ENV, process.env.VERCEL_ENV ?? process.env.NEXT_PUBLIC_VERCEL_ENV);
+}
+
+/** The real perqly.online. Only here may search engines index pages. */
+export function isProductionEnv(): boolean {
+  return getAppEnv() === "production";
+}
