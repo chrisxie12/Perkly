@@ -36,9 +36,7 @@ jobs:
             echo "::error::SUPABASE_DB_URL is missing from the staging environment."
             exit 1
           fi
-          case "$SUPABASE_DB_URL" in
-            *wktijbmvogxbbwwvqlhq*) echo "::error::This connection string is for PRODUCTION, not staging."; exit 1 ;;
-          esac
+          scripts/ci/check-db-url.sh staging
 
       - name: Install the Postgres 17 client
         run: scripts/ci/install-pg-client.sh
