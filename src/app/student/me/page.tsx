@@ -11,6 +11,7 @@ import {
   Download,
   Hourglass,
   LockKeyhole,
+  Megaphone,
   ShieldCheck,
   Smartphone,
   UserRound,
@@ -23,6 +24,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
 import { countUnreadChats } from "@/features/chat/queries";
+import { getCampusEnabled } from "@/features/campus/queries";
 
 export const metadata: Metadata = { title: "Me", robots: { index: false } };
 
@@ -49,6 +51,8 @@ export default async function MePage() {
     getMyPassPhotoPath(),
     countUnreadChats(),
   ]);
+  // Campus (C1): a row only while Campus is switched on.
+  const campusOn = (await getCampusEnabled()).posts;
   const photoUrl = await signPassPhoto(photoPath, 120);
   const view = verificationView(status);
   const p = status.profile;
@@ -132,6 +136,7 @@ export default async function MePage() {
           note={photoUrl ? "Added" : "Not added yet. Cashiers use it to check it's you"}
         />
         <Row href="/student/favourites" icon={Heart} label="Saved shops" />
+        {campusOn && <Row href="/student/campus" icon={Megaphone} label="Campus" note="Announcements from your school's organisations" />}
         <Row
           href="/student/messages"
           icon={MessageCircle}
