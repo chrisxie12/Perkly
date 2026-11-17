@@ -2,22 +2,22 @@
 
 **The settings each Supabase project needs, how to create the new staging project, and the 11 environment variables the app reads today (12 after task 1.3).**
 
-|         |                                                                                                                                                                                                                                                                     |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status  | **Proposed.** Staging doesn't exist yet; you create it in task 1.2. Production's current dashboard settings have **not** been checked against this document. Items marked _unverified_ must be checked, read-only, in task 1.2. Claude hasn't applied anything here |
-| Updated | 2026-11-16                                                                                                                                                                                                                                                          |
-| Related | `docs/PRODUCTION_SEPARATION.md` (why and in what order), `docs/BACKUPS.md`                                                                                                                                                                                          |
+|         |                                                                                                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status  | Staging exists since 2026-11-16 (`gzmxqjlyhizvmvywbxhn`), with the settings marked done below. Production's dashboard settings have **not** yet been read against this document; items marked _unverified_ are still open |
+| Updated | 2026-11-17                                                                                                                                                                                                                |
+| Related | `docs/PRODUCTION_SEPARATION.md` (why and in what order), `docs/BACKUPS.md`                                                                                                                                                |
 
 ## 1. The two projects
 
-|                | Production                                                              | Staging                                    |
-| -------------- | ----------------------------------------------------------------------- | ------------------------------------------ |
-| Dashboard name | `perqly-production` (today shown as `perqly-staging`; relabel it first) | `perqly-staging` (new)                     |
-| Ref            | `wktijbmvogxbbwwvqlhq` (unchanged)                                      | assigned when created                      |
-| Region         | London (`eu-west-2`)                                                    | London (`eu-west-2`)                       |
-| Plan           | Free                                                                    | Free                                       |
-| Serves         | perqly.online                                                           | Vercel Preview and Development, laptops    |
-| Data           | Real students and businesses                                            | Testers and businesses named `TEST …` only |
+|                | Production                               | Staging                                    |
+| -------------- | ---------------------------------------- | ------------------------------------------ |
+| Dashboard name | `perqly-production` (renamed 2026-11-16) | `perqly-staging`                           |
+| Ref            | `wktijbmvogxbbwwvqlhq` (unchanged)       | `gzmxqjlyhizvmvywbxhn`                     |
+| Region         | London (`eu-west-2`)                     | London (`eu-west-2`)                       |
+| Plan           | Free                                     | Free                                       |
+| Serves         | perqly.online                            | Vercel Preview and Development, laptops    |
+| Data           | Real students and businesses             | Testers and businesses named `TEST …` only |
 
 Rules:
 
@@ -69,10 +69,10 @@ Because the address comes from whichever domain the person is on, **every domain
 
 **How Supabase matches** (Supabase documentation): `*` matches any characters except `.` and `/`; `**` matches anything, including `/`. Supabase suggests `https://*-<team-or-account-slug>.vercel.app/**` for Vercel previews, and exact paths for production.
 
-|               | Production (proposed)                                                                  | Staging (proposed)                                                                                             |
-| ------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Site URL      | `https://perqly.online`                                                                | the stable staging address (section 5, `NEXT_PUBLIC_SITE_URL`)                                                 |
-| Redirect URLs | `https://perqly.online/**`, plus any other domain that serves production, if confirmed | `http://localhost:3000/**`, `http://127.0.0.1:3000/**` and `https://perqly-*-<vercel team slug>.vercel.app/**` |
+|               | Production (proposed)                                                                  | Staging (proposed)                                                                                           |
+| ------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Site URL      | `https://perqly.online`                                                                | the stable staging address (section 5, `NEXT_PUBLIC_SITE_URL`)                                               |
+| Redirect URLs | `https://perqly.online/**`, plus any other domain that serves production, if confirmed | `http://localhost:3000/**`, `http://127.0.0.1:3000/**` and `https://perqly-*-vision61-studios.vercel.app/**` |
 
 Notes:
 
@@ -119,13 +119,25 @@ Resend's free plan allows 100 emails a day across both projects (checked 2026-11
 
 Each project gets **its own OAuth client** in Google Cloud, so a staging problem can't affect production sign-in.
 
-|                               | Production client (existing)                                                                                                                                           | Staging client (new)                                 |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Authorised JavaScript origins | `https://perqly.online`                                                                                                                                                | `http://localhost:3000`, your Preview address        |
-| Authorised redirect URI       | `https://wktijbmvogxbbwwvqlhq.supabase.co/auth/v1/callback`                                                                                                            | `https://<staging ref>.supabase.co/auth/v1/callback` |
-| Consent screen                | **Testing**, as recorded in the Phase 0 audit (2026-11-16): only listed test users can sign in. _Unverified_ since; check in task 1.2. Publishing is part of task 1.14 | Can stay in Testing, with testers listed             |
+|                               | Production client (existing)                                                                                                                                           | Staging client (new)                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Authorised JavaScript origins | `https://perqly.online`                                                                                                                                                | `http://localhost:3000`, your Preview address               |
+| Authorised redirect URI       | `https://wktijbmvogxbbwwvqlhq.supabase.co/auth/v1/callback`                                                                                                            | `https://gzmxqjlyhizvmvywbxhn.supabase.co/auth/v1/callback` |
+| Consent screen                | **Testing**, as recorded in the Phase 0 audit (2026-11-16): only listed test users can sign in. _Unverified_ since; check in task 1.2. Publishing is part of task 1.14 | Can stay in Testing, with testers listed                    |
 
 Paste each client's ID and secret into its own Supabase project only (Authentication → Providers → Google). They are never stored in Vercel or the repository. The production client secret is rotated in task 1.8 because it has been handled outside a password manager.
+
+### 3.8 What's set on staging so far (2026-11-16)
+
+| Setting                             | Staging                                                                                                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| URL configuration                   | Done: Site URL `http://localhost:3000`; redirects `http://localhost:3000/**`, `http://127.0.0.1:3000/**`, `https://perqly-*-vision61-studios.vercel.app/**` |
+| Email provider, OTP 600 s, length 6 | Done                                                                                                                                                        |
+| Email templates                     | Not yet: Supabase only allows editing them once the project has its own SMTP sender                                                                         |
+| SMTP (Resend)                       | Not yet: staging uses Supabase's built-in email, which only reaches members of your Supabase team, a few per hour                                           |
+| Authenticator two-factor            | Not confirmed. Usually on by default; check at the first staff sign-in on staging                                                                           |
+| Google sign-in                      | Not yet: needs its own Google client                                                                                                                        |
+| First super admin                   | Not yet (section 4)                                                                                                                                         |
 
 ## 4. Migrations
 
@@ -173,7 +185,7 @@ Vercel: project `perqly` → Settings → Environment Variables. A production va
 
 | Variable                               | Browser? | Production                                 | Staging (Preview, Development, `.env.local`)                           | Notes                                                                                                             |
 | -------------------------------------- | -------- | ------------------------------------------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Yes      | `https://wktijbmvogxbbwwvqlhq.supabase.co` | `https://<staging ref>.supabase.co`                                    | Required                                                                                                          |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Yes      | `https://wktijbmvogxbbwwvqlhq.supabase.co` | `https://gzmxqjlyhizvmvywbxhn.supabase.co`                             | Required                                                                                                          |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes      | production publishable key                 | staging publishable key                                                | Required; must start `sb_publishable_`                                                                            |
 | `NEXT_PUBLIC_SITE_URL`                 | Yes      | `https://perqly.online`                    | the stable staging address (Vercel) / `http://localhost:3000` (laptop) | Metadata, sitemap, push and email links, billing return, QR codes. **Must be set on staging**; see the note below |
 | `NEXT_PUBLIC_APP_ENV`                  | Yes      | `production`                               | `staging`                                                              | **New in task 1.3.** Shows a Staging banner and keeps search engines off staging                                  |
@@ -191,7 +203,7 @@ Vercel: project `perqly` → Settings → Environment Variables. A production va
 - `getSiteUrl()` (`src/lib/env.ts`) uses `http://localhost:3000`. Notification links (`src/lib/notifications/dispatch.ts`), the billing return address (`src/features/billing/actions.ts`), the sitemap, robots and page metadata would point at localhost.
 - The QR code page (`src/app/merchant/codes/page.tsx`) uses `https://perqly-eta.vercel.app`, and the scanner (`src/app/student/scan/page.tsx`) always accepts that address. A QR code printed from staging would send students to a production address.
 
-So staging needs a single stable address. The simplest is the branch address of `main` in Vercel's Preview environment, for example `https://perqly-git-main-<vercel team slug>.vercel.app` (_unverified_; copy the real one). Removing the hard-coded `perqly-eta.vercel.app` fallback is a code change, proposed for task 1.3. It isn't made here.
+So staging needs a single stable address. The simplest is the branch address of `main` in Vercel's Preview environment, for example `https://perqly-git-main-vision61-studios.vercel.app` (_unverified_; copy the real one). Removing the hard-coded `perqly-eta.vercel.app` fallback is a code change, proposed for task 1.3. It isn't made here.
 
 Never in Vercel or the repository: database passwords, Google client secrets, the backup passphrase, your Supabase access token.
 

@@ -2,12 +2,12 @@
 
 **How Perqly keeps live students' data apart from testing, and how a change gets from a pull request to perqly.online.**
 
-|          |                                                                                                                                                  |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status   | **Proposed; architecture approved in principle.** Nothing in sections 5–9 exists yet. Milestone 1, tasks 1.2 to 1.15. Each step says who does it |
-| Updated  | 2026-11-16                                                                                                                                       |
-| Replaces | The earlier plan to create a new production project and keep the current one as staging. The decision is now the other way round                 |
-| Related  | `docs/SUPABASE_SETUP.md` (project settings, variables), `docs/BACKUPS.md` (backups, restore), `docs/TEST_DATA_CLEANUP.md` (clean-up)             |
+|          |                                                                                                                                          |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Status   | **In progress.** Task 1.2 is done (section 2.1). Sections 5–9 describe tasks 1.3–1.15, which don't exist yet. Each step says who does it |
+| Updated  | 2026-11-17                                                                                                                               |
+| Replaces | The earlier plan to create a new production project and keep the current one as staging. The decision is now the other way round         |
+| Related  | `docs/SUPABASE_SETUP.md` (project settings, variables), `docs/BACKUPS.md` (backups, restore), `docs/TEST_DATA_CLEANUP.md` (clean-up)     |
 
 ## 1. The decision
 
@@ -17,23 +17,39 @@
 
 ## 2. Where things stand today (16 November 2026)
 
-| Item                    | Today                                                                                                                                                                  |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Supabase                | One project (`wktijbmvogxbbwwvqlhq`) serves both the live site and all testing                                                                                         |
-| Vercel                  | Project `perqly`, functions in London (`lhr1`), domain perqly.online. Production deploys from `main`                                                                   |
-| Migrations              | 29 files in `supabase/migrations`. 0001–0028 are recorded as applied to production; 0029 is not confirmed. Applied by hand with `npx supabase db push` from one laptop |
-| CI                      | `.github/workflows/ci.yml`: typecheck, lint, format, unit tests, build, and pgTAP tests on a fresh local database. No end-to-end tests                                 |
-| Backups                 | `.github/workflows/backup.yml`: nightly encrypted dump of the production database, kept 14 days. Never restored (`docs/BACKUPS.md`)                                    |
-| Test data in production | Yes: test accounts from building and testing. **StudaData is a genuine business** and is not test data                                                                 |
-| Legal entity            | **Pending.** None of these documents names an owner or operating company                                                                                               |
+| Item                    | Today                                                                                                                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase                | Two projects: `perqly-production` (`wktijbmvogxbbwwvqlhq`, live) and `perqly-staging` (`gzmxqjlyhizvmvywbxhn`, empty test project, created 2026-11-16)                                                                                         |
+| Vercel                  | Project `perqly`, functions in London (`lhr1`), domain perqly.online. Production deploys from `main`. Since 2026-11-16, every server and email variable is Production only; Preview and Development use staging's URL and publishable key only |
+| Migrations              | 29 files in `supabase/migrations`. Both projects have all 29 (checked 2026-11-16, up to `20261114090029`). Production is still migrated by hand with `npx supabase db push` until task 1.4                                                     |
+| CI                      | `.github/workflows/ci.yml`: typecheck, lint, format, unit tests, build, and pgTAP tests on a fresh local database. Passing again since commit `f68c9e8` (2026-11-16); it had failed on every push since 14 Nov. No end-to-end tests yet        |
+| Backups                 | `.github/workflows/backup.yml`: nightly encrypted dump of the production database, kept 14 days. Never restored (`docs/BACKUPS.md`)                                                                                                            |
+| Test data in production | Yes: test accounts from building and testing. **StudaData is a genuine business** and is not test data                                                                                                                                         |
+| Legal entity            | **Pending.** None of these documents names an owner or operating company                                                                                                                                                                       |
+
+### 2.1 Task 1.2 outcome (2026-11-16 and 17)
+
+- **Supabase:** the live project was renamed `perqly-production` (ref unchanged). `perqly-staging` was created in London and built from all 29 migrations with `scripts/db/push.ps1`. It has no accounts or businesses. Its sign-in addresses and email sign-in settings are set (`docs/SUPABASE_SETUP.md`, section 3). Still open on staging: email templates (need a staging email sender first), Google sign-in, and checking that authenticator two-factor is on.
+- **Vercel:** Preview and Development no longer hold any production value. They have only staging's URL and publishable key.
+- **GitHub (repository is public):**
+  - Actions: workflow token is read-only; Actions can't create or approve pull requests; outside contributors' workflows need approval.
+  - Environments: `staging` (no rules), `production` (you as required reviewer, `main` only), `production-backup` (`main` only). All three are empty: the backup secrets stay repository secrets until task 1.4 updates `backup.yml`.
+  - Ruleset `protect-main` on `main`: no deletion, no force push, changes only by pull request, and CI jobs `check` and `database` must pass. Required approvals: 0, because you work alone. **From now on, changes reach `main` through pull requests, not direct pushes.**
+
+### 2.2 Incident: malformed production secret key (2026-11-14 to 16)
+
+- **What happened:** `SUPABASE_SECRET_KEY` in Vercel Production contained an invalid character from 14 Nov. Every server feature that uses it failed: push and email notifications, the daily job, Paystack confirmations, school email codes and decision emails. The error messages printed the key into Vercel's runtime logs.
+- **Fixed on 16 Nov:** a new key (`vercel_production_20261116`) was created and set in Vercel, production was redeployed, and both older secret keys were deleted in Supabase. Notifications and the daily job were confirmed working afterwards.
+- **Clean-up:** 22 stale chat notifications were marked skipped; 8 other notices were delivered. Notifications older than 24 hours, and decision emails from that period, were not delivered. One Paystack **test-mode** payment for StudaData was closed as `abandoned` with an audit entry. StudaData's manual MoMo payment was left as recorded.
+- **Lessons:** paste keys as one unbroken line using the copy button; check the runtime logs after any change to a secret.
 
 ## 3. The three environments
 
-| Environment | Supabase project                                       | Vercel environment                                   | Used by                       | Data                                                                                                           |
-| ----------- | ------------------------------------------------------ | ---------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Local       | Postgres on your machine or in CI                      | `npm run dev`                                        | Developers                    | `supabase/seed.sql` only. It never runs anywhere else                                                          |
-| Staging     | New `perqly-staging`, London (`eu-west-2`)             | **Preview** and **Development** (branch/PR previews) | You and invited testers       | Tester accounts, and businesses whose names start with `TEST`. Never real students; never a copy of production |
-| Production  | `wktijbmvogxbbwwvqlhq`, relabelled `perqly-production` | **Production** (perqly.online)                       | Students, businesses, schools | Real data only                                                                                                 |
+| Environment | Supabase project                                                | Vercel environment                                   | Used by                       | Data                                                                                                           |
+| ----------- | --------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Local       | Postgres on your machine or in CI                               | `npm run dev`                                        | Developers                    | `supabase/seed.sql` only. It never runs anywhere else                                                          |
+| Staging     | `perqly-staging` (`gzmxqjlyhizvmvywbxhn`), London (`eu-west-2`) | **Preview** and **Development** (branch/PR previews) | You and invited testers       | Tester accounts, and businesses whose names start with `TEST`. Never real students; never a copy of production |
+| Production  | `perqly-production` (`wktijbmvogxbbwwvqlhq`)                    | **Production** (perqly.online)                       | Students, businesses, schools | Real data only                                                                                                 |
 
 Rules:
 
@@ -113,7 +129,7 @@ The run summary shows the SHA, the commit message, the staging run that tested i
 The aim: `production` only ever changes through step D4.
 
 - **Ruleset on `production`:** blocks creation, updates, deletion and force pushes for everyone. The only exception is a dedicated **deploy key**. You are not on the exception list either. In an emergency, you'd change the ruleset on purpose, and that change is logged. The workflow's own `GITHUB_TOKEN` (the `github-actions` bot) is also not on the list, so no workflow can move `production` without the deploy key.
-- **Plan check:** in private repositories, rulesets need GitHub Pro or higher. On GitHub Free with a private repository, `production` can't be protected this way. Task 1.2 confirms which case applies, and the proposal is adjusted before task 1.4.
+- **Plan check:** done in task 1.2. The repository is public, so rulesets and required reviewers are available on the free plan.
 - **Vercel:** Production builds only from `production` (task 1.15). Vercel's own "Promote to Production", "Instant Rollback" and `vercel --prod` still work for people on the Vercel team. Keep those for the rollback cases in section 7 and use nothing else, because they bypass the database checks.
 
 ### 6.2 The deploy key (proposed, task 1.4)
@@ -173,7 +189,7 @@ Instant Rollback is only safe if the older code still runs against the newer dat
 | Task | What happens                                                                                                                                                                                         | Who                                  |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | 1.1  | These documents                                                                                                                                                                                      | Claude                               |
-| 1.2  | Confirm repository visibility, GitHub plan and collaborators; relabel the live project; create `perqly-staging`; create the GitHub environments that fit your plan                                   | You                                  |
+| 1.2  | **Done** (section 2.1): repository confirmed public; live project relabelled; `perqly-staging` created and built; GitHub Actions settings, environments and the `main` ruleset in place              | You, guided                          |
 | 1.3  | `NEXT_PUBLIC_APP_ENV` and the Staging banner                                                                                                                                                         | Claude                               |
 | 1.4  | Migrate staging and Migrate production workflows with every check in section 6; backup checks; ruleset proposal. First run builds staging. A production run with nothing pending must change nothing | Claude, then you run it              |
 | 1.5  | Point Vercel Preview and Development at staging                                                                                                                                                      | You                                  |

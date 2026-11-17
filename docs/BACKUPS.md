@@ -5,7 +5,7 @@
 |         |                                                                                                                                                                                                                                                                    |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Status  | The nightly backup already runs. Everything marked **Proposed** is part of tasks 1.2, 1.4, 1.8 and 1.15. **No restore has been rehearsed.** The backup system is **not reliable** yet and may not be described as reliable until the rehearsal in section 7 passes |
-| Updated | 2026-11-16                                                                                                                                                                                                                                                         |
+| Updated | 2026-11-17                                                                                                                                                                                                                                                         |
 | Related | `docs/PRODUCTION_SEPARATION.md`, `docs/SUPABASE_SETUP.md`, `docs/TEST_DATA_CLEANUP.md`                                                                                                                                                                             |
 
 ## 1. What runs today
@@ -54,7 +54,7 @@ Environment secrets and protection rules depend on whether the repository is pub
 - In a private repository, environments, environment secrets and branch restrictions on environments need GitHub Pro, Team or Enterprise.
 - Required reviewers on an environment are only available in public repositories, unless you have GitHub Enterprise.
 
-Neither the repository's visibility nor your plan has been checked. Task 1.2 starts by confirming both, read-only. The proposal for each case:
+**Checked in task 1.2: the repository is public**, so the first row applies. The `production` and `production-backup` environments now exist, empty. The backup secrets stay repository secrets until task 1.4 updates `backup.yml` to use `production-backup`; moving them earlier would break the nightly backup. The table below is kept for reference:
 
 | Repository and plan                          | Nightly backup secrets                                          | Migrate production secrets                                                                                                                                                                                                        |
 | -------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
