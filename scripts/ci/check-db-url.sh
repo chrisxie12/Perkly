@@ -10,6 +10,7 @@
 # Usage: check-db-url.sh staging|production
 # Needs: SUPABASE_DB_URL
 # On success it also tells GitHub to mask the password, raw and decoded.
+# Error messages say which part is wrong, never its value.
 set -euo pipefail
 
 fail() { echo "::error::SUPABASE_DB_URL: $1 (the value is not shown)"; exit 1; }
@@ -26,21 +27,38 @@ esac
 url=${SUPABASE_DB_URL:-}
 [ -n "$url" ] || fail "it is not set for this job"
 
+# Spaces or line breaks are easy to paste by accident (Notepad, a trailing Enter).
+case "$url" in
+  [[:space:]]* | *[[:space:]]) fail "it has a space or line break at the start or end; re-save the secret without it" ;;
+esac
+
 # Unreserved characters, or %XX escapes. Nothing else may appear in the user or password.
 safe='([A-Za-z0-9._~-]|%[0-9A-Fa-f]{2})+'
-re="^postgres(ql)?://(${safe}):(${safe})@([A-Za-z0-9.-]+):([0-9]{1,5})/([A-Za-z0-9_-]+)(\?[A-Za-z0-9._~%=&-]*)?$"
 
-if ! [[ $url =~ $re ]]; then
-  fail "it isn't in the form postgresql://USER:PASSWORD@HOST:PORT/DATABASE. If the password has symbols, percent-encode them, or reset it to letters and numbers only"
-fi
-user=${BASH_REMATCH[2]}
-password=${BASH_REMATCH[4]}
-host=${BASH_REMATCH[6]}
+[[ $url =~ ^postgres(ql)?:// ]] || fail "it must start with postgresql://"
+rest=${url#*://}
+case "$rest" in *[[:space:]]*) fail "it has a space or line break inside it" ;; esac
+case "$rest" in *@*) ;; *) fail "there is no @ between the password and the host" ;; esac
+creds=${rest%@*}
+server=${rest##*@}
+case "$creds" in *@*) fail "the password contains @ (percent-encode it as %40, or use letters and numbers only)" ;; esac
+case "$creds" in *:*) ;; *) fail "there is no : between the user and the password" ;; esac
+user=${creds%%:*}
+password=${creds#*:}
+[[ $user =~ ^${safe}$ ]] || fail "the user part has characters that aren't allowed"
+[ -n "$password" ] || fail "the password is empty"
+case "$password" in *'['* | *']'*) fail "the password still has [ ] brackets around it; remove them" ;; esac
+[[ $password =~ ^${safe}$ ]] ||
+  fail "the password has a symbol that isn't allowed here; percent-encode it, or reset it to letters and numbers only"
 
 # Mask the password before anything else can print it, as written and decoded.
 echo "::add-mask::$password"
 decoded=$(printf '%b' "${password//%/\\x}")
 [ "$decoded" = "$password" ] || echo "::add-mask::$decoded"
+
+[[ $server =~ ^([A-Za-z0-9.-]+):([0-9]{1,5})/([A-Za-z0-9_-]+)(\?[A-Za-z0-9._~%=\&-]*)?$ ]] ||
+  fail "after the @ it must be HOST:PORT/DATABASE, for example ...pooler.supabase.com:5432/postgres"
+host=${BASH_REMATCH[1]}
 
 case "$host" in
   *.supabase.com | *.supabase.co) ;;
