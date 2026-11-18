@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarDays,
   BadgeCheck,
   Bell,
   Box,
@@ -64,6 +65,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   chat: MessageCircle,
   star: Star,
   badge: BadgeCheck,
+  calendar: CalendarDays,
 };
 
 function Badge({ badge }: { badge: NavItem["badge"] }) {

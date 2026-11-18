@@ -51,4 +51,9 @@ Run these in the Supabase SQL editor for the right project, as one transaction, 
 - Before step 4, check they aren't the **last owner** of an organisation: `select organisation_id from public.organisation_members where user_id = ':uid' and role = 'owner';` Appoint another owner first, or ask a Perqly admin to archive it.
 - Images they uploaded belong to the organisation, not the person, and stay until the post or organisation is removed.
 
+### Bookings and problem reports (once migrations `20261118110000` and `20261118130000` are applied)
+
+- A student's bookings are deleted with the account (cascade).
+- Problem reports stay for Perqly support, without the person (`opened_by` set to null).
+
 Target: within 30 days of the request.

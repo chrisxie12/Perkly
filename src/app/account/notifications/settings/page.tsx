@@ -12,6 +12,7 @@ import { getUserContext } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/env";
 import { getVapidPublicKey } from "@/lib/notifications/vapid";
 import { createClient } from "@/lib/supabase/server";
+import { getCampusEnabled } from "@/features/campus/queries";
 
 export const metadata: Metadata = { title: "Notification settings", robots: { index: false } };
 
@@ -22,6 +23,8 @@ const CATEGORY_TEXT: Record<string, { label: string; description: string }> = {
   business: { label: "Your business", description: "Approval, deals approved or taken down, team changes." },
   review: { label: "Things to review", description: "New students, businesses, deals and school requests." },
   messages: { label: "Messages", description: "When a business replies to you, or a student messages your business." },
+  bookings: { label: "Bookings", description: "Booking requests, confirmations, new times and cancellations." },
+  campus: { label: "Campus", description: "Posts and events from your school's organisations." },
   account: { label: "Your account", description: "Roles you're given and school requests you sent." },
 };
 
@@ -31,7 +34,8 @@ export default async function NotificationSettingsPage() {
   const areas = areasFor(ctx);
 
   // Only the kinds of notification this person can actually get.
-  const relevant = new Set(["account", "verification", "deals", "redemptions", "messages"]);
+  const relevant = new Set(["account", "verification", "deals", "redemptions", "messages", "bookings"]);
+  if ((await getCampusEnabled()).posts) relevant.add("campus");
   if (areas.includes("merchant")) relevant.add("business");
   if (areas.includes("institution") || areas.includes("admin")) relevant.add("review");
 
@@ -41,7 +45,7 @@ export default async function NotificationSettingsPage() {
     const { data } = await supabase.rpc("get_my_notification_preferences");
     prefs = (data ?? []) as typeof prefs;
   }
-  const order = ["verification", "deals", "redemptions", "messages", "business", "review", "account"];
+  const order = ["verification", "deals", "redemptions", "messages", "bookings", "campus", "business", "review", "account"];
   const settings: CategorySetting[] = order
     .filter((c) => relevant.has(c))
     .map((c) => {

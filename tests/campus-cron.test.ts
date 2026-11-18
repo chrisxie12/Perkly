@@ -34,6 +34,16 @@ const cleanup = vi.fn(async () => {
   return { queued: 0, removed: 0, failed: 0, cleared: 0 };
 });
 vi.mock("@/lib/jobs/campus-media", () => ({ runCampusMediaCleanup: cleanup }));
+const stale = vi.fn(async () => {
+  order.push("bookings");
+  return { closed: 0 };
+});
+vi.mock("@/lib/jobs/stale-bookings", () => ({ runCloseStaleBookings: stale }));
+const reminders = vi.fn(async () => {
+  order.push("reminders");
+  return { queued: 0 };
+});
+vi.mock("@/lib/jobs/event-reminders", () => ({ runEventReminders: reminders }));
 
 const { GET } = await import("@/app/api/cron/daily/route");
 const { NextRequest } = await import("next/server");
@@ -44,6 +54,8 @@ beforeEach(() => {
   deferred.length = 0;
   dispatch.mockClear();
   cleanup.mockClear();
+  stale.mockClear();
+  reminders.mockClear();
 });
 
 describe("daily cron with Campus", () => {
@@ -53,6 +65,8 @@ describe("daily cron with Campus", () => {
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledWith(500);
     expect(cleanup).not.toHaveBeenCalled();
+    expect(stale).not.toHaveBeenCalled();
+    expect(reminders).not.toHaveBeenCalled();
     expect(order).not.toContain("campus");
     expect(Object.keys(await res.json()).sort()).toEqual(
       ["billing", "documents", "expired", "notificationsDelivered", "offersEnded", "reminders", "sessionsExpired"].sort(),
@@ -60,6 +74,10 @@ describe("daily cron with Campus", () => {
 
     await Promise.all(deferred.map((fn) => fn()));
     expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(stale).toHaveBeenCalledTimes(1);
+    expect(reminders).toHaveBeenCalledTimes(1);
+    expect(order.indexOf("dispatch:500")).toBeLessThan(order.indexOf("reminders"));
+    expect(order.indexOf("dispatch:500")).toBeLessThan(order.indexOf("bookings"));
     expect(order.indexOf("dispatch:500")).toBeLessThan(order.indexOf("campus"));
     expect(dispatch).toHaveBeenCalledTimes(1);
   });

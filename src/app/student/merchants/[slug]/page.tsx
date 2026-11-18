@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { startConversation } from "@/features/chat/actions";
 import {
   AtSign,
+  CalendarClock,
   MessagesSquare,
   ChevronLeft,
   Clock,
@@ -31,6 +32,7 @@ import { DealRow, HeartButton, MerchantAvatar, toneFor, walkLabel } from "@/feat
 import { ShopGallery } from "@/features/students/app/shop-gallery";
 import { DAYS, openLabel } from "@/features/merchants/hours";
 import { SOCIALS, directionsUrl, shopPhotoUrl, telUrl, whatsappUrl } from "@/features/merchants/shop";
+import { getBookableServices } from "@/features/bookings/queries";
 
 export const metadata: Metadata = { title: "Shop", robots: { index: false } };
 
@@ -78,11 +80,12 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound();
   const [shop, status] = await Promise.all([getMerchantPage(slug), getMyStudentStatus()]);
   if (!shop) notFound();
-  const [deals, reviews, mine, ratings] = await Promise.all([
+  const [deals, reviews, mine, ratings, bookable] = await Promise.all([
     listDeals({ merchantId: shop.id }),
     listMerchantReviews(shop.id, 20),
     getMyReview(shop.id),
     getRatings([shop.id]),
+    getBookableServices(shop.id),
   ]);
   const score = ratings.get(shop.id) ?? null;
   const verified = verificationView(status) === "verified";
@@ -168,6 +171,16 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
           />
           <Action href={directions} icon={Navigation} label="Directions" missing="No location yet" />
         </div>
+        {bookable.length > 0 && (
+          <div className="px-4 pb-6 sm:px-0">
+            <Link
+              href={`/student/merchants/${shop.slug}/book`}
+              className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white font-semibold text-blue-700 ring-1 ring-blue-200 hover:bg-blue-50"
+            >
+              <CalendarClock className="size-5" aria-hidden /> Book an appointment
+            </Link>
+          </div>
+        )}
         {chatIssue && (
           <p role="alert" className="mx-4 -mt-3 mb-5 rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-800 sm:mx-0">
             {chatIssue === "profile" ? (

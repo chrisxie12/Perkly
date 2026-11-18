@@ -123,7 +123,7 @@ Storage files:
 
 The `audit_logs` rows where the person is the actor (`actor_id`) or the subject (`entity_id`) are also listed. Section 7 explains why they stay.
 
-Campus rows (once migrations `20261117090000` and `20261118100000` are applied): **cascade** with the person: `organisation_members`, `organisation_follows`, `post_likes`, `post_saves`, `post_comments`, `event_rsvps`. **Set to null:** `campus_posts.author_id`, `content_reports.reporter_id` and `resolved_by`, `campus_organisations.verified_by` and `created_by`, `organisation_members.appointed_by`, `campus_agreements.recorded_by`. A candidate who is the only owner of a real organisation is flagged (section 5.3).
+Campus rows (once migrations `20261117090000` and `20261118100000` are applied): **cascade** with the person: `organisation_members`, `organisation_follows`, `post_likes`, `post_saves`, `post_comments`, `event_rsvps`, `bookings`. **Set to null:** `disputes.opened_by` (reports stay for support; delete a test report's row by hand after review, with its `dispute_events`). **Set to null:** `campus_posts.author_id`, `content_reports.reporter_id` and `resolved_by`, `campus_organisations.verified_by` and `created_by`, `organisation_members.appointed_by`, `campus_agreements.recorded_by`. A candidate who is the only owner of a real organisation is flagged (section 5.3).
 
 ### 5.2 For a candidate business (never StudaData)
 

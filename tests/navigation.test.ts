@@ -68,7 +68,15 @@ describe("menus by role", () => {
   it("gives Perqly admins four tabs plus More, with every page in the sidebar", () => {
     const nav = navFor("admin", staff("super_admin"));
     expect(nav.tabs.map((t) => t.label)).toEqual(["Overview", "Merchants", "Offers", "Users"]);
-    expect(nav.more.map((t) => t.label)).toEqual(["Institutions", "Staff", "Redemptions", "Reports", "Audit logs", "Settings"]);
+    expect(nav.more.map((t) => t.label)).toEqual([
+      "Institutions",
+      "Staff",
+      "Redemptions",
+      "Problem reports",
+      "Reports",
+      "Audit logs",
+      "Settings",
+    ]);
     expect(nav.groups.map((g) => g.label)).toEqual([null, "Partners", "People", "Activity", null]);
   });
 

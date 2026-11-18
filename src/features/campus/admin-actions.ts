@@ -25,7 +25,7 @@ function revalidateAll() {
 
 export async function setCampusSwitch(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = z
-    .object({ key: z.enum(["campus.posts_enabled", "campus.comments_enabled"]), on: z.enum(["1", "0"]) })
+    .object({ key: z.enum(["campus.posts_enabled", "campus.comments_enabled", "campus.push_enabled"]), on: z.enum(["1", "0"]) })
     .safeParse({ key: formData.get("key"), on: formData.get("on") });
   if (!parsed.success) return { status: "error", message: "Reload the page and try again." };
   if (!hasSupabaseEnv()) return unavailable;
@@ -34,7 +34,11 @@ export async function setCampusSwitch(_prev: FormState, formData: FormData): Pro
   const { error } = await supabase.rpc("admin_set_campus_switch", { p_key: parsed.data.key, p_on: on });
   if (error) return { status: "error", message: campusErrorMessage(error.message) };
   revalidateAll();
-  const what = parsed.data.key === "campus.posts_enabled" ? "Campus" : "Comments";
+  const what = {
+    "campus.posts_enabled": "Campus",
+    "campus.comments_enabled": "Comments",
+    "campus.push_enabled": "Phone and email notifications",
+  }[parsed.data.key];
   return { status: "success", message: `${what} switched ${on ? "on" : "off"}.` };
 }
 

@@ -84,6 +84,28 @@ export default async function CampusSettingsPage() {
             />
           )}
         </div>
+        <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl bg-white p-5 ring-1 ring-ink-200">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-ink-900">Phone and email notifications: {switches.push ? "on" : "off"}</h3>
+            <p className="text-sm text-ink-600">
+              {switches.push
+                ? "New posts from followed organisations, emergency notices and event reminders also go to phones and inboxes, as each student's Campus setting allows."
+                : "Campus notifications only appear in the app's notification list."}
+            </p>
+          </div>
+          {superAdmin && (
+            <ActionForm
+              action={setCampusSwitch}
+              fields={{ key: "campus.push_enabled", on: switches.push ? "0" : "1" }}
+              label={switches.push ? "Switch off" : "Switch on"}
+              confirm={
+                switches.push
+                  ? "Stop sending Campus notifications to phones and inboxes?"
+                  : "Send Campus notifications to phones and inboxes? Students can turn them off in their settings."
+              }
+            />
+          )}
+        </div>
       </section>
 
       <section aria-labelledby="agreements" className="max-w-3xl space-y-4">

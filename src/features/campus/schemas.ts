@@ -292,7 +292,7 @@ export const agreementFormSchema = z
   .refine((d) => !d.endsOn || d.endsOn > d.signedOn, { path: ["endsOn"], message: "The end date must be after the signing date." });
 
 export const campusOverviewSchema = z.object({
-  switches: z.object({ posts: z.boolean(), comments: z.boolean() }),
+  switches: z.object({ posts: z.boolean(), comments: z.boolean(), push: z.boolean().default(false) }),
   schools: z
     .array(
       z.object({

@@ -1,4 +1,4 @@
-# Campus (C1 organisations and posts, C2 comments, C3 events, C5 admin screens)
+# Campus (C1 organisations and posts, C2 comments, C3 events, C4 reminders, C5 admin screens)
 
 Campus lets verified school organisations (SRC, faculties, departments, halls, clubs, societies, associations and the school's administration) publish posts to verified students of the same school. C1 covers organisations, members, posts, images, follows, likes, saves, reports and moderation. C2 adds the comment screens, C3 events and RSVPs, and C5 the admin screen for switches and school agreements. Comments stay switched off until a super admin turns them on.
 
@@ -6,7 +6,7 @@ Decision record and checklist: https://claude.ai/artifact/EbKzyuRcfgvTKFiT1LD4Vp
 
 ## Status
 
-C1, C2, C3 and C5 are built and tested locally on branch `campus-c1` (migrations `20261117090000`, `20261118090000`, `20261118100000`). **Not pushed, not applied to staging or production.** Gate 0 (staging secret, production password, backup restore rehearsal) must be finished before this is merged.
+C1 to C5 are built and tested locally on branch `campus-c1` (migrations `20261117090000`, `20261118090000`, `20261118100000`, `20261118120000`, `20261118140000`). The GCTU pilot (C6) is a runbook: `docs/CAMPUS_PILOT_GCTU.md`. **Not pushed, not applied to staging or production.** Gate 0 (staging secret, production password, backup restore rehearsal) must be finished before this is merged.
 
 ## Switches and limits
 
@@ -48,9 +48,11 @@ Any post except an emergency notice can be made an event on its edit page: start
 - Organisers see how many are going, not who.
 - Removing the event details removes its RSVPs. Nothing about events sends notifications.
 
-## Notifications
+## Notifications (C4)
 
-Campus writes rows to `public.notifications` through `private.notify_campus` with push and email already marked `skipped`, so the existing delivery queue never sends them. No Campus code imports the dispatcher (a test checks this). Emergencies follow each student's preferences like everything else.
+Campus notifications are in the **Campus** settings category. While `campus.push_enabled` is off (the default), they're written with push and email already `skipped`, so they only appear in the app, exactly as in C1. When a super admin switches it on, new Campus notifications join the normal delivery queue and each student's Campus setting decides. No Campus code imports the dispatcher (a test checks this).
+
+**Event reminders:** once a day, after the daily cron has answered, students going to an event that starts 22 to 46 hours later get one reminder with the date and venue. Nothing is queued while Campus is off.
 
 ## Images
 
@@ -63,9 +65,10 @@ Bucket `campus-media` (private, 5 MB, JPEG/PNG/WebP). Paths start with the schoo
 ## Tests
 
 - pgTAP: `supabase/tests/026_campus_organisations_posts_test.sql` (145 tests; isolation between schools, grants, switches, badges, scheduling, paging, notifications, media queue). The anon allowlist in `005_students_security_test.sql` gained `campus_enabled`, `public_post` and `public_organisation`.
+- pgTAP: `supabase/tests/030_campus_reminders_test.sql` (15 tests; reminders and the push switch).
 - pgTAP: `supabase/tests/027_campus_admin_events_test.sql` (64 tests; the admin overview, events, RSVPs and capacity, isolation, comments shown and hidden).
 - Vitest: `tests/campus-schemas.test.ts`, `tests/campus-media.test.ts`, `tests/campus-cron.test.ts`, `tests/campus-navigation.test.ts`, `tests/campus-events-admin.test.ts`.
 
 ## Not built yet
 
-Search beyond the directory, attendee lists for organisers, event reminders and the C11 notification category (C4), and the GCTU pilot (C6).
+Search beyond the directory and attendee lists for organisers. The GCTU pilot (C6) is a runbook, not code.

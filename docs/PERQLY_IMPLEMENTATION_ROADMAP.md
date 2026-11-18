@@ -146,18 +146,22 @@ Outside the code: register with the Data Protection Commission. It doesn't block
 | Work              | Production Supabase project and migrations; nightly `pg_dump` backup; Supabase security and performance advisors clean; concurrency test of `finalize_redemption` (parallel confirms, last unit of a cap); a review of every RLS policy against the access summary; full CSP check; Lighthouse and accessibility checks of the new screens; real-device PWA tests recorded in `PWA_TESTING.md`; privacy policy and terms final; hosting plan decision (D10) |
 | Gate to the pilot | GCTU agreement signed and reviewers trained; DPC registration filed; merchants recruited around campus; three dry-run days with real cashiers                                                                                                                                                                                                                                                                                                               |
 
+### Bookings and problem reports
+
+Built locally on `campus-c1`, not pushed or applied: see `docs/BOOKINGS.md`.
+
 ### Campus C1–C6
 
 Plan and decisions: `docs/CAMPUS.md` and the [decision record](https://claude.ai/artifact/EbKzyuRcfgvTKFiT1LD4Vp). Nothing here is merged until Gate 0 is done (staging connection secret corrected, production password rotated, backup restored in a controlled test).
 
-| Step | Work                                                                                                               | Status                                                                  |
-| ---- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| C1   | Organisations, members, posts, images, follows, likes, saves, reports, moderation; switches off; public link pages | Built and tested locally on `campus-c1`; not pushed or applied          |
-| C2   | Comments switched on, with a comment form and moderation                                                           | Built and tested locally on `campus-c1`; comments stay off              |
-| C3   | Events and RSVPs                                                                                                   | Built and tested locally on `campus-c1`; not pushed or applied          |
-| C4   | Campus notification category (C11) and delivery                                                                    | Not started; needs the backlog count first                              |
-| C5   | Switch and agreement screens for admins                                                                            | Built and tested locally on `campus-c1`; not pushed or applied          |
-| C6   | Pilot at GCTU with the SRC and one faculty                                                                         | Not started; needs a signed agreement for the University official badge |
+| Step | Work                                                                                                               | Status                                                             |
+| ---- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| C1   | Organisations, members, posts, images, follows, likes, saves, reports, moderation; switches off; public link pages | Built and tested locally on `campus-c1`; not pushed or applied     |
+| C2   | Comments switched on, with a comment form and moderation                                                           | Built and tested locally on `campus-c1`; comments stay off         |
+| C3   | Events and RSVPs                                                                                                   | Built and tested locally on `campus-c1`; not pushed or applied     |
+| C4   | Campus notification category (C11) and delivery                                                                    | Built locally: Campus category, event reminders, push switch (off) |
+| C5   | Switch and agreement screens for admins                                                                            | Built and tested locally on `campus-c1`; not pushed or applied     |
+| C6   | Pilot at GCTU with the SRC and one faculty                                                                         | Runbook written (`docs/CAMPUS_PILOT_GCTU.md`); not started         |
 
 ## 5. Required changes to existing code
 

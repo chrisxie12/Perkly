@@ -38,7 +38,8 @@ export type IconName =
   | "badge"
   | "wallet"
   | "chat"
-  | "star";
+  | "star"
+  | "calendar";
 
 export type NavItem = {
   key: string;
@@ -92,6 +93,9 @@ const hasMembership = (n: NavContext) => Boolean(n.membership);
 /** Sub-page permissions inside each area, longest match wins. Paths not listed are open to everyone in the area. */
 export const ROUTE_RULES: Rule[] = [
   // Business
+  { path: "/merchant/bookings/setup*", allow: isManager, reason: "Only owners and managers set booking hours." },
+  { path: "/merchant/problems*", allow: (n) => hasMembership(n) && isLive(n), reason: "Problem reports open once your business is live." },
+  { path: "/merchant/bookings*", allow: (n) => hasMembership(n) && isLive(n), reason: "Bookings open once your business is live." },
   { path: "/merchant/offers*", allow: isManager, reason: "Only owners and managers manage offers." },
   { path: "/merchant/catalogue*", allow: isManager, reason: "Only owners and managers manage the catalogue." },
   { path: "/merchant/counter*", allow: (n) => hasMembership(n) && isLive(n), reason: "The counter opens once your business is live." },
@@ -119,6 +123,7 @@ export const ROUTE_RULES: Rule[] = [
   { path: "/admin/institutions/new*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins add institutions." },
   { path: "/admin/users*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins look up accounts." },
   { path: "/admin/redemptions*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see redemptions." },
+  { path: "/admin/disputes*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle problem reports." },
   { path: "/admin/reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see reports." },
   { path: "/admin/staff*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins see staff." },
   { path: "/admin/audit*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins read the audit log." },
@@ -199,6 +204,8 @@ function studentNav(n: NavContext): AreaNav {
         label: "You",
         items: [
           item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
+          item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"]),
+          item("problems", "Problem reports", "/student/problems", "inbox", ["/student/problems*"]),
           item("messages", "Messages", "/student/messages", "chat", ["/student/messages*"]),
           item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
           item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
@@ -238,8 +245,18 @@ function merchantNav(n: NavContext): AreaNav {
   const tabs = manage ? [overview, offers, ...(live ? [scan, analytics] : []), business] : [overview, ...(live ? [scan, history] : [])];
 
   const messages = item("messages", "Messages", "/merchant/messages", "chat", ["/merchant/messages*"]);
+  const bookings = item("bookings", "Bookings", "/merchant/bookings", "calendar", ["/merchant/bookings*"]);
   const groups: NavGroup[] = [
-    { label: null, items: [overview, ...(manage ? [messages] : []), ...(live ? [scan] : []), ...(live && !manage ? [history] : [])] },
+    {
+      label: null,
+      items: [
+        overview,
+        ...(manage ? [messages] : []),
+        ...(live ? [bookings] : []),
+        ...(live ? [scan] : []),
+        ...(live && !manage ? [history] : []),
+      ],
+    },
   ];
   if (manage) {
     groups.push({
@@ -309,6 +326,7 @@ function adminNav(n: NavContext): AreaNav {
   const staff = item("staff", "Staff", "/admin/staff", "shield", ["/admin/staff*"]);
   const redemptions = item("redemptions", "Redemptions", "/admin/redemptions", "receipt", ["/admin/redemptions*"]);
   const reports = item("reports", "Reports", "/admin/reports", "chart", ["/admin/reports*"]);
+  const disputes = item("disputes", "Problem reports", "/admin/disputes", "inbox", ["/admin/disputes*"]);
   const audit = item("audit", "Audit logs", "/admin/audit", "scroll", ["/admin/audit*"]);
   const settings = item("settings", "Settings", "/admin/settings", "settings", ["/admin/settings*"]);
   // Perqly admins verify students for any school (D16); the review queue lives in the school area.
@@ -319,7 +337,7 @@ function adminNav(n: NavContext): AreaNav {
     { label: null, items: [overview] },
     { label: "Partners", items: [...(canReview ? [reviews] : []), institutions, merchants, offers] },
     { label: "People", items: [...(support ? [users] : []), ...(admin ? [staff] : [])] },
-    { label: "Activity", items: [...(support ? [redemptions, reports] : []), ...(admin ? [audit] : [])] },
+    { label: "Activity", items: [...(support ? [redemptions, disputes, reports] : []), ...(admin ? [audit] : [])] },
     {
       // Shown once Campus is switched on; before that the pages are reached by address.
       label: "Campus",

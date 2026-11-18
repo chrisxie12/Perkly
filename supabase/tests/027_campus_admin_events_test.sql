@@ -91,7 +91,7 @@ select throws_ok('select public.admin_campus_overview()', 'P0001', 'forbidden', 
 select tests.as_user(:'padmin', 'aal1');
 select throws_ok('select public.admin_campus_overview()', 'P0001', 'forbidden', 'admins need two-factor');
 select tests.as_user(:'padmin', 'aal2');
-select is(public.admin_campus_overview() -> 'switches', '{"posts": false, "comments": false}'::jsonb, 'both switches show off');
+select is(public.admin_campus_overview() -> 'switches', '{"posts": false, "comments": false, "push": false}'::jsonb, 'all switches show off');
 select ok(exists (select 1 from jsonb_array_elements(public.admin_campus_overview() -> 'schools') s where s ->> 'short_name' = 'TUC'),
   'listed schools are shown');
 select is((select s ->> 'active' from jsonb_array_elements(public.admin_campus_overview() -> 'schools') s where s ->> 'institution_id' = :'gctu'),

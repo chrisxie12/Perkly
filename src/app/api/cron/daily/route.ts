@@ -6,6 +6,8 @@ import { purgeVerificationDocuments } from "@/lib/jobs/verification-retention";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchNotifications } from "@/lib/notifications/dispatch";
 import { runCampusMediaCleanup } from "@/lib/jobs/campus-media";
+import { runCloseStaleBookings } from "@/lib/jobs/stale-bookings";
+import { runEventReminders } from "@/lib/jobs/event-reminders";
 
 export const maxDuration = 60;
 
@@ -32,6 +34,8 @@ export async function GET(request: NextRequest) {
   }
   // Campus media clean-up runs only after this response is sent, so it can't affect the steps below.
   after(() => runCampusMediaCleanup());
+  after(() => runCloseStaleBookings());
+  after(() => runEventReminders());
 
   const admin = createAdminClient();
   const expired = await admin.rpc("expire_student_verifications");
