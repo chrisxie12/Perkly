@@ -7,7 +7,8 @@
 # they tried, which is really a piece of the password. GitHub masks only the whole
 # secret, so that piece shows in the (public) log. This check stops the job first.
 #
-# Usage: check-db-url.sh staging|production
+# Usage: check-db-url.sh staging|production|restore
+#   restore: a temporary rehearsal project, which must be neither production nor staging.
 # Needs: SUPABASE_DB_URL
 # On success it also tells GitHub to mask the password, raw and decoded.
 # Error messages say which part is wrong, never its value.
@@ -21,7 +22,8 @@ STAGING_REF=gzmxqjlyhizvmvywbxhn
 case "${1:-}" in
   production) want=$PRODUCTION_REF; other=$STAGING_REF ;;
   staging) want=$STAGING_REF; other=$PRODUCTION_REF ;;
-  *) echo "usage: check-db-url.sh staging|production" >&2; exit 2 ;;
+  restore) want=""; other="" ;;
+  *) echo "usage: check-db-url.sh staging|production|restore" >&2; exit 2 ;;
 esac
 
 url=${SUPABASE_DB_URL:-}
@@ -66,10 +68,18 @@ case "$host" in
 esac
 
 # The project ref sits in the user (pooler: postgres.REF) or the host (direct: db.REF.supabase.co).
-case "$user@$host" in
-  *"$other"*) fail "it points at the wrong project (expected $1)" ;;
-  *"$want"*) ;;
-  *) fail "it doesn't name the $1 project" ;;
-esac
+if [ "$1" = restore ]; then
+  # Never let a rehearsal write into a real project.
+  case "$user@$host" in
+    *"$PRODUCTION_REF"* | *"$STAGING_REF"*) fail "it points at production or staging; a restore rehearsal needs its own temporary project" ;;
+  esac
+  [[ $user@$host =~ (postgres\.[a-z0-9]{20}@|@db\.[a-z0-9]{20}\.supabase\.co) ]] || fail "it doesn't name a Supabase project"
+else
+  case "$user@$host" in
+    *"$other"*) fail "it points at the wrong project (expected $1)" ;;
+    *"$want"*) ;;
+    *) fail "it doesn't name the $1 project" ;;
+  esac
+fi
 
 echo "SUPABASE_DB_URL looks right for $1."
