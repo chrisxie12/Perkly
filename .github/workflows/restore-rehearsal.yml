@@ -1,0 +1,88 @@
+name: Restore rehearsal
+
+# Restores a nightly backup into a TEMPORARY Supabase project and checks it
+# (docs/BACKUPS.md, section 7). Manual only. It never touches production or staging:
+# the target is checked to be neither before anything runs.
+#
+# Secrets from the `production-backup` environment (main branch only):
+#   BACKUP_PASSPHRASE   the passphrase the backups are encrypted with
+#   RESTORE_DB_URL      the temporary project's Session pooler connection string.
+#                       Add it just before a rehearsal; delete it, and the project, after.
+#
+# Logs are public: the script prints only table names, counts and error codes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_run_id:
+        description: "Run ID of the Nightly database backup to restore (leave empty for the latest successful one)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: restore-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production-backup
+    env:
+      RESTORE_DB_URL: ${{ secrets.RESTORE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the secrets
+        run: |
+          if [ -z "$RESTORE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::RESTORE_DB_URL or BACKUP_PASSPHRASE is missing from the production-backup environment."
+            exit 1
+          fi
+          SUPABASE_DB_URL="$RESTORE_DB_URL" scripts/ci/check-db-url.sh restore
+
+      - name: Find the backup
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.backup_run_id }}
+        run: |
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow backup.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          [[ $RUN_ID =~ ^[0-9]+$ ]] || { echo "::error::No successful backup run found."; exit 1; }
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Restoring the backup from run $RUN_ID." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ steps.find.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: backup
+
+      - name: Install the Postgres 17 client
+        run: scripts/ci/install-pg-client.sh
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      - name: Build the schema from the migrations
+        run: supabase db push --db-url "$RESTORE_DB_URL" --include-all --yes
+
+      - name: Import the data and check it
+        run: |
+          shopt -s globstar nullglob
+          files=(backup/**/*.dump.gpg)
+          [ "${#files[@]}" -eq 1 ] || { echo "::error::Expected one backup file, found ${#files[@]}."; exit 1; }
+          scripts/ci/restore-rehearsal.sh "${files[0]}"
+
+      - name: Remove the downloaded backup
+        if: always()
+        run: find backup -type f -exec shred -u {} + 2>/dev/null || true

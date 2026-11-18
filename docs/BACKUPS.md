@@ -148,6 +148,23 @@ Supabase's own restore guide does it differently: it imports the data with `psql
 
 After a bad migration, it can be safer to restore everything into a scratch project, check the affected rows there, and copy back only what's needed. Claude can prepare that SQL for your review. You run it.
 
+### 6.5 The rehearsal workflow (Actions → Restore rehearsal)
+
+Steps 1 to 7 of section 6.2 are automated for a rehearsal, so nothing needs installing on your computer and the decrypted file never leaves GitHub's runner. `.github/workflows/restore-rehearsal.yml` runs only when started by hand, from `main`, in the `production-backup` environment. It:
+
+1. checks `RESTORE_DB_URL` names a Supabase project that is **neither production nor staging** (`scripts/ci/check-db-url.sh restore`), and stops otherwise;
+2. downloads the latest successful nightly backup (or the run you name) and decrypts it with `BACKUP_PASSPHRASE`;
+3. builds the schema in the temporary project with `supabase db push`;
+4. empties the restored tables (the migrations insert settings, the school directory and buckets), then imports every table's data in one transaction with `SET session_replication_role = replica`. Supabase Auth's bookkeeping and short-lived sign-in state (`schema_migrations`, `sessions`, `refresh_tokens`, `flow_state`, `one_time_tokens`, `mfa_challenges`, `mfa_amr_claims`) are left out, so everyone signs in again;
+5. checks that every table's row count matches the backup, that no foreign key points at nothing, and that sequences are ahead of the restored values; records the Supabase Auth version of the backup and of the target, and the time taken;
+6. shreds the downloaded and decrypted files.
+
+The repository is public, so its logs are too. `scripts/ci/restore-rehearsal.sh` prints only table and constraint names, counts and SQLSTATE error codes, never a row or a full error message (which can quote a value).
+
+To run it: create the temporary project; add its Session pooler connection string as `RESTORE_DB_URL` in the `production-backup` environment; run **Actions → Restore rehearsal**. Afterwards delete `RESTORE_DB_URL` and the temporary project the same day.
+
+The workflow covers section 7, items 1 to 5 and 8. Items 6 and 7 (signing in on a preview pointed at the temporary project, and looking at a redemption, a chat and a notification) are still done by hand.
+
 ## 7. Restore rehearsal (task 1.15)
 
 The rehearsal is a **hard prerequisite**. Until it passes:
