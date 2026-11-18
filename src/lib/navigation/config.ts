@@ -131,6 +131,11 @@ export const ROUTE_RULES: Rule[] = [
   },
   { path: "/admin/campus/moderation*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins moderate Campus." },
   {
+    path: "/admin/campus/settings*",
+    allow: (n) => canManagePlatform(n.ctx),
+    reason: "Only Perqly admins see Campus switches and agreements.",
+  },
+  {
     path: "/organise*",
     allow: (n) => (n.ctx.organisationRoles ?? []).length > 0,
     reason: "Only members of a Campus organisation can open this.",
@@ -322,7 +327,10 @@ function adminNav(n: NavContext): AreaNav {
         ? []
         : [
             ...(admin
-              ? [item("campus-orgs", "Organisations", "/admin/campus/organisations", "users", ["/admin/campus/organisations*"])]
+              ? [
+                  item("campus-orgs", "Organisations", "/admin/campus/organisations", "users", ["/admin/campus/organisations*"]),
+                  item("campus-settings", "Switches", "/admin/campus/settings", "settings", ["/admin/campus/settings*"]),
+                ]
               : []),
             ...(support
               ? [item("campus-moderation", "Moderation", "/admin/campus/moderation", "shield", ["/admin/campus/moderation*"])]

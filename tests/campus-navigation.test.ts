@@ -85,6 +85,8 @@ describe("Campus menu items", () => {
     expect(routeAccess("/admin/campus/organisations", staff("admin")).kind).toBe("allow");
     expect(routeAccess("/admin/campus/moderation", staff("reviewer")).kind).toBe("forbidden");
     expect(routeAccess("/admin/campus/moderation", staff("support")).kind).toBe("allow");
+    expect(routeAccess("/admin/campus/settings", staff("support")).kind).toBe("forbidden");
+    expect(routeAccess("/admin/campus/settings", staff("admin")).kind).toBe("allow");
   });
 });
 
@@ -94,6 +96,6 @@ describe("admin menu", () => {
     const off = navFor("admin", { ctx: superAdmin }).groups.map((g) => g.label);
     expect(off).not.toContain("Campus");
     const on = navFor("admin", { ctx: superAdmin, campus: true }).groups;
-    expect(on.find((g) => g.label === "Campus")?.items.map((i) => i.label)).toEqual(["Organisations", "Moderation"]);
+    expect(on.find((g) => g.label === "Campus")?.items.map((i) => i.label)).toEqual(["Organisations", "Switches", "Moderation"]);
   });
 });

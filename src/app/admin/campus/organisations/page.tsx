@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { adminAppointMember, setOrganisationStatus } from "@/features/campus/actions";
 import { getAdminOrganisations, getCampusEnabled, getListedInstitutions } from "@/features/campus/queries";
@@ -25,6 +26,11 @@ export default async function AdminCampusOrganisationsPage() {
             : "Campus is switched off: students see nothing yet. You can prepare organisations now."
         }
       />
+      <p className="mb-6">
+        <Link href="/admin/campus/settings" className="font-semibold text-blue-600">
+          Campus switches and school agreements
+        </Link>
+      </p>
       <section className="mb-10 max-w-3xl rounded-2xl bg-white p-5 ring-1 ring-ink-200" aria-labelledby="new-org">
         <h2 id="new-org" className="mb-4 font-display text-lg font-bold">
           New organisation

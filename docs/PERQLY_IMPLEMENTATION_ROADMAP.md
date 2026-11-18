@@ -153,10 +153,10 @@ Plan and decisions: `docs/CAMPUS.md` and the [decision record](https://claude.ai
 | Step | Work                                                                                                               | Status                                                                  |
 | ---- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
 | C1   | Organisations, members, posts, images, follows, likes, saves, reports, moderation; switches off; public link pages | Built and tested locally on `campus-c1`; not pushed or applied          |
-| C2   | Comments switched on, with a comment form and moderation                                                           | Not started                                                             |
-| C3   | Events and RSVPs                                                                                                   | Not started                                                             |
+| C2   | Comments switched on, with a comment form and moderation                                                           | Built and tested locally on `campus-c1`; comments stay off              |
+| C3   | Events and RSVPs                                                                                                   | Built and tested locally on `campus-c1`; not pushed or applied          |
 | C4   | Campus notification category (C11) and delivery                                                                    | Not started; needs the backlog count first                              |
-| C5   | Switch and agreement screens for admins                                                                            | Not started                                                             |
+| C5   | Switch and agreement screens for admins                                                                            | Built and tested locally on `campus-c1`; not pushed or applied          |
 | C6   | Pilot at GCTU with the SRC and one faculty                                                                         | Not started; needs a signed agreement for the University official badge |
 
 ## 5. Required changes to existing code

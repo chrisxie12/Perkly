@@ -4,12 +4,14 @@ import { AlertTriangle, ChevronLeft, ExternalLink, PlayCircle } from "lucide-rea
 import { AreaShell } from "@/components/layout/area-shell";
 import { EmptyState } from "@/components/shared/states";
 import { buttonVariants } from "@/components/ui/button";
-import { getCampusEnabled, getPostDetail, signCampusMedia } from "@/features/campus/queries";
+import { getCampusEnabled, getEventDetail, getPostDetail, signCampusMedia } from "@/features/campus/queries";
 import { formatPostTime, postKindLabel } from "@/features/campus/schemas";
 import { OrganisationAvatar } from "@/features/campus/components/post-card";
 import { OrganisationBadge } from "@/features/campus/components/organisation-badge";
 import { PostButtons } from "@/features/campus/components/post-buttons";
 import { CampusClosed } from "@/features/campus/components/campus-closed";
+import { Comments } from "@/features/campus/components/comments";
+import { EventBlock } from "@/features/campus/components/event-block";
 
 export const metadata: Metadata = { title: "Campus post", robots: { index: false } };
 
@@ -33,7 +35,7 @@ export default async function CampusPostPage({ params }: PageProps<"/student/cam
       </AreaShell>
     );
   }
-  const images = await signCampusMedia([post.organisation.logo_path, ...post.media]);
+  const [images, event] = await Promise.all([signCampusMedia([post.organisation.logo_path, ...post.media]), getEventDetail(post.id)]);
   const sharePath = post.visibility === "public" ? `/campus/p/${post.id}` : `/student/campus/posts/${post.id}`;
   return (
     <AreaShell area="student">
@@ -60,6 +62,7 @@ export default async function CampusPostPage({ params }: PageProps<"/student/cam
           </p>
         )}
         <h1 className="text-display-sm mt-4 font-display font-extrabold">{post.title}</h1>
+        {event && <EventBlock postId={post.id} event={event} />}
         <p className="mt-3 text-lg leading-relaxed whitespace-pre-line text-ink-800">{post.body}</p>
         {post.media.length > 0 && (
           <div className="mt-5 grid gap-3">
@@ -103,21 +106,7 @@ export default async function CampusPostPage({ params }: PageProps<"/student/cam
             sharePath={sharePath}
           />
         </div>
-        {enabled.comments && post.comments.length > 0 && (
-          <section className="mt-6" aria-labelledby="comments">
-            <h2 id="comments" className="font-display text-lg font-bold">
-              Comments
-            </h2>
-            <ul className="mt-3 space-y-3">
-              {post.comments.map((c) => (
-                <li key={c.id} className="rounded-xl bg-white p-3 ring-1 ring-ink-200">
-                  <p className="text-sm font-semibold text-ink-900">{c.author}</p>
-                  <p className="mt-1 whitespace-pre-line text-ink-800">{c.body}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        {enabled.comments && <Comments postId={post.id} comments={post.comments} canModerate={post.can_edit ?? false} />}
       </article>
     </AreaShell>
   );

@@ -3,12 +3,13 @@ import Link from "next/link";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
-import { getCampusEnabled, getOrganisationForEditor, getPostDetail, signCampusMedia } from "@/features/campus/queries";
+import { getCampusEnabled, getEventDetail, getOrganisationForEditor, getPostDetail, signCampusMedia } from "@/features/campus/queries";
 import { isPinnedNow, isScheduled } from "@/features/campus/schemas";
 import { CampusClosed, NotManaging } from "@/features/campus/components/campus-closed";
 import { PostEditor } from "@/features/campus/components/post-editor";
 import { statusLabel } from "@/features/campus/components/post-card";
 import { PinForm, PublishForm, StatusButtons } from "@/features/campus/components/post-controls";
+import { EventForm } from "@/features/campus/components/event-form";
 
 export const metadata: Metadata = { title: "Edit post", robots: { index: false } };
 
@@ -18,7 +19,7 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
   const { org: orgId, id } = await params;
   const [org, post] = await Promise.all([getOrganisationForEditor(orgId), /^[0-9a-f-]{36}$/.test(id) ? getPostDetail(id) : null]);
   if (!org || !post || post.organisation.id !== org.id || !post.can_edit) return <NotManaging />;
-  const images = await signCampusMedia(post.media);
+  const [images, event] = await Promise.all([signCampusMedia(post.media), getEventDetail(post.id)]);
   const status = post.status ?? "draft";
   const scheduled = status === "published" && isScheduled(post.publish_at);
   const live = status === "published" && !scheduled;
@@ -58,6 +59,11 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
             <Link href={`/student/campus/posts/${post.id}`} className={buttonVariants({ variant: "secondary" })}>
               <ExternalLink aria-hidden /> See it as students do
             </Link>
+          )}
+          {!post.is_emergency && (
+            <div className="rounded-2xl bg-white p-4 ring-1 ring-ink-200">
+              <EventForm postId={post.id} organisationId={org.id} event={event} />
+            </div>
           )}
           <StatusButtons postId={post.id} organisationId={org.id} status={status} scheduled={scheduled} />
         </aside>

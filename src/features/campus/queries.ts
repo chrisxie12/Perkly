@@ -3,7 +3,20 @@ import { cache } from "react";
 import { z } from "zod";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
-import { organisationSummarySchema, postListSchema, postSchema, type CampusPost, type Cursor } from "./schemas";
+import {
+  campusOverviewSchema,
+  commentSchema,
+  eventPostSchema,
+  eventSchema,
+  organisationSummarySchema,
+  postListSchema,
+  postSchema,
+  type CampusEvent,
+  type CampusEventPost,
+  type CampusOverview,
+  type CampusPost,
+  type Cursor,
+} from "./schemas";
 
 /**
  * Campus reads. Every one calls a database function that takes the school from
@@ -47,9 +60,7 @@ export async function getPostDetail(postId: string) {
   if (!data) return null;
   return postSchema
     .extend({
-      comments: z
-        .array(z.object({ id: z.uuid(), body: z.string(), created_at: z.string(), author: z.string(), mine: z.boolean() }))
-        .catch([]),
+      comments: z.array(commentSchema).catch([]),
     })
     .parse(data);
 }
@@ -236,3 +247,40 @@ export async function getListedInstitutions(): Promise<{ id: string; short_name:
   const { data } = await supabase.from("institutions").select("id, short_name, name").in("status", ["pilot", "active"]).order("short_name");
   return (data ?? []) as { id: string; short_name: string; name: string }[];
 }
+
+/** Switches and school agreements, for Perqly admins. Null if not allowed or unavailable. */
+export async function getCampusOverview(): Promise<CampusOverview | null> {
+  if (!hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_campus_overview");
+  if (error || !data) return null;
+  const parsed = campusOverviewSchema.safeParse(data);
+  return parsed.success ? parsed.data : null;
+}
+
+// Events ------------------------------------------------------------------------------------
+
+/** Event details for a post, or null if it isn't an event (or isn't readable). */
+export async function getEventDetail(postId: string): Promise<CampusEvent | null> {
+  if (!hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("event_detail", { p_post_id: postId });
+  if (error || !data) return null;
+  const parsed = eventSchema.safeParse(data);
+  return parsed.success ? parsed.data : null;
+}
+
+async function rpcEvents(fn: string, args: Record<string, unknown>): Promise<CampusEventPost[]> {
+  if (!hasSupabaseEnv()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc(fn, args);
+  if (error) throw new Error(`${fn} failed (${error.code ?? "unknown"})`);
+  return z
+    .array(eventPostSchema)
+    .catch([])
+    .parse(data ?? []);
+}
+
+export const getUpcomingEvents = (cursor: Cursor | null) =>
+  rpcEvents("upcoming_events", { p_after_at: cursor?.at ?? null, p_after_id: cursor?.id ?? null });
+export const getMyEvents = () => rpcEvents("my_events", {});

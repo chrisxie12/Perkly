@@ -227,6 +227,14 @@ const MESSAGES: Record<string, string> = {
   action_invalid: "That action isn't available here.",
   comment_invalid: "Write a comment of up to 1,000 characters.",
   setting_not_tunable: "That setting can't be changed here.",
+  agreement_not_found: "There's no agreement on record for this school.",
+  event_invalid: "Check the event: it needs a venue, a start within the next year, and an end after the start (up to 14 days).",
+  event_not_allowed: "Emergency notices can't be events.",
+  capacity_below_going: "More people are already going than that. Choose a bigger number.",
+  event_not_found: "This post isn't an event.",
+  event_over: "This event has finished.",
+  event_full: "This event is full.",
+  rsvp_closed: "The organisers have closed RSVPs for this event.",
 };
 
 export function campusErrorMessage(raw: string | undefined | null): string {
@@ -260,3 +268,144 @@ export const isScheduled = (publishAt: string | null | undefined, now = Date.now
 /** Is a pin still in force? */
 export const isPinnedNow = (pinnedUntil: string | null | undefined, now = Date.now()) =>
   Boolean(pinnedUntil && new Date(pinnedUntil).getTime() > now);
+
+// Switches and school agreements (Perqly admins) ---------------------------------------------
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+export const agreementFormSchema = z
+  .object({
+    institutionId: UUID,
+    signedOn: z.string({ error: "Add the date it was signed." }).regex(DAY, "Add the date it was signed."),
+    endsOn: z.string().regex(DAY, "Use a full date.").optional(),
+    signedByName: z
+      .string({ error: "Add who signed for the school." })
+      .trim()
+      .min(3, "Add who signed for the school.")
+      .max(120, "Keep the name under 120 characters."),
+    documentRef: z
+      .string({ error: "Add where the signed copy is kept." })
+      .trim()
+      .min(3, "Add where the signed copy is kept.")
+      .max(200, "Keep this under 200 characters."),
+  })
+  .refine((d) => !d.endsOn || d.endsOn > d.signedOn, { path: ["endsOn"], message: "The end date must be after the signing date." });
+
+export const campusOverviewSchema = z.object({
+  switches: z.object({ posts: z.boolean(), comments: z.boolean() }),
+  schools: z
+    .array(
+      z.object({
+        institution_id: z.string(),
+        short_name: z.string(),
+        name: z.string(),
+        signed_on: z.string().nullable(),
+        ends_on: z.string().nullable(),
+        signed_by_name: z.string().nullable(),
+        document_ref: z.string().nullable(),
+        recorded_at: z.string().nullable(),
+        active: z.boolean(),
+        organisations: z.number(),
+      }),
+    )
+    .catch([]),
+});
+export type CampusOverview = z.infer<typeof campusOverviewSchema>;
+
+/** "17 Nov 2026" for a plain date (YYYY-MM-DD). */
+export function formatDay(day: string | null | undefined): string {
+  if (!day || !DAY.test(day)) return "";
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(
+    new Date(`${day}T00:00:00Z`),
+  );
+}
+
+// Comments and events ----------------------------------------------------------------------
+
+export const commentSchema = z.object({ id: z.uuid(), body: z.string(), created_at: z.string(), author: z.string(), mine: z.boolean() });
+export type CampusComment = z.infer<typeof commentSchema>;
+
+export const commentFormSchema = z.object({
+  postId: UUID,
+  body: z.string({ error: "Write a comment." }).trim().min(1, "Write a comment.").max(1000, "Keep comments under 1,000 characters."),
+});
+
+export const eventSchema = z.object({
+  starts_at: z.string(),
+  ends_at: z.string().nullable(),
+  venue: z.string(),
+  capacity: z.number().nullable(),
+  rsvp_open: z.boolean(),
+  going: z.number(),
+  i_am_going: z.boolean(),
+  over: z.boolean(),
+});
+export type CampusEvent = z.infer<typeof eventSchema>;
+
+export const eventPostSchema = postSchema.extend({ event: eventSchema });
+export type CampusEventPost = z.infer<typeof eventPostSchema>;
+
+/** A wall-clock time from <input type="datetime-local">, read as Ghana time (UTC). */
+export function parseLocalTime(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
+  const at = new Date(`${value}:00Z`);
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
+/** The value for a datetime-local input, in Ghana time. */
+export function toLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 16);
+}
+
+export const eventFormSchema = z
+  .object({
+    postId: UUID,
+    organisationId: UUID,
+    startsAt: z.string({ error: "Choose when it starts." }),
+    endsAt: z.string().optional(),
+    venue: z
+      .string({ error: "Add where it happens." })
+      .trim()
+      .min(2, "Add where it happens.")
+      .max(160, "Keep the venue under 160 characters."),
+    capacity: z.coerce.number().int("Use a whole number.").min(1, "At least 1.").max(100000, "That's too many.").optional(),
+    rsvpOpen: z.boolean(),
+  })
+  .superRefine((d, ctx) => {
+    if (!parseLocalTime(d.startsAt)) ctx.addIssue({ code: "custom", path: ["startsAt"], message: "Choose when it starts." });
+    if (d.endsAt !== undefined) {
+      const end = parseLocalTime(d.endsAt);
+      const start = parseLocalTime(d.startsAt);
+      if (!end) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "Choose a date and time, or leave it empty." });
+      else if (start && end <= start) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "The end must be after the start." });
+      else if (start && Date.parse(end) - Date.parse(start) > 14 * 24 * 60 * 60 * 1000)
+        ctx.addIssue({ code: "custom", path: ["endsAt"], message: "Events can last up to 14 days." });
+    }
+  });
+
+/** "Sat 21 Nov, 18:00 – 22:00" in Ghana time. */
+export function formatEventTime(startsAt: string, endsAt: string | null): string {
+  const day = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Africa/Accra" });
+  const time = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Accra" });
+  const s = new Date(startsAt);
+  if (Number.isNaN(s.getTime())) return "";
+  const start = `${day.format(s)}, ${time.format(s)}`;
+  if (!endsAt) return start;
+  const e = new Date(endsAt);
+  if (Number.isNaN(e.getTime())) return start;
+  return day.format(e) === day.format(s) ? `${start} – ${time.format(e)}` : `${start} – ${day.format(e)}, ${time.format(e)}`;
+}
+
+/** "12 going", "12 of 50 going", or "Full". */
+export function goingLabel(event: Pick<CampusEvent, "going" | "capacity">): string {
+  if (event.capacity !== null && event.going >= event.capacity) return `Full (${event.capacity} going)`;
+  return event.capacity !== null ? `${event.going} of ${event.capacity} going` : `${event.going} going`;
+}
+
+/** Event list cursor: (starts_at, id), oldest first. */
+export function nextEventCursor(page: { id: string; event: { starts_at: string } }[], pageSize = 30): string | null {
+  const last = page.at(-1);
+  return page.length === pageSize && last ? encodeCursor(last.event.starts_at, last.id) : null;
+}

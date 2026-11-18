@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bookmark, Building2, ChevronRight, Megaphone } from "lucide-react";
+import { Bookmark, Building2, CalendarDays, ChevronRight, Megaphone } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { EmptyState } from "@/components/shared/states";
 import { buttonVariants } from "@/components/ui/button";
@@ -86,7 +86,7 @@ export default async function CampusPage({ searchParams }: PageProps<"/student/c
   return (
     <AreaShell area="student">
       <PageTitle title="Campus" description="Announcements and news from your school's organisations." />
-      <nav className="mb-6 grid gap-2 sm:grid-cols-2" aria-label="Campus">
+      <nav className="mb-6 grid gap-2 sm:grid-cols-3" aria-label="Campus">
         <Link
           href="/student/campus/organisations"
           className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-ink-200 hover:bg-ink-50"
@@ -98,6 +98,11 @@ export default async function CampusPage({ searchParams }: PageProps<"/student/c
         <Link href="/student/campus/saved" className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-ink-200 hover:bg-ink-50">
           <Bookmark className="size-5 text-blue-600" aria-hidden />
           <span className="flex-1 font-medium">Saved posts</span>
+          <ChevronRight className="size-5 text-ink-600" aria-hidden />
+        </Link>
+        <Link href="/student/campus/events" className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-ink-200 hover:bg-ink-50">
+          <CalendarDays className="size-5 text-blue-600" aria-hidden />
+          <span className="flex-1 font-medium">Events</span>
           <ChevronRight className="size-5 text-ink-600" aria-hidden />
         </Link>
       </nav>

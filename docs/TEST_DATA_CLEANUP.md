@@ -123,7 +123,7 @@ Storage files:
 
 The `audit_logs` rows where the person is the actor (`actor_id`) or the subject (`entity_id`) are also listed. Section 7 explains why they stay.
 
-Campus rows (once migration `20261117090000` is applied): **cascade** with the person: `organisation_members`, `organisation_follows`, `post_likes`, `post_saves`, `post_comments`. **Set to null:** `campus_posts.author_id`, `content_reports.reporter_id` and `resolved_by`, `campus_organisations.verified_by` and `created_by`, `organisation_members.appointed_by`, `campus_agreements.recorded_by`. A candidate who is the only owner of a real organisation is flagged (section 5.3).
+Campus rows (once migrations `20261117090000` and `20261118100000` are applied): **cascade** with the person: `organisation_members`, `organisation_follows`, `post_likes`, `post_saves`, `post_comments`, `event_rsvps`. **Set to null:** `campus_posts.author_id`, `content_reports.reporter_id` and `resolved_by`, `campus_organisations.verified_by` and `created_by`, `organisation_members.appointed_by`, `campus_agreements.recorded_by`. A candidate who is the only owner of a real organisation is flagged (section 5.3).
 
 ### 5.2 For a candidate business (never StudaData)
 
@@ -135,7 +135,7 @@ Storage files: everything in `merchant-photos/<merchant id>/`.
 
 ### 5.2a For a candidate Campus organisation
 
-An organisation is a school's, not a person's. A test organisation is archived with `admin_set_organisation_status` (which removes its posts and queues its images), never deleted in SQL: `campus_posts` blocks deleting an organisation that still has posts. Its images in `campus-media/<school id>/<organisation id>/` are deleted by the daily job 30 days later, or listed for you to delete in the dashboard.
+An organisation is a school's, not a person's. A test organisation is archived with `admin_set_organisation_status` (which removes its posts and queues its images; event details and RSVPs go with the posts), never deleted in SQL: `campus_posts` blocks deleting an organisation that still has posts. Its images in `campus-media/<school id>/<organisation id>/` are deleted by the daily job 30 days later, or listed for you to delete in the dashboard.
 
 ### 5.3 Links to genuine records (flagged, never removed automatically)
 
