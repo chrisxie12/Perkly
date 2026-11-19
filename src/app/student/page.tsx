@@ -65,119 +65,137 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   return (
     <AreaShell area="student">
       <div className="-mx-4 sm:mx-0">
-        <div className="flex flex-col gap-4 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-0">
-          <div className="min-w-0">
-            <h1 className="font-display text-4xl leading-none font-black tracking-tight text-ink-900">Campus deals</h1>
-            <p className="mt-1.5 text-[0.9375rem] font-medium text-ink-600">
-              {ctx?.firstName ? `${ctx.firstName}, here's` : "Here's"} what&apos;s on near {campus ?? "your campus"}
-            </p>
-          </div>
-          <div
-            className="flex shrink-0 items-center gap-1 self-start rounded-2xl bg-ink-100 p-1 sm:self-auto"
-            role="group"
-            aria-label="View"
-          >
-            <span
-              aria-current="page"
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-bold text-blue-500 shadow-md"
-            >
-              <LayoutGrid className="size-4" aria-hidden /> Grid
-            </span>
-            <Link
-              href="/student/map"
-              className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-ink-600 hover:bg-white/60"
-            >
-              <MapIcon className="size-4" aria-hidden /> Map
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-3 px-4 sm:px-0">
-          {live && (
-            <Link
-              href={`/student/redeem/${live}`}
-              className="flex items-center justify-between gap-3 rounded-2xl bg-ink-900 p-4 font-semibold text-white"
-            >
-              You have a redemption in progress <ArrowRight className="size-5 shrink-0" aria-hidden />
-            </Link>
-          )}
-          {campusOn && <CampusHomeCard />}
-          {verified ? (
-            <Link
-              href="/student/history"
-              className="relative flex items-center gap-4 overflow-hidden rounded-2xl bg-blue-500 p-4 pl-5 text-white"
-              aria-label="See your savings"
-            >
-              <span
-                className="pointer-events-none absolute -top-10 -right-8 size-36 rounded-full border-[22px] border-white/10"
-                aria-hidden
-              />
-              <span>
-                <span className="block text-[0.8125rem] font-medium opacity-85">Saved with Perqly</span>
-                <span className="block font-display text-3xl leading-tight font-bold tracking-tight tabular-nums">
-                  {money(savings.total_saved)}
-                </span>
-                <span className="block text-[0.8125rem] opacity-85">
-                  {savings.redemptions === 0
-                    ? "Your first discount shows up here"
-                    : `${savings.redemptions} ${savings.redemptions === 1 ? "visit" : "visits"}, ${savings.shops} ${savings.shops === 1 ? "shop" : "shops"}`}
-                </span>
-              </span>
-              <span className="relative ml-auto grid size-9 place-items-center rounded-full bg-white/15">
-                <ArrowRight className="size-5" aria-hidden />
-              </span>
-            </Link>
-          ) : view === "pending" ? (
-            <div className="rounded-2xl bg-orange-50 p-4 ring-1 ring-orange-200">
-              <h2 className="font-display text-lg font-bold">Perqly is checking your details</h2>
-              <p className="mt-1 text-sm text-ink-700">You can browse deals now. Redeeming unlocks when they approve you.</p>
-              <Link href="/student/verify" className={`${buttonVariants({ size: "sm", variant: "secondary" })} mt-3`}>
-                See status
-              </Link>
-            </div>
-          ) : (
-            <div className="rounded-2xl bg-ink-900 p-4 text-white">
-              <h2 className="font-display text-lg leading-snug font-bold">
-                {view === "expired" ? "Your verification has expired" : "Get verified to unlock student prices"}
-              </h2>
-              <p className="mt-1 text-sm text-white/75">
-                {view === "needs_profile"
-                  ? "Start by choosing your school."
-                  : view === "resubmit"
-                    ? "Your reviewer asked you to change something."
-                    : "You'll need your student ID card."}
-              </p>
-              <Link
-                href={view === "needs_profile" ? "/student/profile" : "/student/verify"}
-                className={`${buttonVariants({ size: "sm" })} mt-3`}
-              >
-                {view === "needs_profile" ? "Choose your school" : view === "resubmit" ? "See what to change" : "Start verification"}{" "}
-                <ArrowRight aria-hidden />
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <form
-          role="search"
-          action="/student"
-          className="mx-4 mt-4 flex h-12 items-center gap-2 rounded-xl bg-white px-3 ring-1 ring-ink-200 focus-within:ring-2 focus-within:ring-blue-500 sm:mx-0"
+        {/* Hero: deep blue with soft moving light; the glass panels float on top of it. */}
+        <section
+          aria-labelledby="deals-h"
+          className="theme-fixed relative isolate -mt-6 overflow-hidden rounded-b-[2rem] bg-[#0e1626] px-4 pt-6 pb-5 text-white sm:mt-0 sm:rounded-[2rem] sm:px-6"
         >
-          {category && <input type="hidden" name="category" value={category} />}
-          <Search className="size-5 text-ink-600" aria-hidden />
-          <label htmlFor="q" className="sr-only">
-            Search deals or shops
-          </label>
-          <input
-            id="q"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder="Search deals or shops"
-            autoComplete="off"
-            className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-ink-600"
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-24 -left-20 -z-10 size-80 animate-drift rounded-full bg-[radial-gradient(circle,#3d8bff_0%,rgba(0,102,255,0)_70%)] opacity-80 blur-2xl"
           />
-        </form>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-16 -right-24 -z-10 size-72 animate-drift rounded-full bg-[radial-gradient(circle,#ff6b35_0%,rgba(255,107,53,0)_70%)] opacity-60 blur-2xl [animation-delay:-6s]"
+          />
+          <div className="flex items-end justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[0.9375rem] font-medium text-white/80">
+                {ctx?.firstName ? `${ctx.firstName}, here's` : "Here's"} what&apos;s on near {campus ?? "your campus"}
+              </p>
+              <h1 id="deals-h" className="mt-0.5 font-display text-4xl leading-none font-extrabold tracking-tight">
+                Campus deals
+              </h1>
+            </div>
+            <div className="glass-dark flex shrink-0 items-center gap-1 rounded-full p-1" role="group" aria-label="View">
+              <span
+                aria-current="page"
+                className="flex h-9 items-center gap-1.5 rounded-full bg-white px-3 text-sm font-semibold text-ink-900"
+              >
+                <LayoutGrid className="size-4" aria-hidden /> Grid
+              </span>
+              <Link
+                href="/student/map"
+                className="flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-white hover:bg-white/10"
+              >
+                <MapIcon className="size-4" aria-hidden /> Map
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {live && (
+              <Link
+                href={`/student/redeem/${live}`}
+                className="gloss-orange spring-in flex items-center justify-between gap-3 rounded-3xl p-4 font-semibold text-ink-900"
+              >
+                You have a redemption in progress <ArrowRight className="size-5 shrink-0" aria-hidden />
+              </Link>
+            )}
+            {campusOn && <CampusHomeCard />}
+            {verified ? (
+              <Link
+                href="/student/history"
+                className="gloss-blue spring-in relative flex items-center gap-4 overflow-hidden rounded-3xl p-5"
+                aria-label="See your savings"
+              >
+                <span className="glass-sheen" aria-hidden />
+                <span className="relative">
+                  <span className="block text-[0.8125rem] font-medium text-white/85">Saved with Perqly</span>
+                  <span className="block font-display text-4xl leading-tight font-extrabold tracking-tight tabular-nums">
+                    {money(savings.total_saved)}
+                  </span>
+                  <span className="block text-[0.8125rem] text-white/85">
+                    {savings.redemptions === 0
+                      ? "Your first discount shows up here"
+                      : `${savings.redemptions} ${savings.redemptions === 1 ? "visit" : "visits"}, ${savings.shops} ${savings.shops === 1 ? "shop" : "shops"}`}
+                  </span>
+                </span>
+                <span className="relative ml-auto grid size-10 place-items-center rounded-full bg-white/20">
+                  <ArrowRight className="size-5" aria-hidden />
+                </span>
+              </Link>
+            ) : view === "pending" ? (
+              <div className="glass-dark spring-in rounded-3xl p-4">
+                <h2 className="flex items-center gap-2 font-display text-lg font-bold">
+                  <span className="relative flex size-2.5" aria-hidden>
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex size-2.5 rounded-full bg-orange-500" />
+                  </span>
+                  Perqly is checking your details
+                </h2>
+                <p className="mt-1 text-sm text-white/80">You can browse deals now. Redeeming unlocks when they approve you.</p>
+                <Link
+                  href="/student/verify"
+                  className="mt-3 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-ink-900"
+                >
+                  See status
+                </Link>
+              </div>
+            ) : (
+              <div className="glass-dark spring-in rounded-3xl p-4">
+                <h2 className="font-display text-lg leading-snug font-bold">
+                  {view === "expired" ? "Your verification has expired" : "Get verified to unlock student prices"}
+                </h2>
+                <p className="mt-1 text-sm text-white/80">
+                  {view === "needs_profile"
+                    ? "Start by choosing your school."
+                    : view === "resubmit"
+                      ? "Your reviewer asked you to change something."
+                      : "You'll need your student ID card."}
+                </p>
+                <Link
+                  href={view === "needs_profile" ? "/student/profile" : "/student/verify"}
+                  className="gloss-orange mt-3 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ink-900"
+                >
+                  {view === "needs_profile" ? "Choose your school" : view === "resubmit" ? "See what to change" : "Start verification"}{" "}
+                  <ArrowRight className="size-4" aria-hidden />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <form
+            role="search"
+            action="/student"
+            className="glass-dark mt-4 flex h-12 items-center gap-2 rounded-full px-4 focus-within:ring-2 focus-within:ring-white/70"
+          >
+            {category && <input type="hidden" name="category" value={category} />}
+            <Search className="size-5 text-white/80" aria-hidden />
+            <label htmlFor="q" className="sr-only">
+              Search deals or shops
+            </label>
+            <input
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Search deals or shops"
+              autoComplete="off"
+              className="h-full min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/70"
+            />
+          </form>
+        </section>
 
         <nav aria-label="Sort deals" className="flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pt-4 sm:px-0">
           {SORTS.map((o) => {
@@ -188,9 +206,9 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
                 href={link({ q, category, sort: o.value })}
                 aria-current={active ? "true" : undefined}
                 className={cn(
-                  "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-xs font-bold ring-1 transition-colors",
+                  "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-[0.8125rem] font-semibold ring-1 transition-all duration-300 active:scale-95",
                   active
-                    ? "bg-blue-500 text-white ring-blue-500"
+                    ? "bg-ink-900 text-white ring-ink-900"
                     : "bg-white text-ink-700 ring-ink-200 hover:text-blue-500 hover:ring-blue-300",
                 )}
               >

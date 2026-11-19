@@ -38,17 +38,17 @@ The earlier product and technical plan (<https://claude.ai/artifact/GaKkF97JCKtA
 
 ## Tech stack
 
-| Layer      | Choice                                                                                       |
-| ---------- | -------------------------------------------------------------------------------------------- |
-| Framework  | Next.js 16 (App Router, Turbopack, Cache Components), React 19, TypeScript strict            |
-| Styling    | Tailwind CSS v4 with Perqly design tokens in `src/app/globals.css`                           |
-| Components | shadcn-style components (Radix primitives + `class-variance-authority`), Lucide icons        |
-| Fonts      | Bricolage Grotesque (display) and Figtree (body), self-hosted from `src/app/fonts` (SIL OFL) |
-| Backend    | Supabase (Postgres, Auth, Storage, RLS) via `@supabase/ssr`                                  |
-| Validation | Zod                                                                                          |
-| PWA        | Serwist (`@serwist/turbopack`), web app manifest, service worker                             |
-| Hosting    | Vercel                                                                                       |
-| Tests      | Vitest (unit), headless Chrome checks (see `PWA_TESTING.md`)                                 |
+| Layer      | Choice                                                                                |
+| ---------- | ------------------------------------------------------------------------------------- |
+| Framework  | Next.js 16 (App Router, Turbopack, Cache Components), React 19, TypeScript strict     |
+| Styling    | Tailwind CSS v4 with Perqly design tokens in `src/app/globals.css`                    |
+| Components | shadcn-style components (Radix primitives + `class-variance-authority`), Lucide icons |
+| Fonts      | Geist (display and body), self-hosted from `src/app/fonts` (SIL OFL)                  |
+| Backend    | Supabase (Postgres, Auth, Storage, RLS) via `@supabase/ssr`                           |
+| Validation | Zod                                                                                   |
+| PWA        | Serwist (`@serwist/turbopack`), web app manifest, service worker                      |
+| Hosting    | Vercel                                                                                |
+| Tests      | Vitest (unit), headless Chrome checks (see `PWA_TESTING.md`)                          |
 
 > shadcn/ui note: the shadcn CLI couldn't reach its registry from the build environment, so the components in `src/components/ui` were written by hand in the shadcn pattern (Radix + CVA + `cn`). You can add more later with `npx shadcn@latest add <component>`.
 

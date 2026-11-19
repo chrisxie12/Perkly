@@ -10,18 +10,11 @@ import { getSiteUrl, isProductionEnv } from "@/lib/env";
 import "./globals.css";
 import { THEME_COLORS, themeScript } from "@/lib/theme/script";
 
-const bricolage = localFont({
-  src: "./fonts/bricolage-grotesque.woff2",
-  variable: "--font-bricolage",
-  weight: "200 800",
-  display: "swap",
-  preload: true,
-});
-
-const figtree = localFont({
-  src: "./fonts/figtree.woff2",
-  variable: "--font-figtree",
-  weight: "300 900",
+// Geist (SIL Open Font Licence, see fonts/GEIST-LICENSE.txt): one variable family for headings and text.
+const geist = localFont({
+  src: "./fonts/geist.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
   display: "swap",
   preload: true,
 });
@@ -77,7 +70,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: the theme script sets data-theme on <html> before React loads.
-    <html lang="en-GH" className={`${bricolage.variable} ${figtree.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en-GH" className={`${geist.variable} antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
