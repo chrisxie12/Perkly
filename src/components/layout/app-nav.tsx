@@ -137,42 +137,55 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
   return (
     <nav
       aria-label={`${nav.label} tabs`}
-      className="glass fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 mx-auto max-w-md rounded-full px-1.5 md:hidden"
+      className="glass fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 mx-auto max-w-md rounded-[2rem] px-1 md:hidden"
     >
-      <ul className="flex items-center">
+      <ul className="grid h-16 auto-cols-fr grid-flow-col items-center">
         {nav.tabs.slice(0, nav.more.length > 0 ? 4 : 5).map((it) => {
           const Icon = ICONS[it.icon];
           const current = active === it.key;
           if (it.emphasis) {
             return (
-              <li key={it.key} className="flex flex-1 justify-center">
+              <li key={it.key} className="flex justify-center">
                 <Link
                   href={it.href}
                   aria-current={current ? "page" : undefined}
                   aria-label={`${it.label}${badgeText(it.badge)}`}
-                  className="gloss-orange theme-fixed relative my-1.5 grid size-13 place-items-center rounded-full text-ink-900 transition-transform duration-200 active:scale-90"
+                  className="gloss-orange theme-fixed relative grid size-12 place-items-center rounded-full text-ink-900 transition-transform duration-200 active:scale-90"
                 >
                   <Icon className="size-6" strokeWidth={2.2} aria-hidden />
-                  <Badge badge={it.badge} />
+                  {it.badge === "lock" && (
+                    <span
+                      className="absolute -top-0.5 -right-0.5 grid size-5 place-items-center rounded-full bg-white shadow-sm"
+                      aria-hidden
+                    >
+                      <Lock className="size-3 text-ink-700" />
+                    </span>
+                  )}
+                  {it.badge === "dot" && <Badge badge={it.badge} />}
                 </Link>
               </li>
             );
           }
           return (
-            <li key={it.key} className="flex flex-1 justify-center">
+            <li key={it.key} className="flex justify-center">
               <Link
                 href={it.href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "relative my-1.5 flex min-w-14 flex-col items-center gap-0.5 rounded-full px-2.5 py-1.5 text-[0.6875rem] font-medium text-ink-700 transition-all duration-300 active:scale-90",
-                  current && "bg-blue-500/12 font-semibold text-blue-600",
+                  "relative flex w-full flex-col items-center gap-0.5 text-[0.6875rem] font-medium text-ink-700 transition-colors duration-300 active:scale-95",
+                  current && "font-semibold text-blue-600",
                 )}
               >
-                <span className="relative grid place-items-center">
+                <span
+                  className={cn(
+                    "relative grid h-7 w-12 place-items-center rounded-full transition-colors duration-300",
+                    current && "bg-blue-500/12",
+                  )}
+                >
                   <Icon className="size-[1.375rem]" strokeWidth={current ? 2.4 : 1.9} aria-hidden />
                   <Badge badge={it.badge} />
                 </span>
-                <span className="truncate">
+                <span className="max-w-full truncate px-0.5">
                   {it.label}
                   <span className="sr-only">{badgeText(it.badge)}</span>
                 </span>
@@ -181,15 +194,17 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
           );
         })}
         {nav.more.length > 0 && (
-          <li className="flex flex-1 justify-center">
+          <li className="flex justify-center">
             <details className="group relative">
               <summary
                 className={cn(
-                  "my-1.5 flex min-w-14 cursor-pointer list-none flex-col items-center gap-0.5 rounded-full px-2.5 py-1.5 text-[0.6875rem] font-medium text-ink-700 transition-all duration-300 [&::-webkit-details-marker]:hidden",
-                  moreActive && "bg-blue-500/12 font-semibold text-blue-600",
+                  "flex cursor-pointer list-none flex-col items-center gap-0.5 text-[0.6875rem] font-medium text-ink-700 [&::-webkit-details-marker]:hidden",
+                  moreActive && "font-semibold text-blue-600",
                 )}
               >
-                <Menu className="size-[1.375rem]" strokeWidth={moreActive ? 2.4 : 1.9} aria-hidden />
+                <span className={cn("grid h-7 w-12 place-items-center rounded-full", moreActive && "bg-blue-500/12")}>
+                  <Menu className="size-[1.375rem]" strokeWidth={moreActive ? 2.4 : 1.9} aria-hidden />
+                </span>
                 More
               </summary>
               <ul className="glass absolute right-0 bottom-full mb-3 w-56 rounded-3xl p-2">
