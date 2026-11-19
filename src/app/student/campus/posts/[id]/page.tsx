@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
+import { FriendsGoing } from "@/features/friends/components/friends-going";
 import Link from "next/link";
 import { AlertTriangle, ChevronLeft, ExternalLink, PlayCircle } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
@@ -63,6 +65,11 @@ export default async function CampusPostPage({ params }: PageProps<"/student/cam
         )}
         <h1 className="text-display-sm mt-4 font-display font-extrabold">{post.title}</h1>
         {event && <EventBlock postId={post.id} event={event} />}
+        {event && (
+          <Suspense fallback={null}>
+            <FriendsGoing postId={post.id} />
+          </Suspense>
+        )}
         <p className="mt-3 text-lg leading-relaxed whitespace-pre-line text-ink-800">{post.body}</p>
         {post.media.length > 0 && (
           <div className="mt-5 grid gap-3">
