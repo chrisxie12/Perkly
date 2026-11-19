@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,6 +28,7 @@ import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
 import { DealRow, HeartButton, initials, toneFor, walkLabel } from "@/features/students/app/bits";
 import { openLabel } from "@/features/merchants/hours";
+import { FriendsOnDeal } from "@/features/friends/components/friends-on-deal";
 
 export const metadata: Metadata = { title: "Deal", robots: { index: false } };
 
@@ -159,6 +161,12 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
               </li>
             ))}
           </ul>
+
+          {verified && (
+            <Suspense fallback={null}>
+              <FriendsOnDeal offerId={offer.offer_id} />
+            </Suspense>
+          )}
 
           <section className="mt-8" aria-labelledby="how-h">
             <h2 id="how-h" className="mb-4 font-display text-xl font-black text-ink-900">

@@ -6,12 +6,12 @@ Related: `docs/CAMPUS.md` (what Campus does), `docs/BACKUPS.md` (restore rehears
 
 ## 1. Before anything is merged
 
-| Item                                                                                                  | Owner   | Status                                        |
-| ----------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------- |
-| Gate 0: staging and production connection secrets correct; nightly backup re-enabled and passing      | Founder | Done 18 Nov 2026                              |
-| Gate 0: read-only count of the production notification backlog                                        | Founder | Done 18 Nov 2026: 31 rows, none waiting       |
-| Gate 0: restore rehearsal passes (`docs/BACKUPS.md` §7)                                               | Founder | **Open.** The workflow exists; not yet passed |
-| Founder decides whether the Campus merge waits for the restore rehearsal, as the Gate 0 rule says now | Founder | Open                                          |
+| Item                                                                                                  | Owner   | Status                                                               |
+| ----------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
+| Gate 0: staging and production connection secrets correct; nightly backup re-enabled and passing      | Founder | Done 18 Nov 2026                                                     |
+| Gate 0: read-only count of the production notification backlog                                        | Founder | Done 18 Nov 2026: 31 rows, none waiting                              |
+| Gate 0: restore rehearsal passes (`docs/BACKUPS.md` §7)                                               | Founder | Passed 18–19 Nov 2026, except items 6–7 (sign-in on a restored copy) |
+| Founder decides whether the Campus merge waits for the restore rehearsal, as the Gate 0 rule says now | Founder | Done: merged 19 Nov 2026 (PR #8), switched off                       |
 
 ## 2. Before real students see Campus
 

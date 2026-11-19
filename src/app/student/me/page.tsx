@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Smartphone,
   UserRound,
+  Users,
 } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
@@ -24,6 +25,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
 import { countUnreadChats } from "@/features/chat/queries";
+import { countFriendRequests } from "@/features/friends/queries";
 import { getCampusEnabled } from "@/features/campus/queries";
 
 export const metadata: Metadata = { title: "Me", robots: { index: false } };
@@ -45,11 +47,12 @@ function Row({ href, icon: Icon, label, note }: { href: string; icon: typeof Bel
 }
 
 export default async function MePage() {
-  const [ctx, status, photoPath, unreadChats] = await Promise.all([
+  const [ctx, status, photoPath, unreadChats, friendRequests] = await Promise.all([
     getUserContext(),
     getMyStudentStatus(),
     getMyPassPhotoPath(),
     countUnreadChats(),
+    countFriendRequests(),
   ]);
   // Campus (C1): a row only while Campus is switched on.
   const campusOn = (await getCampusEnabled()).posts;
@@ -135,6 +138,18 @@ export default async function MePage() {
           label="Photo for your pass"
           note={photoUrl ? "Added" : "Not added yet. Cashiers use it to check it's you"}
         />
+        {view === "verified" && (
+          <Row
+            href="/student/friends"
+            icon={Users}
+            label="Friends"
+            note={
+              friendRequests > 0
+                ? `${friendRequests} new ${friendRequests === 1 ? "request" : "requests"}`
+                : "Classmates, shared deals and chats"
+            }
+          />
+        )}
         <Row href="/student/favourites" icon={Heart} label="Saved shops" />
         {campusOn && <Row href="/student/campus" icon={Megaphone} label="Campus" note="Announcements from your school's organisations" />}
         <Row
