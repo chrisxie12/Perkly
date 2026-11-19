@@ -27,6 +27,17 @@ const contextSchema = z.object({
       }),
     )
     .catch([]),
+  // Campus organisations the user belongs to (C1). Older databases don't send it.
+  organisation_roles: z
+    .array(
+      z.object({
+        organisation_id: z.uuid(),
+        name: z.string(),
+        role: z.enum(["owner", "admin", "editor"]),
+        status: z.enum(["draft", "verified", "suspended", "archived"]),
+      }),
+    )
+    .catch([]),
 });
 
 export type PlatformRole = NonNullable<z.infer<typeof contextSchema>["platform_role"]>;
@@ -44,7 +55,16 @@ export interface UserContext {
   delegatedInstitutions: { institutionId: string; shortName: string }[];
   /** Businesses this person works for, and their role in each. */
   merchantRoles: MerchantMembership[];
+  /** Campus organisations (C1). Optional so existing callers and fixtures need no change. */
+  organisationRoles?: OrganisationMembership[];
 }
+
+export type OrganisationMembership = {
+  organisationId: string;
+  name: string;
+  role: "owner" | "admin" | "editor";
+  status: "draft" | "verified" | "suspended" | "archived";
+};
 
 export type MerchantMembership = {
   merchantId: string;
@@ -73,6 +93,12 @@ export function parseUserContext(raw: unknown, aalFromToken?: unknown): UserCont
       role: m.role,
       status: m.status,
     })),
+    organisationRoles: (data.organisation_roles ?? []).map((o) => ({
+      organisationId: o.organisation_id,
+      name: o.name,
+      role: o.role,
+      status: o.status,
+    })),
   };
 }
 
@@ -82,6 +108,7 @@ export function areasFor(ctx: UserContext): Area[] {
   if (ctx.signupIntent === "merchant" || ctx.merchantRoles.length > 0) areas.push("merchant");
   if (ctx.institutionRoles.length > 0 || ctx.delegatedInstitutions.length > 0) areas.push("institution");
   if (ctx.platformRole) areas.push("admin");
+  if ((ctx.organisationRoles ?? []).length > 0) areas.push("organise");
   return areas;
 }
 
@@ -109,6 +136,9 @@ export function decideAccess(area: Area, ctx: UserContext): AccessDecision {
     case "admin":
       if (!ctx.platformRole) return { kind: "forbidden" };
       return ctx.aal === "aal2" ? { kind: "allow" } : { kind: "mfa" };
+    case "organise":
+      // Campus organisation members. The database checks each organisation and role.
+      return (ctx.organisationRoles ?? []).length > 0 ? { kind: "allow" } : { kind: "forbidden" };
   }
 }
 

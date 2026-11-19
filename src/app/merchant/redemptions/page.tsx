@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Receipt } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
@@ -35,6 +36,11 @@ export default async function MerchantRedemptionsPage({ searchParams }: PageProp
             : "Every discount confirmed at your business. Payment notes are your own record; Perqly never handles payment."
         }
       />
+      <p className="-mt-2 mb-6">
+        <Link href="/merchant/problems" className="font-semibold text-blue-600">
+          Problem reports you&apos;ve sent
+        </Link>
+      </p>
       {(error || query.saved) && (
         <div
           role={error ? "alert" : "status"}
@@ -88,6 +94,12 @@ export default async function MerchantRedemptionsPage({ searchParams }: PageProp
                   {new Date(r.redeemed_at).getTime() > cutoff && (
                     <PaymentForm redemptionId={r.id} method={r.payment_method} status={r.payment_status} />
                   )}
+                  <Link
+                    href={`/merchant/problems/new?redemption=${r.id}`}
+                    className="font-semibold text-ink-600 underline-offset-2 hover:underline"
+                  >
+                    Report a problem
+                  </Link>
                 </div>
               )}
             </li>

@@ -84,7 +84,7 @@ export async function removePushSubscription(endpoint: string): Promise<void> {
   revalidatePath("/account/notifications/settings");
 }
 
-const CATEGORIES = ["verification", "deals", "redemptions", "business", "review", "messages", "account"] as const;
+const CATEGORIES = ["verification", "deals", "redemptions", "business", "review", "messages", "bookings", "campus", "account"] as const;
 
 export async function saveNotificationSettings(_prev: FormState, formData: FormData): Promise<FormState> {
   if (!hasSupabaseEnv()) return { status: "error", message: "This isn't available in this environment yet." };

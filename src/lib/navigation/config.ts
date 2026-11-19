@@ -9,7 +9,7 @@
 import { administeredInstitutions, canManagePlatform, canSupport, type MerchantMembership, type UserContext } from "@/lib/auth/roles";
 import type { VerificationView } from "@/features/students/status";
 
-export type NavArea = "student" | "merchant" | "institution" | "admin" | "account";
+export type NavArea = "student" | "merchant" | "institution" | "admin" | "organise" | "account";
 
 export type IconName =
   | "home"
@@ -38,7 +38,8 @@ export type IconName =
   | "badge"
   | "wallet"
   | "chat"
-  | "star";
+  | "star"
+  | "calendar";
 
 export type NavItem = {
   key: string;
@@ -60,6 +61,8 @@ export type NavContext = {
   ctx: UserContext;
   verification?: VerificationView | null;
   membership?: MerchantMembership | null;
+  /** Campus switched on (C1). Unset or false: no Campus links appear. */
+  campus?: boolean;
 };
 
 export const AREA_TITLE: Record<NavArea, string> = {
@@ -67,6 +70,7 @@ export const AREA_TITLE: Record<NavArea, string> = {
   merchant: "Business",
   institution: "Institution",
   admin: "Perqly staff",
+  organise: "Organisation",
   account: "Account",
 };
 
@@ -89,6 +93,9 @@ const hasMembership = (n: NavContext) => Boolean(n.membership);
 /** Sub-page permissions inside each area, longest match wins. Paths not listed are open to everyone in the area. */
 export const ROUTE_RULES: Rule[] = [
   // Business
+  { path: "/merchant/bookings/setup*", allow: isManager, reason: "Only owners and managers set booking hours." },
+  { path: "/merchant/problems*", allow: (n) => hasMembership(n) && isLive(n), reason: "Problem reports open once your business is live." },
+  { path: "/merchant/bookings*", allow: (n) => hasMembership(n) && isLive(n), reason: "Bookings open once your business is live." },
   { path: "/merchant/offers*", allow: isManager, reason: "Only owners and managers manage offers." },
   { path: "/merchant/catalogue*", allow: isManager, reason: "Only owners and managers manage the catalogue." },
   { path: "/merchant/counter*", allow: (n) => hasMembership(n) && isLive(n), reason: "The counter opens once your business is live." },
@@ -116,10 +123,28 @@ export const ROUTE_RULES: Rule[] = [
   { path: "/admin/institutions/new*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins add institutions." },
   { path: "/admin/users*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins look up accounts." },
   { path: "/admin/redemptions*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see redemptions." },
+  { path: "/admin/disputes*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle problem reports." },
   { path: "/admin/reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see reports." },
   { path: "/admin/staff*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins see staff." },
   { path: "/admin/audit*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins read the audit log." },
   { path: "/admin/settings*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins see platform settings." },
+  // Campus (C1)
+  {
+    path: "/admin/campus/organisations*",
+    allow: (n) => canManagePlatform(n.ctx),
+    reason: "Only Perqly admins manage Campus organisations.",
+  },
+  { path: "/admin/campus/moderation*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins moderate Campus." },
+  {
+    path: "/admin/campus/settings*",
+    allow: (n) => canManagePlatform(n.ctx),
+    reason: "Only Perqly admins see Campus switches and agreements.",
+  },
+  {
+    path: "/organise*",
+    allow: (n) => (n.ctx.organisationRoles ?? []).length > 0,
+    reason: "Only members of a Campus organisation can open this.",
+  },
 ];
 
 function matches(pattern: string, path: string) {
@@ -179,9 +204,12 @@ function studentNav(n: NavContext): AreaNav {
         label: "You",
         items: [
           item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
+          item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"]),
+          item("problems", "Problem reports", "/student/problems", "inbox", ["/student/problems*"]),
           item("messages", "Messages", "/student/messages", "chat", ["/student/messages*"]),
           item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
           item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
+          ...(n.campus ? [item("campus", "Campus", "/student/campus", "building", ["/student/campus*"])] : []),
         ],
       },
     ],
@@ -217,8 +245,18 @@ function merchantNav(n: NavContext): AreaNav {
   const tabs = manage ? [overview, offers, ...(live ? [scan, analytics] : []), business] : [overview, ...(live ? [scan, history] : [])];
 
   const messages = item("messages", "Messages", "/merchant/messages", "chat", ["/merchant/messages*"]);
+  const bookings = item("bookings", "Bookings", "/merchant/bookings", "calendar", ["/merchant/bookings*"]);
   const groups: NavGroup[] = [
-    { label: null, items: [overview, ...(manage ? [messages] : []), ...(live ? [scan] : []), ...(live && !manage ? [history] : [])] },
+    {
+      label: null,
+      items: [
+        overview,
+        ...(manage ? [messages] : []),
+        ...(live ? [bookings] : []),
+        ...(live ? [scan] : []),
+        ...(live && !manage ? [history] : []),
+      ],
+    },
   ];
   if (manage) {
     groups.push({
@@ -288,6 +326,7 @@ function adminNav(n: NavContext): AreaNav {
   const staff = item("staff", "Staff", "/admin/staff", "shield", ["/admin/staff*"]);
   const redemptions = item("redemptions", "Redemptions", "/admin/redemptions", "receipt", ["/admin/redemptions*"]);
   const reports = item("reports", "Reports", "/admin/reports", "chart", ["/admin/reports*"]);
+  const disputes = item("disputes", "Problem reports", "/admin/disputes", "inbox", ["/admin/disputes*"]);
   const audit = item("audit", "Audit logs", "/admin/audit", "scroll", ["/admin/audit*"]);
   const settings = item("settings", "Settings", "/admin/settings", "settings", ["/admin/settings*"]);
   // Perqly admins verify students for any school (D16); the review queue lives in the school area.
@@ -298,7 +337,24 @@ function adminNav(n: NavContext): AreaNav {
     { label: null, items: [overview] },
     { label: "Partners", items: [...(canReview ? [reviews] : []), institutions, merchants, offers] },
     { label: "People", items: [...(support ? [users] : []), ...(admin ? [staff] : [])] },
-    { label: "Activity", items: [...(support ? [redemptions, reports] : []), ...(admin ? [audit] : [])] },
+    { label: "Activity", items: [...(support ? [redemptions, disputes, reports] : []), ...(admin ? [audit] : [])] },
+    {
+      // Shown once Campus is switched on; before that the pages are reached by address.
+      label: "Campus",
+      items: !n.campus
+        ? []
+        : [
+            ...(admin
+              ? [
+                  item("campus-orgs", "Organisations", "/admin/campus/organisations", "users", ["/admin/campus/organisations*"]),
+                  item("campus-settings", "Switches", "/admin/campus/settings", "settings", ["/admin/campus/settings*"]),
+                ]
+              : []),
+            ...(support
+              ? [item("campus-moderation", "Moderation", "/admin/campus/moderation", "shield", ["/admin/campus/moderation*"])]
+              : []),
+          ],
+    },
     { label: null, items: admin ? [settings] : [] },
   ].filter((g) => g.items.length > 0);
 
@@ -325,6 +381,7 @@ const HOME: Record<Exclude<NavArea, "account">, { label: string; href: string; i
   merchant: { label: "Business", href: "/merchant", icon: "store" },
   institution: { label: "School", href: "/institution", icon: "building" },
   admin: { label: "Staff", href: "/admin", icon: "home" },
+  organise: { label: "Organisation", href: "/organise", icon: "users" },
 };
 
 function accountNav(n: NavContext): AreaNav {
@@ -348,9 +405,26 @@ export function navFor(area: NavArea, n: NavContext): AreaNav {
       return institutionNav(n);
     case "admin":
       return adminNav(n);
+    case "organise":
+      return organiseNav(n);
     case "account":
       return accountNav(n);
   }
+}
+
+function organiseNav(n: NavContext): AreaNav {
+  const home = item("organisations", "Organisations", "/organise", "users", ["/organise*"]);
+  const orgs = (n.ctx.organisationRoles ?? []).map((o) =>
+    item(`org-${o.organisationId}`, o.name, `/organise/${o.organisationId}`, "pen", [`/organise/${o.organisationId}*`]),
+  );
+  const tabs = [home];
+  return {
+    area: "organise",
+    label: AREA_TITLE.organise,
+    tabs,
+    more: [],
+    groups: [{ label: null, items: tabs }, ...(orgs.length > 0 ? [{ label: "Your organisations", items: orgs }] : [])],
+  };
 }
 
 /** The item among `items` that a path belongs to: the most specific match. Exact matches beat prefixes. */

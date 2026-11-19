@@ -191,7 +191,9 @@ select is_empty($$
     and p.proname not like 'pgtap%' and p.proowner = (select oid from pg_roles where rolname = current_user)
     and p.oid not in (select objid from pg_depend where deptype = 'e')
     and p.proname <> 'join_waitlist' -- the landing page's waitlist form (migration 0020), rate-limited
-$$, 'anonymous visitors cannot execute any Perqly function in public except the waitlist');
+    -- Campus C1 public pages (decision record, detail 5): live public content only, no names.
+    and p.proname not in ('campus_enabled', 'public_post', 'public_organisation')
+$$, 'anonymous visitors cannot execute any Perqly function in public except the waitlist and Campus public pages');
 
 select * from finish();
 rollback;

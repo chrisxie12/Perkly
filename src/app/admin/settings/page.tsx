@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
 import { canManagePlatform } from "@/lib/auth/roles";
@@ -33,6 +34,9 @@ const LABELS: Record<string, string> = {
   "booking.max_open_per_student": "Open bookings per student (bookings aren't built yet)",
   "verification.otp_max_per_hour": "School-email codes per student per hour",
   "verification.document_retention_days": "Days verification photos are kept after a decision",
+  "campus.posts_per_org_per_day": "Campus posts each organisation can publish per day",
+  "campus.comments_per_student_per_hour": "Campus comments each student can write per hour",
+  "campus.reports_per_user_per_day": "Campus reports each person can send per day",
 };
 
 export default async function SettingsPage() {
@@ -56,6 +60,13 @@ export default async function SettingsPage() {
             : "Limits and time windows. Only super admins change them."
         }
       />
+      <p className="mb-6 text-sm text-ink-600">
+        Campus is switched on and off, and school agreements are recorded, on{" "}
+        <Link href="/admin/campus/settings" className="font-semibold text-blue-600">
+          Campus switches and agreements
+        </Link>
+        .
+      </p>
       {billing && (
         <Card className="mb-6">
           <CardTitle>Business billing</CardTitle>

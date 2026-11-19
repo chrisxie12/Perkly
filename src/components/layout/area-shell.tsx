@@ -13,13 +13,18 @@ import { getActiveMembership } from "@/features/merchants/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { BottomNav, SideNav } from "./app-nav";
+import { getCampusEnabled } from "@/features/campus/queries";
 import { FrameChrome } from "./frame-chrome";
 
 async function navContext(area: NavArea): Promise<NavContext | null> {
   const ctx = await getUserContext();
   if (!ctx) return null;
-  if (area === "student") return { ctx, verification: verificationView(await getMyStudentStatus()) };
+  if (area === "student") {
+    const [status, campus] = await Promise.all([getMyStudentStatus(), getCampusEnabled()]);
+    return { ctx, verification: verificationView(status), campus: campus.posts };
+  }
   if (area === "merchant") return { ctx, membership: await getActiveMembership() };
+  if (area === "admin") return { ctx, campus: (await getCampusEnabled()).posts };
   return { ctx };
 }
 

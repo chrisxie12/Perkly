@@ -13,6 +13,8 @@ import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/quer
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { CategoryChip } from "@/features/students/app/bits";
+import { getCampusEnabled } from "@/features/campus/queries";
+import { CampusHomeCard } from "@/features/campus/components/campus-home-card";
 
 export const metadata: Metadata = { title: "Deals", robots: { index: false } };
 
@@ -38,6 +40,8 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   ]);
   const view = verificationView(status);
   const verified = view === "verified";
+  // Campus (C1): one card, only while Campus is switched on. With it off this page is unchanged.
+  const campusOn = (await getCampusEnabled()).posts;
   const filtering = Boolean(q || category || sort);
   const near = filtering
     ? []
@@ -97,6 +101,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               You have a redemption in progress <ArrowRight className="size-5 shrink-0" aria-hidden />
             </Link>
           )}
+          {campusOn && <CampusHomeCard />}
           {verified ? (
             <Link
               href="/student/history"

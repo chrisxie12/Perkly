@@ -1,4 +1,4 @@
-export const AREAS = ["student", "merchant", "institution", "admin"] as const;
+export const AREAS = ["student", "merchant", "institution", "admin", "organise"] as const;
 export type Area = (typeof AREAS)[number];
 
 export const AREA_HOME: Record<Area, string> = {
@@ -6,6 +6,7 @@ export const AREA_HOME: Record<Area, string> = {
   merchant: "/merchant",
   institution: "/institution",
   admin: "/admin",
+  organise: "/organise",
 };
 
 export const AREA_LABEL: Record<Area, string> = {
@@ -13,10 +14,11 @@ export const AREA_LABEL: Record<Area, string> = {
   merchant: "Merchant",
   institution: "Institution reviewer",
   admin: "Perqly staff",
+  organise: "Organisation",
 };
 
 /** Paths that need a signed-in user. Also NetworkOnly in the service worker. */
-export const PRIVATE_PREFIXES = ["/student", "/merchant", "/institution", "/admin", "/account", "/r"] as const;
+export const PRIVATE_PREFIXES = ["/student", "/merchant", "/institution", "/admin", "/organise", "/account", "/r"] as const;
 
 /** Sign-in pages: signed-in users are sent on from these. */
 export const AUTH_PAGES = ["/login", "/register"] as const;

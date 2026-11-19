@@ -101,7 +101,13 @@ export default async function SavingsPage() {
                     >
                       <Star className="size-3.5" aria-hidden /> Rate {r.merchant_name}
                     </Link>
-                  )}
+                  )}{" "}
+                  <Link
+                    href={`/student/problems/new?redemption=${r.redemption_id}`}
+                    className="mt-0.5 ml-3 inline-flex text-[0.8125rem] font-semibold text-ink-600 underline-offset-2 hover:underline"
+                  >
+                    Report a problem
+                  </Link>
                 </div>
                 {r.voided ? (
                   <span className="text-[0.8125rem] font-semibold text-ink-600">Cancelled by support</span>

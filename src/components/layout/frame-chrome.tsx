@@ -9,6 +9,7 @@ const IMMERSIVE: Record<NavArea, string[]> = {
   merchant: [],
   institution: [],
   admin: [],
+  organise: [],
   account: [],
 };
 
