@@ -16,7 +16,7 @@
 - **Money** is shown as `GH₵64.00`. Discounts are shown as regular price struck through, student price, and "Save GH₵16.00".
 - **Never "Paid".** Redemption screens say "Discount redeemed" and "Amount to pay the merchant".
 - **Private routes are never cached** by the service worker. Offline, they show the offline page.
-- **Brand:** Perqly Blue `#0066FF` for primary actions, Perk Orange `#FF6B35` with ink text for highlights, Bricolage Grotesque headings, Figtree body text.
+- **Brand:** Perqly Blue `#0066FF` for primary actions, Perk Orange `#FF6B35` with ink text for highlights, Geist for headings and body text (since the 2026 liquid glass redesign).
 
 ## Shared: sign-up and sign-in
 

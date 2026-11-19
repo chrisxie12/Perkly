@@ -1,6 +1,7 @@
 /**
  * Runs in <head> before the page paints, so dark mode never flashes white.
  * Choice is "system" (follow the phone), "light" or "dark", saved on this device.
+ * Also marks low-memory phones and data saver with data-lite="1", so glass effects stay light there.
  * Kept tiny and dependency-free: it's inlined as a string.
  */
 export const THEME_STORAGE_KEY = "perqly-theme";
@@ -16,6 +17,7 @@ document.querySelectorAll('meta[name="theme-color"]').forEach(function(t){
 if(t.dataset.fixed==="1")return;var v=(t.getAttribute("content")||"").toLowerCase();
 if(v==="#000000"){t.dataset.fixed="1";return;}
 t.removeAttribute("media");t.setAttribute("content",d?c.dark:c.light);});}
+var n=navigator,cn=n.connection;if((n.deviceMemory&&n.deviceMemory<=2)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4)||(cn&&cn.saveData))document.documentElement.dataset.lite="1";
 apply();m.addEventListener("change",function(){if(p==="system")apply();});
 window.__perqlyTheme=function(n){p=n;try{localStorage.setItem(k,n)}catch(e){}apply();};
 }catch(e){}})();`;

@@ -41,7 +41,7 @@ export async function AreaFrame({ area, children }: { area: NavArea; children: R
     <FrameChrome
       area={area}
       header={
-        <header className="pt-safe sticky top-0 z-30 border-b border-ink-200 bg-white">
+        <header className="pt-safe sticky top-0 z-30 border-b border-ink-200/60 bg-white/75 backdrop-blur-xl backdrop-saturate-150">
           <div className="flex h-16 items-center justify-between gap-2 px-4 md:px-5">
             <div className="flex items-center gap-3">
               <Link href="/" aria-label="Perqly home" className="shrink-0 rounded-lg">

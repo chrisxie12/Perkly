@@ -23,7 +23,7 @@ export function SiteHeader() {
     <header
       className={cn(
         "pt-safe fixed inset-x-0 top-0 z-40 transition-[background-color,box-shadow] duration-300",
-        scrolled ? "bg-paper/90 shadow-[0_1px_0_rgb(0_31_82/0.08)] backdrop-blur-md" : "bg-transparent",
+        scrolled ? "bg-white/70 shadow-[0_1px_0_rgb(0_31_82/0.08)] backdrop-blur-xl backdrop-saturate-150" : "bg-transparent",
       )}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-8 md:h-20 lg:px-10">

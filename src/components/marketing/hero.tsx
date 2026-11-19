@@ -14,12 +14,12 @@ export function Hero() {
     <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-24 pb-10 md:pt-36 md:pb-24">
       {/* Backdrop: two slow colour glows and the campus map, all decorative */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 -right-32 size-[38rem] animate-drift rounded-full bg-blue-300/35 blur-3xl" />
+        <div className="absolute -top-40 -right-32 size-[38rem] animate-drift rounded-full bg-blue-400/40 blur-3xl" />
         <div className="absolute top-[45%] -left-40 size-[30rem] animate-drift rounded-full bg-orange-200/50 blur-3xl [animation-delay:-9s]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-paper" />
       </div>
       <PageContainer>
-        <p className="inline-flex animate-rise items-center gap-2 rounded-full bg-white py-1.5 pr-4 pl-1.5 text-sm font-semibold text-ink-700 shadow-soft ring-1 ring-ink-200">
+        <p className="glass inline-flex animate-rise items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-semibold text-ink-700">
           <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-ink-900">Pilot</span>
           Launching first at GCTU, Accra
         </p>
@@ -60,21 +60,37 @@ export function Hero() {
           <div className="relative mx-auto flex w-full max-w-[34rem] items-start justify-center sm:justify-start lg:mx-0 lg:w-[34rem]">
             {/* The neighbourhood behind the phone: campus, routes, shops */}
             <CampusMap className="pointer-events-none absolute top-1/2 left-1/2 -z-10 w-[40rem] max-w-none -translate-x-1/2 -translate-y-1/2 text-ink-900 sm:w-[46rem]" />
-            <div className="relative z-10 animate-rise [animation-delay:260ms]">
-              <PhoneFrame>
-                <div className="px-4 pt-2 pb-6">
-                  <div className="flex items-center justify-between">
-                    <p className="font-display text-sm font-bold text-ink-900">Your pass</p>
-                    <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-ink-700">Example</span>
+            <div className="relative z-10 animate-rise [animation-delay:260ms] [perspective:1200px]">
+              <div className="hero-tilt">
+                <PhoneFrame>
+                  <div className="px-4 pt-2 pb-6">
+                    <div className="flex items-center justify-between">
+                      <p className="font-display text-sm font-bold text-ink-900">Your pass</p>
+                      <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-ink-700">Example</span>
+                    </div>
+                    <LivePass className="mt-3 animate-stamp [animation-delay:900ms]" />
+                    <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-ink-100 py-3 text-sm font-semibold text-ink-700">
+                      <span className="size-2 animate-pulse rounded-full bg-orange-500" aria-hidden />
+                      Waiting for the cashier to confirm
+                    </div>
                   </div>
-                  <LivePass className="mt-3 animate-stamp [animation-delay:900ms]" />
-                  <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-ink-100 py-3 text-sm font-semibold text-ink-700">
-                    <span className="size-2 animate-pulse rounded-full bg-orange-500" aria-hidden />
-                    Waiting for the cashier to confirm
-                  </div>
-                </div>
-              </PhoneFrame>
+                </PhoneFrame>
+              </div>
             </div>
+
+            {/* Glossy cedi coins drifting beside the phone */}
+            <span
+              aria-hidden
+              className="coin-spin gloss-orange absolute -top-10 left-0 z-20 hidden size-14 place-items-center rounded-full font-display text-2xl font-black text-ink-900 sm:grid lg:-left-16"
+            >
+              ₵
+            </span>
+            <span
+              aria-hidden
+              className="coin-spin gloss-blue absolute right-6 bottom-24 z-20 hidden size-11 place-items-center rounded-full font-display text-lg font-black text-white [animation-delay:-2s] sm:grid"
+            >
+              ₵
+            </span>
 
             {/* Kinds of places, floating around the phone */}
             {[
@@ -85,7 +101,7 @@ export function Hero() {
               <span
                 key={label}
                 aria-hidden
-                className={`absolute z-20 hidden items-center gap-2 rounded-full bg-white/90 px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-lift ring-1 ring-ink-200 backdrop-blur sm:flex ${pos}`}
+                className={`glass absolute z-20 hidden items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-ink-900 sm:flex ${pos}`}
               >
                 <span className={`flex animate-bob items-center gap-2 ${delay}`}>
                   <Icon className="size-4 text-blue-500" />
@@ -96,7 +112,7 @@ export function Hero() {
 
             <div
               aria-hidden
-              className="absolute top-24 right-0 hidden w-48 rotate-[6deg] animate-rise rounded-2xl bg-white p-4 shadow-lift ring-1 ring-ink-200 [animation-delay:500ms] sm:block"
+              className="glass absolute top-24 right-0 hidden w-48 rotate-[6deg] animate-rise rounded-3xl p-4 [animation-delay:500ms] sm:block"
             >
               <div className="flex items-center gap-2 text-xs font-bold text-ink-900">
                 <ScanLine className="size-4 text-blue-500" /> Scan with Perqly
