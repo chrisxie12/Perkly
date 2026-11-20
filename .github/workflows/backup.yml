@@ -31,7 +31,7 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check secrets
         run: |
@@ -50,7 +50,7 @@ jobs:
         run: scripts/ci/backup.sh out
 
       - name: Keep for 14 days
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: perqly-db-${{ steps.backup.outputs.stamp }}
           path: out/*.gpg

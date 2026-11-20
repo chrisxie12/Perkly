@@ -42,7 +42,7 @@ jobs:
     outputs:
       files: ${{ steps.files.outputs.list }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -104,7 +104,7 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       FILES: ${{ needs.preconditions.outputs.files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.sha }}
       - name: Check the connection string (never printed)
@@ -130,7 +130,7 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       FILES: ${{ needs.preconditions.outputs.files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
@@ -138,7 +138,7 @@ jobs:
         run: scripts/ci/check-db-url.sh production
       - name: Install the Postgres 17 client
         run: scripts/ci/install-pg-client.sh
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           # Pinned: a new CLI release shouldn't change how production is migrated.
           # Tested with 3.1.0. Raise it deliberately, after trying it on staging.
@@ -158,7 +158,7 @@ jobs:
       HAS_DEPLOY_KEY: ${{ secrets.PRODUCTION_DEPLOY_KEY != '' }}
       FILES: ${{ needs.preconditions.outputs.files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
@@ -178,7 +178,7 @@ jobs:
       - name: Install the Postgres 17 client
         run: scripts/ci/install-pg-client.sh
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           # Pinned: a new CLI release shouldn't change how production is migrated.
           # Tested with 3.1.0. Raise it deliberately, after trying it on staging.
@@ -196,7 +196,7 @@ jobs:
 
       - name: "C3: keep the backup"
         if: steps.pending.outputs.count != '0'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: perqly-db-before-${{ steps.backup.outputs.stamp }}
           path: out/*.gpg
