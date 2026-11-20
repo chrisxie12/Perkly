@@ -13,7 +13,7 @@ const evidence = [
 
 export function Verification() {
   return (
-    <section id="verification" aria-labelledby="verification-title" className="bg-white py-14 sm:py-20 md:py-32">
+    <section id="verification" aria-labelledby="verification-title" className="py-14 sm:py-20 md:py-32">
       <PageContainer className="grid grid-cols-1 items-center gap-8 sm:gap-14 lg:grid-cols-2 lg:gap-20">
         <div>
           <h2 id="verification-title" className="font-display text-display-lg font-extrabold">
@@ -26,7 +26,7 @@ export function Verification() {
           <ul className="mt-10 space-y-6">
             {evidence.map(({ icon: Icon, title, body }) => (
               <li key={title} className="reveal flex gap-4">
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                <span className="glass grid size-12 shrink-0 place-items-center rounded-2xl text-blue-600">
                   <Icon className="size-6" aria-hidden />
                 </span>
                 <span>
@@ -40,7 +40,7 @@ export function Verification() {
 
         <div className="relative">
           <div>
-            <div className="rounded-2xl bg-white p-6 shadow-lift ring-1 ring-ink-200" aria-label="Example verification request" role="img">
+            <div className="glass glass-card p-6" aria-label="Example verification request" role="img">
               <div className="flex items-center justify-between">
                 <p className="font-display text-lg font-bold">Verification request</p>
                 <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">Example</span>
@@ -65,14 +65,14 @@ export function Verification() {
                 <li className="flex items-center gap-3">
                   <BadgeCheck className="size-5 text-success" aria-hidden /> ID photo and selfie uploaded
                 </li>
-                <li className="flex items-center gap-3 rounded-lg bg-orange-50 px-4 py-2.5 text-ink-900">
+                <li className="flex items-center gap-3 rounded-xl bg-orange-50 px-4 py-2.5 text-ink-900">
                   <Clock3 className="size-5 text-orange-700" aria-hidden /> Waiting for review
                 </li>
               </ol>
             </div>
           </div>
 
-          <div className="mt-5 flex gap-4 rounded-2xl bg-blue-50 p-4 text-blue-900 md:p-6">
+          <div className="mt-5 flex gap-4 rounded-[1.5rem] bg-blue-50/80 p-4 text-blue-900 md:p-6">
             <ShieldCheck className="size-6 shrink-0 text-blue-600" aria-hidden />
             <p className="text-[0.9375rem] leading-relaxed">
               Only the people reviewing your request see your ID photo, and every view is logged. ID photos are deleted 30 days after a

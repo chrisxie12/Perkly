@@ -18,7 +18,8 @@ export default function MarketingLayout({ children }: LayoutProps<"/">) {
         }}
       />
       {/* The marketing pages keep their light design in dark mode (see globals.css). */}
-      <div className="theme-fixed min-h-dvh bg-paper text-ink-900">
+      <div className="theme-fixed relative isolate min-h-dvh bg-paper text-ink-900">
+        <div aria-hidden className="ambient-wash" />
         <SiteHeader />
         <main id="main">{children}</main>
         <SiteFooter />

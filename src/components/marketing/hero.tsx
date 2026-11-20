@@ -25,12 +25,11 @@ const hasPassScreenshot = existsSync(join(process.cwd(), "public", PASS_SCREENSH
 
 export function Hero() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-24 pb-10 md:pt-36 md:pb-24">
+    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-24 pb-20 md:pt-36 md:pb-24">
       {/* Backdrop: two slow colour glows and the campus map, all decorative */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,#000_65%,transparent)]">
         <div className="absolute -top-40 -right-32 size-[38rem] animate-drift rounded-full bg-blue-400/40 blur-3xl" />
         <div className="absolute top-[45%] -left-40 size-[30rem] animate-drift rounded-full bg-orange-200/50 blur-3xl [animation-delay:-9s]" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-paper" />
       </div>
       <PageContainer>
         <p className="glass inline-flex animate-rise items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-semibold text-ink-700">
@@ -51,7 +50,13 @@ export function Hero() {
             </p>
 
             <div className="mt-9 animate-rise [animation-delay:420ms]">
-              <Link href="/student" className={cn(buttonVariants({ size: "lg" }), "bg-blue-600 hover:bg-blue-700")}>
+              <Link
+                href="/student"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "press bg-blue-600 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_14px_30px_-12px_rgb(0_102_255/0.8)] hover:bg-blue-700",
+                )}
+              >
                 Open Perqly <ArrowRight className="size-5" aria-hidden />
               </Link>
             </div>
@@ -75,7 +80,7 @@ export function Hero() {
           {/* The product at the counter: the merchant's printed QR beside the student's phone */}
           <div className="relative mx-auto flex w-full max-w-[34rem] items-start justify-center sm:justify-start lg:mx-0 lg:w-[34rem]">
             {/* The neighbourhood behind the phone: campus, routes, shops */}
-            <CampusMap className="pointer-events-none absolute top-1/2 left-1/2 -z-10 w-[40rem] max-w-none -translate-x-1/2 -translate-y-1/2 text-ink-900 sm:w-[46rem]" />
+            <CampusMap className="pointer-events-none absolute top-1/2 left-1/2 -z-10 w-[40rem] max-w-none -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(closest-side,#000_35%,transparent_80%)] text-ink-900 sm:w-[46rem]" />
             <div className="relative z-10 animate-rise [animation-delay:260ms] [perspective:1200px]">
               <div className="hero-tilt">
                 <PhoneFrame>

@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 
 export const merchantFaqs = [
@@ -53,7 +53,7 @@ export function Faq({
   intro?: string;
 }) {
   return (
-    <section id="faq" aria-labelledby="faq-title" className="bg-white py-14 sm:py-20 md:py-32">
+    <section id="faq" aria-labelledby="faq-title" className="py-14 sm:py-20 md:py-32">
       <PageContainer className="grid grid-cols-1 gap-6 sm:gap-12 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <h2 id="faq-title" className="font-display text-display-lg font-extrabold">
@@ -61,17 +61,17 @@ export function Faq({
           </h2>
           <p className="mt-5 max-w-sm text-lg leading-relaxed text-ink-600">{intro}</p>
         </div>
-        {/* Native <details>: accessible, keyboard-friendly and needs no JavaScript */}
-        <div className="border-t border-ink-200">
+        {/* An iOS-style grouped list. Native <details>: accessible, keyboard-friendly and needs no JavaScript */}
+        <div className="glass glass-card self-start px-5 md:px-7">
           {items.map((item) => (
-            <details key={item.q} name="faq" className="group border-b border-ink-200">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 font-display text-lg font-semibold tracking-tight text-ink-900 transition-colors hover:text-blue-600 md:text-xl [&::-webkit-details-marker]:hidden">
+            <details key={item.q} name="faq" className="group border-b border-ink-900/10 last:border-b-0">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-display text-lg font-semibold tracking-tight text-ink-900 transition-colors hover:text-blue-600 md:text-xl [&::-webkit-details-marker]:hidden">
                 {item.q}
-                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ink-100 text-ink-900 transition-[transform,background-color] duration-300 group-open:rotate-45 group-open:bg-blue-500 group-open:text-white">
-                  <Plus className="size-5" aria-hidden />
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-ink-900/[0.06] text-ink-700 transition-[transform,background-color,color] duration-500 ease-[cubic-bezier(0.2,0.9,0.3,1.25)] group-open:rotate-180 group-open:bg-blue-500 group-open:text-white">
+                  <ChevronDown className="size-4" aria-hidden />
                 </span>
               </summary>
-              <p className="max-w-[65ch] pr-12 pb-6 text-base leading-relaxed text-ink-600">{item.a}</p>
+              <p className="max-w-[65ch] pr-12 pb-5 text-base leading-relaxed text-ink-600">{item.a}</p>
             </details>
           ))}
         </div>

@@ -57,7 +57,7 @@ const offers: { merchant: string; deal: string; detail: string; category: string
 
 export function ExampleOffers() {
   return (
-    <section aria-labelledby="offers-title" className="bg-white py-14 sm:py-20 md:py-32">
+    <section aria-labelledby="offers-title" className="py-14 sm:py-20 md:py-32">
       <PageContainer>
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeading

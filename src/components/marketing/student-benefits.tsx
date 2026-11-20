@@ -31,7 +31,7 @@ export function StudentBenefits() {
         <SectionHeading id="students-title" title="Built for how students actually spend." />
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-14 sm:gap-5 md:grid-cols-6 md:grid-rows-[auto_auto]">
-          <div className="reveal grain relative isolate overflow-hidden rounded-3xl bg-blue-500 p-6 text-white sm:p-8 md:col-span-3 md:row-span-2 md:p-10">
+          <div className="reveal grain relative isolate overflow-hidden rounded-[2rem] bg-blue-500 p-6 text-white sm:p-8 md:col-span-3 md:row-span-2 md:p-10">
             {/* Slow light moving across the card, and stacked coins in outline */}
             <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
               <div className="absolute -right-24 -bottom-24 size-96 animate-drift rounded-full bg-sky-300/40 blur-3xl" />
@@ -54,7 +54,7 @@ export function StudentBenefits() {
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white">
               You never pay to use Perqly. Businesses pay to reach verified students, and that pays for the platform.
             </p>
-            <div className="mt-10 flex items-center gap-4 rounded-xl bg-white/12 p-4 md:mt-16 md:p-6">
+            <div className="mt-10 flex items-center gap-4 rounded-2xl bg-white/15 p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.3)] md:mt-16 md:p-6">
               <PiggyBank className="size-9 shrink-0 text-orange-300" aria-hidden />
               <p className="text-[0.9375rem] leading-snug">
                 <span className="font-semibold text-white">Your savings, counted.</span> Perqly keeps a running total of what you&apos;ve
@@ -64,10 +64,7 @@ export function StudentBenefits() {
           </div>
 
           {smallCards.map(({ icon: Icon, title, body }) => (
-            <div
-              key={title}
-              className="reveal rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink-200/70 transition-shadow duration-300 hover:shadow-lift sm:p-7 md:col-span-3 lg:col-span-3 xl:col-span-3"
-            >
+            <div key={title} className="reveal glass glass-card p-5 sm:p-7 md:col-span-3 lg:col-span-3 xl:col-span-3">
               <Icon className="size-8 text-blue-500" aria-hidden />
               <h3 className="mt-5 font-display text-xl font-bold tracking-tight">{title}</h3>
               <p className="mt-2 leading-relaxed text-ink-600">{body}</p>

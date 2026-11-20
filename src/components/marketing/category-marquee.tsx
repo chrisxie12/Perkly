@@ -19,7 +19,7 @@ function Row({ hidden = false }: { hidden?: boolean }) {
       {categories.map(({ label, icon: Icon }) => (
         <li
           key={label}
-          className="flex items-center gap-2.5 rounded-full bg-white px-5 py-3 text-base font-semibold whitespace-nowrap text-ink-900 shadow-soft ring-1 ring-ink-200"
+          className="glass flex items-center gap-2.5 rounded-full px-5 py-3 text-base font-semibold whitespace-nowrap text-ink-900"
         >
           <Icon className="size-5 text-blue-500" aria-hidden />
           {label}
