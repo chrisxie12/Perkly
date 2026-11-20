@@ -21,7 +21,7 @@ export function LivePass({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn("relative overflow-hidden rounded-[1.6rem] p-5 shadow-lift", className)}
+      className={cn("relative overflow-hidden rounded-[1.6rem] p-5 shadow-lift md:p-6", className)}
       style={{ backgroundColor: colour.hex, color: colour.ink }}
       aria-label={`Example live pass. Today's pass colour is ${colour.day}.`}
       role="img"
@@ -43,13 +43,13 @@ export function LivePass({ className }: { className?: string }) {
         </div>
         <div className="min-w-0">
           <p className="font-display text-lg leading-tight font-bold">Ama K.</p>
-          <p className="flex items-center gap-1 text-sm font-medium whitespace-nowrap opacity-90">
+          <p className="flex items-center gap-1 text-sm font-medium whitespace-nowrap">
             <BadgeCheck className="size-4" aria-hidden /> Verified student, GCTU
           </p>
         </div>
       </div>
 
-      <div className="relative mt-5 rounded-2xl bg-white/95 p-4 text-ink-900">
+      <div className="relative mt-5 rounded-2xl bg-white/95 p-4 text-ink-900 md:p-6">
         <p className="text-sm font-medium text-ink-600">Auntie Esi&apos;s Waakye</p>
         <p className="mt-0.5 font-display text-xl leading-snug font-bold">15% off any plate</p>
         <div className="mt-4 flex items-end justify-between gap-3">

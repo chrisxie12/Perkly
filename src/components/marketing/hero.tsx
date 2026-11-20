@@ -1,5 +1,10 @@
-import { Check, Printer, ScanLine, Scissors, Utensils } from "lucide-react";
-import { InstallButton } from "@/components/marketing/install-button";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Check, Printer, ScanLine, Scissors, Utensils } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { PageContainer } from "@/components/layout/page-container";
 import { CampusMap } from "@/components/marketing/campus-map";
@@ -8,6 +13,15 @@ import { PhoneFrame } from "@/components/marketing/phone-frame";
 import { QrArt } from "@/components/marketing/qr-art";
 
 const promises = ["Free for students", "Works on any phone", "No app store needed"];
+
+/**
+ * TODO(founder): drop a real screenshot of the live pass from the working app at
+ * public/marketing/pass-screenshot.png (portrait, about 720×1480, from your own test account so
+ * no real student's name or photo is shown). When the file is there the phone shows it; until
+ * then it shows the labelled illustration.
+ */
+const PASS_SCREENSHOT = "/marketing/pass-screenshot.png";
+const hasPassScreenshot = existsSync(join(process.cwd(), "public", PASS_SCREENSHOT));
 
 export function Hero() {
   return (
@@ -20,8 +34,8 @@ export function Hero() {
       </div>
       <PageContainer>
         <p className="glass inline-flex animate-rise items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-semibold text-ink-700">
-          <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-ink-900">Pilot</span>
-          Launching first at GCTU, Accra
+          <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-ink-900">Live</span>
+          Live at GCTU, Accra. More campuses next.
         </p>
 
         <h1 id="hero-title" className="mt-7 font-display text-display-xl font-extrabold text-ink-900">
@@ -37,10 +51,12 @@ export function Hero() {
             </p>
 
             <div className="mt-9 animate-rise [animation-delay:420ms]">
-              <InstallButton />
+              <Link href="/student" className={cn(buttonVariants({ size: "lg" }), "bg-blue-600 hover:bg-blue-700")}>
+                Open Perqly <ArrowRight className="size-5" aria-hidden />
+              </Link>
             </div>
 
-            <div id="notify" className="mt-8 animate-rise scroll-mt-28 [animation-delay:470ms]">
+            <div id="notify" className="mt-10 animate-rise scroll-mt-28 [animation-delay:470ms]">
               <WaitlistForm source="hero" />
             </div>
 
@@ -63,17 +79,27 @@ export function Hero() {
             <div className="relative z-10 animate-rise [animation-delay:260ms] [perspective:1200px]">
               <div className="hero-tilt">
                 <PhoneFrame>
-                  <div className="px-4 pt-2 pb-6">
-                    <div className="flex items-center justify-between">
-                      <p className="font-display text-sm font-bold text-ink-900">Your pass</p>
-                      <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-ink-700">Example</span>
+                  {hasPassScreenshot ? (
+                    <Image
+                      src={PASS_SCREENSHOT}
+                      alt="The live pass in the Perqly app, waiting for the cashier to confirm"
+                      width={720}
+                      height={1480}
+                      priority
+                      className="h-auto w-full"
+                    />
+                  ) : (
+                    <div className="px-4 pt-2 pb-6">
+                      <div className="flex items-center justify-between">
+                        <p className="font-display text-sm font-bold text-ink-900">Your pass</p>
+                        <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-ink-700">Example</span>
+                      </div>
+                      <LivePass className="mt-3 animate-stamp [animation-delay:900ms]" />
+                      <p className="mt-4 rounded-full bg-ink-100 py-3 text-center text-sm font-semibold text-ink-700">
+                        Waiting for the cashier to confirm
+                      </p>
                     </div>
-                    <LivePass className="mt-3 animate-stamp [animation-delay:900ms]" />
-                    <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-ink-100 py-3 text-sm font-semibold text-ink-700">
-                      <span className="size-2 animate-pulse rounded-full bg-orange-500" aria-hidden />
-                      Waiting for the cashier to confirm
-                    </div>
-                  </div>
+                  )}
                 </PhoneFrame>
               </div>
             </div>
@@ -112,7 +138,7 @@ export function Hero() {
 
             <div
               aria-hidden
-              className="glass absolute top-24 right-0 hidden w-48 rotate-[6deg] animate-rise rounded-3xl p-4 [animation-delay:500ms] sm:block"
+              className="glass absolute top-24 right-0 hidden w-52 rotate-[6deg] animate-rise rounded-3xl p-4 [animation-delay:500ms] sm:block md:p-6"
             >
               <div className="flex items-center gap-2 text-xs font-bold text-ink-900">
                 <ScanLine className="size-4 text-blue-500" /> Scan with Perqly

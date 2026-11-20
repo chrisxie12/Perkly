@@ -39,8 +39,8 @@ export function Verification() {
         </div>
 
         <div className="relative">
-          <div className="rounded-2xl bg-ink-100 p-5 sm:p-8">
-            <div className="rounded-xl bg-white p-6 shadow-lift ring-1 ring-ink-200" aria-label="Example verification request" role="img">
+          <div>
+            <div className="rounded-2xl bg-white p-6 shadow-lift ring-1 ring-ink-200" aria-label="Example verification request" role="img">
               <div className="flex items-center justify-between">
                 <p className="font-display text-lg font-bold">Verification request</p>
                 <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">Example</span>
@@ -65,14 +65,14 @@ export function Verification() {
                 <li className="flex items-center gap-3">
                   <BadgeCheck className="size-5 text-success" aria-hidden /> ID photo and selfie uploaded
                 </li>
-                <li className="flex items-center gap-3 rounded-lg bg-orange-50 px-3 py-2.5 text-ink-900">
+                <li className="flex items-center gap-3 rounded-lg bg-orange-50 px-4 py-2.5 text-ink-900">
                   <Clock3 className="size-5 text-orange-700" aria-hidden /> Waiting for review
                 </li>
               </ol>
             </div>
           </div>
 
-          <div className="mt-5 flex gap-4 rounded-2xl bg-blue-50 p-5 text-blue-900 ring-1 ring-blue-100">
+          <div className="mt-5 flex gap-4 rounded-2xl bg-blue-50 p-4 text-blue-900 md:p-6">
             <ShieldCheck className="size-6 shrink-0 text-blue-600" aria-hidden />
             <p className="text-[0.9375rem] leading-relaxed">
               Only the people reviewing your request see your ID photo, and every view is logged. ID photos are deleted 30 days after a

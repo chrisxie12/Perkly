@@ -4,7 +4,7 @@ import { PageContainer } from "@/components/layout/page-container";
 export const merchantFaqs = [
   {
     q: "How do businesses join?",
-    a: "Merchant sign-up opens with the pilot, and joining is free during the pilot. You'll set up your business, add your branches, create your offer and print your branch QR.",
+    a: "Merchant sign-up is open, and joining is free during the pilot. You set up your business, add your branches, create your offer and print your branch QR.",
   },
   {
     q: "What does it cost?",
@@ -19,7 +19,7 @@ export const faqs = [
   },
   {
     q: "Who can join?",
-    a: "Students at the institutions Perqly covers. We're launching first for GCTU students and will add more Ghanaian tertiary institutions after the pilot.",
+    a: "Students at the institutions Perqly covers. Perqly is live for GCTU students now, and more Ghanaian tertiary institutions come next.",
   },
   {
     q: "How does verification work?",
@@ -35,7 +35,7 @@ export const faqs = [
   },
   {
     q: "My school isn't on Perqly yet. What can I do?",
-    a: "We're starting with GCTU so we can get it right, then adding schools one by one. Install Perqly now and you'll be ready when we add your school.",
+    a: "Perqly is live at GCTU now, and we're adding schools one by one. Leave your email at the top of this page and we'll tell you when your campus opens.",
   },
   {
     q: "Is my information safe?",
@@ -71,7 +71,7 @@ export function Faq({
                   <Plus className="size-5" aria-hidden />
                 </span>
               </summary>
-              <p className="max-w-2xl pr-12 pb-6 text-base leading-relaxed text-ink-600">{item.a}</p>
+              <p className="max-w-[65ch] pr-12 pb-6 text-base leading-relaxed text-ink-600">{item.a}</p>
             </details>
           ))}
         </div>

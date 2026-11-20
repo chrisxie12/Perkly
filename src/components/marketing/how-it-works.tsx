@@ -4,7 +4,7 @@ import { QrArt } from "@/components/marketing/qr-art";
 
 function VerifyVignette() {
   return (
-    <div className="rounded-xl bg-white p-4 shadow-soft ring-1 ring-ink-200">
+    <div className="rounded-xl bg-ink-50 p-4 md:p-6">
       <p className="text-xs font-semibold text-ink-600">Verification request · GCTU</p>
       <ul className="mt-3 space-y-2 text-sm font-medium">
         <li className="flex items-center gap-2">
@@ -31,7 +31,7 @@ function NearbyVignette() {
       <p className="mb-2 text-xs font-semibold text-ink-600">Example deals, not real businesses</p>
       <ul className="space-y-2">
         {deals.map((d) => (
-          <li key={d.name} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-soft ring-1 ring-ink-200">
+          <li key={d.name} className="flex items-center gap-3 rounded-xl bg-ink-50 p-4 md:p-6">
             <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-blue-50 font-display font-extrabold text-blue-700">
               {d.name[0]}
             </span>
@@ -52,7 +52,7 @@ function NearbyVignette() {
 
 function ScanVignette() {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-soft ring-1 ring-ink-200">
+    <div className="flex items-center gap-4 rounded-xl bg-ink-50 p-4 md:p-6">
       <QrArt className="w-20 shrink-0" seed={3} />
       <div>
         <p className="flex items-center gap-1.5 text-sm font-bold">

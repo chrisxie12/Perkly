@@ -44,7 +44,7 @@ export function MobileCtaBar() {
     >
       <div className="flex items-center gap-3">
         <p className="flex-1 text-sm leading-snug text-ink-700">
-          <span className="font-semibold text-ink-900">Free for students.</span> Launching at GCTU.
+          <span className="font-semibold text-ink-900">Free for students.</span> Live at GCTU.
         </p>
         <InstallButton className="h-11 px-5 text-[0.9375rem]" />
       </div>

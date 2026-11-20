@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageContainer } from "@/components/layout/page-container";
 import { InstallButton } from "@/components/marketing/install-button";
 
-/** The call to action after "How it works": install now, or get an email when sign-up opens. */
+/** The call to action after "How it works": install and use it now, or get an email when your campus opens. */
 export function InstallStrip() {
   return (
     <section aria-labelledby="install-title" className="pb-4 sm:pb-16 md:pb-24">
@@ -13,9 +13,9 @@ export function InstallStrip() {
               Put Perqly on your phone now.
             </h2>
             <p className="mt-2 text-lg leading-relaxed text-ink-600">
-              It&apos;s free, needs no app store and uses very little data. Sign-up for GCTU students opens with the pilot.{" "}
+              It&apos;s free, needs no app store and uses very little data. GCTU students can sign up and start using it today. Not at GCTU?{" "}
               <Link href="#notify" className="font-semibold text-blue-700 underline underline-offset-2">
-                Get an email when it does
+                Get an email when your campus opens
               </Link>
               .
             </p>

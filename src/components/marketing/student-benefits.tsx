@@ -54,7 +54,7 @@ export function StudentBenefits() {
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white">
               You never pay to use Perqly. Businesses pay to reach verified students, and that pays for the platform.
             </p>
-            <div className="mt-10 flex items-center gap-4 rounded-xl bg-white/12 p-4 ring-1 ring-white/20 md:mt-16">
+            <div className="mt-10 flex items-center gap-4 rounded-xl bg-white/12 p-4 md:mt-16 md:p-6">
               <PiggyBank className="size-9 shrink-0 text-orange-300" aria-hidden />
               <p className="text-[0.9375rem] leading-snug">
                 <span className="font-semibold text-white">Your savings, counted.</span> Perqly keeps a running total of what you&apos;ve

@@ -126,13 +126,13 @@
       transform: translateX(-50%);
     }
   }
+  /* Movement only: text is never hidden, so it reads on slow phones, with JavaScript off
+     and in browsers that skip animations. */
   @keyframes rise {
     from {
-      opacity: 0;
       transform: translateY(28px);
     }
     to {
-      opacity: 1;
       transform: translateY(0);
     }
   }
@@ -208,11 +208,9 @@
   }
   @keyframes stamp {
     0% {
-      opacity: 0;
       transform: scale(1.12) rotate(-4deg);
     }
     100% {
-      opacity: 1;
       transform: scale(1) rotate(0);
     }
   }
@@ -265,8 +263,8 @@
   }
 }
 
-/* Landing page: sections settle in as they scroll into view. CSS only; browsers
-   without scroll-driven animations simply show the content. */
+/* Landing page: sections settle in as they scroll into view. CSS only, movement only:
+   content is fully visible before, during and without the animation. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .reveal {
@@ -653,11 +651,9 @@
 }
 @keyframes spring-in {
   from {
-    opacity: 0;
     transform: translateY(14px) scale(0.98);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }

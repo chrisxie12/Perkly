@@ -45,7 +45,7 @@ export function Merchants() {
           aria-label="Example: a printed Perqly QR stand next to the merchant's counter screen"
         >
           <div className="rounded-2xl bg-white p-6 text-ink-900 shadow-phone">
-            <div className="rounded-xl bg-blue-500 p-5 text-white">
+            <div className="rounded-xl bg-blue-500 p-5 text-white md:p-6">
               <p className="font-display text-xl font-extrabold">Student? Scan with Perqly</p>
               <p className="mt-1 text-sm text-white">Verified students get today&apos;s deal</p>
               <div className="mt-4 rounded-lg bg-white p-3">
@@ -55,9 +55,9 @@ export function Merchants() {
             </div>
           </div>
 
-          <div className="relative -mt-10 ml-auto w-[85%] rounded-2xl bg-ink-800 p-5 shadow-phone ring-1 ring-white/10 sm:-mr-8">
+          <div className="relative -mt-10 ml-auto w-[85%] rounded-2xl bg-ink-800 p-5 shadow-phone ring-1 ring-white/10 sm:-mr-8 md:p-6">
             <p className="text-xs font-semibold text-ink-400">Counter screen · Example</p>
-            <div className="mt-3 flex items-center gap-3 rounded-xl bg-white p-3 text-ink-900">
+            <div className="mt-3 flex items-center gap-3 rounded-xl bg-white p-4 text-ink-900 md:p-6">
               <span className="grid size-10 place-items-center rounded-full bg-blue-500 font-display font-bold text-white" aria-hidden>
                 AK
               </span>
