@@ -52,7 +52,7 @@ export function StudentBenefits() {
             </div>
             <p className="font-display text-display-lg font-extrabold">Free for students. Always.</p>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white">
-              You never pay to use Perqly. Businesses pay to reach verified students, and that pays for the platform.
+              You never pay to use Perqly. Businesses join free during the pilot too.
             </p>
             <div className="mt-10 flex items-center gap-4 rounded-2xl bg-white/15 p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.3)] md:mt-16 md:p-6">
               <PiggyBank className="size-9 shrink-0 text-orange-300" aria-hidden />
