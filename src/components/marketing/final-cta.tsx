@@ -18,12 +18,12 @@ export function FinalCta() {
               Your student price is waiting.
             </h2>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white md:text-xl">
-              Get ready for the GCTU pilot. Install Perqly now and you&apos;ll be first in line when sign-up opens.
+              The GCTU pilot is running now. Install Perqly and start using your student price today.
             </p>
           </div>
           <div className="flex w-full flex-col gap-6 md:w-auto md:max-w-md">
-            <WaitlistForm source="final" inverse />
             <InstallButton variant="accent" className="self-start" />
+            <WaitlistForm source="final" inverse />
           </div>
         </PageContainer>
       </div>

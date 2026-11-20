@@ -10,7 +10,7 @@ const schema = z.object({
   source: z.enum(["hero", "final"]),
 });
 
-/** Adds an email to the GCTU waitlist. Single opt-in; the same reply whether or not it was already there. */
+/** Adds an email to the list for campuses Perqly doesn't cover yet. Single opt-in; the same reply whether or not it was already there. */
 export async function joinWaitlist(_prev: FormState, formData: FormData): Promise<FormState> {
   // Honeypot: people never see or fill this field, simple bots do.
   if (String(formData.get("website") ?? "") !== "") return { status: "success", message: "You're on the list." };
@@ -26,5 +26,5 @@ export async function joinWaitlist(_prev: FormState, formData: FormData): Promis
     if (error.message.includes("rate_limited")) return { status: "error", message: "Too many tries. Try again tomorrow." };
     return { status: "error", message: "That didn't go through. Check your connection and try again." };
   }
-  return { status: "success", message: "You're on the list. We'll email you once, when GCTU sign-up opens." };
+  return { status: "success", message: "You're on the list. We'll email you once, when Perqly opens at your campus." };
 }

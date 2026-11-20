@@ -8,7 +8,7 @@ export default function OpengraphImage() {
   return shareImage({
     headline: ["Show your pass.", "Pay the student price."],
     sub: "Discounts at food spots, print shops and barbers near campus. Verified students only, free on any phone.",
-    tag: "Launching first at GCTU",
+    tag: "Live at GCTU, Accra",
     card: { label: "Example deal", saving: 10, small: "off your first cut" },
   });
 }

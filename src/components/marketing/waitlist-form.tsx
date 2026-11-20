@@ -6,6 +6,10 @@ import { joinWaitlist } from "@/features/waitlist/actions";
 import { idleState } from "@/features/auth/types";
 import { cn } from "@/lib/utils";
 
+/**
+ * The email form for students whose campus Perqly doesn't cover yet. A secondary action:
+ * it always comes after "Open Perqly" or "Install".
+ */
 export function WaitlistForm({ source, inverse = false }: { source: "hero" | "final"; inverse?: boolean }) {
   const [state, action, pending] = useActionState(joinWaitlist, idleState);
   const id = `waitlist-${source}`;
@@ -28,8 +32,8 @@ export function WaitlistForm({ source, inverse = false }: { source: "hero" | "fi
           Website <input type="text" name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
-      <label htmlFor={id} className={cn("mb-2 block text-[0.9375rem] font-semibold", inverse ? "text-white" : "text-ink-900")}>
-        Get notified when GCTU sign-up opens
+      <label htmlFor={id} className={cn("mb-2 block text-[0.9375rem] font-medium", inverse ? "text-white" : "text-ink-800")}>
+        Not at GCTU yet? Get an email when your campus opens
       </label>
       <div className="flex flex-col gap-2 min-[420px]:flex-row">
         <input
@@ -44,14 +48,14 @@ export function WaitlistForm({ source, inverse = false }: { source: "hero" | "fi
           placeholder="you@gmail.com"
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          className="h-12 w-full min-w-0 rounded-full bg-white px-5 text-base text-ink-900 ring-1 ring-ink-300 outline-none ring-inset placeholder:text-ink-500 focus-visible:ring-2 focus-visible:ring-blue-500 min-[420px]:flex-1"
+          className="h-11 w-full min-w-0 rounded-full bg-white px-5 text-base text-ink-900 ring-1 ring-ink-500 outline-none ring-inset placeholder:text-ink-600 focus-visible:ring-2 focus-visible:ring-blue-600 min-[420px]:flex-1"
         />
         <button
           type="submit"
           disabled={pending}
           className={cn(
-            "inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-[0.9375rem] font-semibold disabled:opacity-60",
-            inverse ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-ink-900 text-white hover:bg-ink-800",
+            "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-[0.9375rem] font-semibold disabled:opacity-60",
+            inverse ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-white text-ink-900 ring-1 ring-ink-500 ring-inset hover:bg-ink-50",
           )}
         >
           <BellRing className="size-4" aria-hidden />
@@ -63,7 +67,9 @@ export function WaitlistForm({ source, inverse = false }: { source: "hero" | "fi
           {error}
         </p>
       ) : (
-        <p className={cn("mt-2 text-sm", inverse ? "text-white/85" : "text-ink-600")}>One email when sign-up opens. Nothing else.</p>
+        <p className={cn("mt-2 text-sm", inverse ? "text-white/85" : "text-ink-600")}>
+          One email when Perqly opens at your campus. Nothing else.
+        </p>
       )}
     </form>
   );

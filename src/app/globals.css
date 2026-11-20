@@ -126,13 +126,13 @@
       transform: translateX(-50%);
     }
   }
+  /* Movement only: text is never hidden, so it reads on slow phones, with JavaScript off
+     and in browsers that skip animations. */
   @keyframes rise {
     from {
-      opacity: 0;
       transform: translateY(28px);
     }
     to {
-      opacity: 1;
       transform: translateY(0);
     }
   }
@@ -208,11 +208,9 @@
   }
   @keyframes stamp {
     0% {
-      opacity: 0;
       transform: scale(1.12) rotate(-4deg);
     }
     100% {
-      opacity: 1;
       transform: scale(1) rotate(0);
     }
   }
@@ -265,8 +263,8 @@
   }
 }
 
-/* Landing page: sections settle in as they scroll into view. CSS only; browsers
-   without scroll-driven animations simply show the content. */
+/* Landing page: sections settle in as they scroll into view. CSS only, movement only:
+   content is fully visible before, during and without the animation. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .reveal {
@@ -653,11 +651,9 @@
 }
 @keyframes spring-in {
   from {
-    opacity: 0;
     transform: translateY(14px) scale(0.98);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }
@@ -704,4 +700,62 @@
 }
 :root[data-lite="1"] :is(.hero-tilt, .coin-spin) {
   animation: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Landing page glass (iOS style).                                     */
+/* A soft colour wash sits behind the whole page so the glass panels   */
+/* have something to blur. Plain gradients, no filters, so it is cheap */
+/* to paint (so light phones keep it too); it stays put on scroll.     */
+/* ------------------------------------------------------------------ */
+.ambient-wash {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  background:
+    radial-gradient(42rem 32rem at 100% 0%, rgb(96 165 250 / 0.28), transparent 70%),
+    radial-gradient(36rem 30rem at 0% 55%, rgb(253 186 116 / 0.26), transparent 70%),
+    radial-gradient(40rem 30rem at 85% 100%, rgb(147 197 253 / 0.3), transparent 70%), var(--color-paper);
+}
+
+/* Large glass cards on the landing page: rounder corners, a little
+   more frost than the app's glass so long text reads easily. */
+.glass-card {
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 0.72);
+}
+:root[data-lite="1"] .glass-card {
+  background: #fff;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card {
+    background: #fff;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-card {
+    background: #fff;
+  }
+}
+
+/* Springy press for tappable glass (buttons, list rows). Only answers
+   a tap; nothing moves on its own. */
+.press {
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25),
+    background-color 0.2s ease-out,
+    color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+.press:active {
+  transform: scale(0.96);
+  transition-duration: 0.12s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .press:active {
+    transition: none;
+    transform: none;
+  }
 }

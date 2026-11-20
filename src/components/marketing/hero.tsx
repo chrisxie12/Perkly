@@ -1,5 +1,10 @@
-import { Check, Printer, ScanLine, Scissors, Utensils } from "lucide-react";
-import { InstallButton } from "@/components/marketing/install-button";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Check, Printer, ScanLine, Scissors, Utensils } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { PageContainer } from "@/components/layout/page-container";
 import { CampusMap } from "@/components/marketing/campus-map";
@@ -9,19 +14,27 @@ import { QrArt } from "@/components/marketing/qr-art";
 
 const promises = ["Free for students", "Works on any phone", "No app store needed"];
 
+/**
+ * TODO(founder): drop a real screenshot of the live pass from the working app at
+ * public/marketing/pass-screenshot.png (portrait, about 720×1480, from your own test account so
+ * no real student's name or photo is shown). When the file is there the phone shows it; until
+ * then it shows the labelled illustration.
+ */
+const PASS_SCREENSHOT = "/marketing/pass-screenshot.png";
+const hasPassScreenshot = existsSync(join(process.cwd(), "public", PASS_SCREENSHOT));
+
 export function Hero() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-24 pb-10 md:pt-36 md:pb-24">
+    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden pt-24 pb-20 md:pt-36 md:pb-24">
       {/* Backdrop: two slow colour glows and the campus map, all decorative */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,#000_65%,transparent)]">
         <div className="absolute -top-40 -right-32 size-[38rem] animate-drift rounded-full bg-blue-400/40 blur-3xl" />
         <div className="absolute top-[45%] -left-40 size-[30rem] animate-drift rounded-full bg-orange-200/50 blur-3xl [animation-delay:-9s]" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-paper" />
       </div>
       <PageContainer>
         <p className="glass inline-flex animate-rise items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-semibold text-ink-700">
-          <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-ink-900">Pilot</span>
-          Launching first at GCTU, Accra
+          <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-ink-900">Live</span>
+          Live at GCTU, Accra. More campuses next.
         </p>
 
         <h1 id="hero-title" className="mt-7 font-display text-display-xl font-extrabold text-ink-900">
@@ -37,10 +50,18 @@ export function Hero() {
             </p>
 
             <div className="mt-9 animate-rise [animation-delay:420ms]">
-              <InstallButton />
+              <Link
+                href="/student"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "press bg-blue-600 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_14px_30px_-12px_rgb(0_102_255/0.8)] hover:bg-blue-700",
+                )}
+              >
+                Open Perqly <ArrowRight className="size-5" aria-hidden />
+              </Link>
             </div>
 
-            <div id="notify" className="mt-8 animate-rise scroll-mt-28 [animation-delay:470ms]">
+            <div id="notify" className="mt-10 animate-rise scroll-mt-28 [animation-delay:470ms]">
               <WaitlistForm source="hero" />
             </div>
 
@@ -59,21 +80,31 @@ export function Hero() {
           {/* The product at the counter: the merchant's printed QR beside the student's phone */}
           <div className="relative mx-auto flex w-full max-w-[34rem] items-start justify-center sm:justify-start lg:mx-0 lg:w-[34rem]">
             {/* The neighbourhood behind the phone: campus, routes, shops */}
-            <CampusMap className="pointer-events-none absolute top-1/2 left-1/2 -z-10 w-[40rem] max-w-none -translate-x-1/2 -translate-y-1/2 text-ink-900 sm:w-[46rem]" />
+            <CampusMap className="pointer-events-none absolute top-1/2 left-1/2 -z-10 w-[40rem] max-w-none -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(closest-side,#000_35%,transparent_80%)] text-ink-900 sm:w-[46rem]" />
             <div className="relative z-10 animate-rise [animation-delay:260ms] [perspective:1200px]">
               <div className="hero-tilt">
                 <PhoneFrame>
-                  <div className="px-4 pt-2 pb-6">
-                    <div className="flex items-center justify-between">
-                      <p className="font-display text-sm font-bold text-ink-900">Your pass</p>
-                      <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-ink-700">Example</span>
+                  {hasPassScreenshot ? (
+                    <Image
+                      src={PASS_SCREENSHOT}
+                      alt="The live pass in the Perqly app, waiting for the cashier to confirm"
+                      width={720}
+                      height={1480}
+                      priority
+                      className="h-auto w-full"
+                    />
+                  ) : (
+                    <div className="px-4 pt-2 pb-6">
+                      <div className="flex items-center justify-between">
+                        <p className="font-display text-sm font-bold text-ink-900">Your pass</p>
+                        <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-ink-700">Example</span>
+                      </div>
+                      <LivePass className="mt-3 animate-stamp [animation-delay:900ms]" />
+                      <p className="mt-4 rounded-full bg-ink-100 py-3 text-center text-sm font-semibold text-ink-700">
+                        Waiting for the cashier to confirm
+                      </p>
                     </div>
-                    <LivePass className="mt-3 animate-stamp [animation-delay:900ms]" />
-                    <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-ink-100 py-3 text-sm font-semibold text-ink-700">
-                      <span className="size-2 animate-pulse rounded-full bg-orange-500" aria-hidden />
-                      Waiting for the cashier to confirm
-                    </div>
-                  </div>
+                  )}
                 </PhoneFrame>
               </div>
             </div>
@@ -112,7 +143,7 @@ export function Hero() {
 
             <div
               aria-hidden
-              className="glass absolute top-24 right-0 hidden w-48 rotate-[6deg] animate-rise rounded-3xl p-4 [animation-delay:500ms] sm:block"
+              className="glass absolute top-24 right-0 hidden w-52 rotate-[6deg] animate-rise rounded-3xl p-4 [animation-delay:500ms] sm:block md:p-6"
             >
               <div className="flex items-center gap-2 text-xs font-bold text-ink-900">
                 <ScanLine className="size-4 text-blue-500" /> Scan with Perqly

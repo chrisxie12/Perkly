@@ -36,13 +36,13 @@ export default function InstallPage() {
     <section className="pt-32 pb-24 md:pt-40">
       <PageContainer>
         <h1 className="max-w-3xl font-display text-display-lg font-extrabold">Put Perqly on your home screen.</h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-600">
+        <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-ink-600">
           Perqly is a web app, so there&apos;s nothing to download from an app store. Installing it takes two taps and very little data.
         </p>
 
         <div className="mt-14 grid gap-6 md:grid-cols-2">
           {guides.map((guide) => (
-            <article key={guide.platform} className="rounded-2xl bg-white p-7 shadow-soft ring-1 ring-ink-200/70 md:p-9">
+            <article key={guide.platform} className="glass glass-card p-7 md:p-9">
               <h2 className="font-display text-2xl font-extrabold">
                 {guide.platform} <span className="font-semibold text-ink-600">with {guide.browser}</span>
               </h2>
@@ -65,7 +65,7 @@ export default function InstallPage() {
 
         <div className="mt-10 flex flex-col gap-4">
           <InstallButton hideFallback />
-          <p className="max-w-2xl text-ink-600">
+          <p className="max-w-[52ch] text-ink-600">
             On phones that support one-tap install, the button above installs Perqly directly. Already installed? Open Perqly from your home
             screen.
           </p>

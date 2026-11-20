@@ -4,7 +4,7 @@ import { QrArt } from "@/components/marketing/qr-art";
 
 function VerifyVignette() {
   return (
-    <div className="rounded-xl bg-white p-4 shadow-soft ring-1 ring-ink-200">
+    <div className="rounded-2xl bg-white/80 p-4 md:p-6">
       <p className="text-xs font-semibold text-ink-600">Verification request · GCTU</p>
       <ul className="mt-3 space-y-2 text-sm font-medium">
         <li className="flex items-center gap-2">
@@ -31,7 +31,7 @@ function NearbyVignette() {
       <p className="mb-2 text-xs font-semibold text-ink-600">Example deals, not real businesses</p>
       <ul className="space-y-2">
         {deals.map((d) => (
-          <li key={d.name} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-soft ring-1 ring-ink-200">
+          <li key={d.name} className="flex items-center gap-3 rounded-2xl bg-white/80 p-4 md:p-6">
             <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-blue-50 font-display font-extrabold text-blue-700">
               {d.name[0]}
             </span>
@@ -52,7 +52,7 @@ function NearbyVignette() {
 
 function ScanVignette() {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-soft ring-1 ring-ink-200">
+    <div className="flex items-center gap-4 rounded-2xl bg-white/80 p-4 md:p-6">
       <QrArt className="w-20 shrink-0" seed={3} />
       <div>
         <p className="flex items-center gap-1.5 text-sm font-bold">
@@ -102,12 +102,12 @@ export function HowItWorks() {
           {steps.map((step, index) => (
             <li
               key={step.title}
-              className="reveal group relative flex flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink-200 transition-shadow duration-300 hover:shadow-lift sm:p-6 md:p-7"
+              className="reveal group glass glass-card relative flex flex-col overflow-hidden p-5 sm:p-6 md:p-7"
               style={{ animationRange: `entry 0% entry ${45 + index * 15}%` }}
             >
               <span
                 aria-hidden
-                className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-gradient-to-br from-blue-50 to-transparent transition-transform duration-500 group-hover:scale-125"
+                className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-gradient-to-br from-blue-100/70 to-transparent transition-transform duration-500 group-hover:scale-125"
               />
               <span
                 className="relative grid size-14 place-items-center rounded-2xl bg-blue-500 font-display text-3xl leading-none font-extrabold text-white shadow-soft"
