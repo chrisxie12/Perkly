@@ -15,7 +15,7 @@ export const merchantFaqs = [
 export const faqs = [
   {
     q: "Is Perqly free for students?",
-    a: "Yes. Students never pay to use Perqly. Businesses pay to reach verified students, and that keeps it free for you.",
+    a: "Yes. Students never pay to use Perqly. Businesses join free during the pilot too.",
   },
   {
     q: "Who can join?",
