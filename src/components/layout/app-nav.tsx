@@ -10,6 +10,7 @@ import {
   Building2,
   ChartColumn,
   Compass,
+  GraduationCap,
   FileText,
   Heart,
   House,
@@ -29,6 +30,7 @@ import {
   Shield,
   Store,
   Tag,
+  Ticket,
   User,
   Users,
   Wallet,
@@ -66,6 +68,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   star: Star,
   badge: BadgeCheck,
   calendar: CalendarDays,
+  ticket: Ticket,
+  cap: GraduationCap,
 };
 
 function Badge({ badge }: { badge: NavItem["badge"] }) {

@@ -14,6 +14,8 @@ export type NavArea = "student" | "merchant" | "institution" | "admin" | "organi
 export type IconName =
   | "home"
   | "compass"
+  | "ticket"
+  | "cap"
   | "heart"
   | "qr"
   | "user"
@@ -178,24 +180,16 @@ function studentNav(n: NavContext): AreaNav {
   const view = n.verification ?? null;
   const verified = view === "verified";
   const needsAction = view !== null && ["needs_profile", "apply", "resubmit", "rejected", "expired"].includes(view);
-  const scan = {
-    ...item("scan", "Scan", "/student/scan", "scan", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
-    emphasis: true,
-  };
+  // Snapchat-style frame: "Me" lives in the profile photo at the top left, and the
+  // top bar holds Notifications and Chat, so the bottom bar is for places to go.
   const tabs = [
     item("deals", "Home", "/student", "home", ["/student", "/student/offers*", "/student/merchants*"]),
-    item("map", "Map", "/student/map", "map", ["/student/map*"]),
-    scan,
-    item("savings", "My deals", "/student/history", "tag", ["/student/history*"]),
-    item(
-      "me",
-      "Me",
-      "/student/me",
-      "user",
-      ["/student/me*", "/student/profile*", "/student/verify*", "/student/messages*", "/student/favourites*"],
-      needsAction ? "dot" : undefined,
-    ),
+    item("map", "Explore", "/student/map", "compass", ["/student/map*"]),
+    item("scan", "Scan", "/student/scan", "scan", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
+    item("savings", "My Deals", "/student/history", "ticket", ["/student/history*"]),
+    ...(n.campus ? [item("campus", "Campus", "/student/campus", "cap", ["/student/campus*"])] : []),
   ];
+  const me = item("me", "Me", "/student/me", "user", ["/student/me*"], needsAction ? "dot" : undefined);
   return {
     area: "student",
     label: AREA_TITLE.student,
@@ -206,6 +200,7 @@ function studentNav(n: NavContext): AreaNav {
       {
         label: "You",
         items: [
+          me,
           item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
           item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"]),
           item("friends", "Friends", "/student/friends", "users", ["/student/friends*"]),
@@ -213,7 +208,6 @@ function studentNav(n: NavContext): AreaNav {
           item("messages", "Messages", "/student/messages", "chat", ["/student/messages*"]),
           item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
           item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
-          ...(n.campus ? [item("campus", "Campus", "/student/campus", "building", ["/student/campus*"])] : []),
         ],
       },
     ],

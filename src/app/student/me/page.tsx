@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  Repeat,
   Heart,
   MessageCircle,
   BadgeCheck,
@@ -19,6 +20,8 @@ import {
 } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
+import { AREA_HOME, AREA_LABEL } from "@/lib/auth/paths";
+import { areasFor } from "@/lib/auth/roles";
 import { getMyPassPhotoPath, signPassPhoto } from "@/features/pass-photo/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getMyStudentStatus } from "@/features/students/queries";
@@ -58,6 +61,7 @@ export default async function MePage() {
   const campusOn = (await getCampusEnabled()).posts;
   const photoUrl = await signPassPhoto(photoPath, 120);
   const view = verificationView(status);
+  const others = ctx ? areasFor(ctx).filter((a) => a !== "student") : [];
   const p = status.profile;
   const name = ctx?.fullName ?? ctx?.firstName ?? "Your account";
   const school = p?.institution_short_name ?? "your school";
@@ -160,7 +164,7 @@ export default async function MePage() {
         />
         <Row href="/student/profile" icon={Building2} label="School details" note={p ? p.institution_name : "Choose your school"} />
         <Row href="/student/verify" icon={BadgeCheck} label="Verification" />
-        <Row href="/account" icon={UserRound} label="Name and account" />
+        <Row href="/account" icon={UserRound} label="Name and account" note="Your name, sign-in and dark mode" />
         <Row href="/account/notifications" icon={Bell} label="Notifications" />
       </nav>
       <p className="mt-6 mb-2 text-xs font-bold text-ink-600">Perqly</p>
@@ -169,6 +173,17 @@ export default async function MePage() {
         <Row href="/privacy" icon={LockKeyhole} label="Privacy and your ID photos" note="Deleted 30 days after the decision" />
         <Row href="/account" icon={Download} label="Download your data" />
       </nav>
+      {others.length > 0 && (
+        <>
+          {/* People with more than one role (a student who also runs a shop) switch here; the old account menu lived in the top bar. */}
+          <p className="mt-6 mb-2 text-xs font-bold text-ink-600">Switch to</p>
+          <nav aria-label="Switch area" className="overflow-hidden rounded-2xl bg-white ring-1 ring-ink-200/70">
+            {others.map((area) => (
+              <Row key={area} href={AREA_HOME[area]} icon={Repeat} label={AREA_LABEL[area]} />
+            ))}
+          </nav>
+        </>
+      )}
       <div className="mt-6 mb-4">
         <SignOutButton />
       </div>

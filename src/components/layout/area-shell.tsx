@@ -3,7 +3,6 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { Lock } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
-import { CampusChip } from "@/components/auth/campus-chip";
 import { AccountBar } from "@/components/auth/account-bar";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
@@ -15,6 +14,7 @@ import { verificationView } from "@/features/students/status";
 import { BottomNav, SideNav } from "./app-nav";
 import { getCampusEnabled } from "@/features/campus/queries";
 import { FrameChrome } from "./frame-chrome";
+import { StudentTopBar } from "./student-top-bar";
 
 async function navContext(area: NavArea): Promise<NavContext | null> {
   const ctx = await getUserContext();
@@ -42,26 +42,27 @@ export async function AreaFrame({ area, children }: { area: NavArea; children: R
       area={area}
       header={
         <header className="pt-safe sticky top-0 z-30 border-b border-ink-200/60 bg-white/75 backdrop-blur-xl backdrop-saturate-150">
-          <div className="flex h-16 items-center justify-between gap-2 px-4 md:px-5">
-            <div className="flex items-center gap-3">
-              <Link href="/" aria-label="Perqly home" className="shrink-0 rounded-lg">
-                <Logo />
-              </Link>
-              <span className="hidden rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700 sm:inline">
-                {AREA_TITLE[area]}
-              </span>
-            </div>
-            <div className="flex min-w-0 items-center gap-1">
-              {area === "student" && (
+          {area === "student" ? (
+            <React.Suspense fallback={<div className="h-16" />}>
+              <StudentTopBar />
+            </React.Suspense>
+          ) : (
+            <div className="flex h-16 items-center justify-between gap-2 px-4 md:px-5">
+              <div className="flex items-center gap-3">
+                <Link href="/" aria-label="Perqly home" className="shrink-0 rounded-lg">
+                  <Logo />
+                </Link>
+                <span className="hidden rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-700 sm:inline">
+                  {AREA_TITLE[area]}
+                </span>
+              </div>
+              <div className="flex min-w-0 items-center gap-1">
                 <React.Suspense fallback={null}>
-                  <CampusChip />
+                  <AccountBar />
                 </React.Suspense>
-              )}
-              <React.Suspense fallback={null}>
-                <AccountBar />
-              </React.Suspense>
+              </div>
             </div>
-          </div>
+          )}
         </header>
       }
       side={nav ? <SideNav nav={nav} /> : null}
