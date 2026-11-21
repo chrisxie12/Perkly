@@ -38,8 +38,14 @@ export type FriendChatSummary = {
   unread: number;
   can_send: boolean;
 };
-export type FriendChatHeader = { id: string; friend_id: string; friend_name: string; can_send: boolean; blocked: boolean };
-export type FriendMessage = { id: string; sender_id: string | null; body: string; created_at: string };
+export type FriendChatHeader = {
+  id: string;
+  friend_id: string;
+  friend_name: string;
+  can_send: boolean;
+  blocked: boolean;
+  other_read_at?: string | null;
+};
 
 export const REPORT_REASONS = [
   { value: "harassment", label: "Harassment or bullying" },

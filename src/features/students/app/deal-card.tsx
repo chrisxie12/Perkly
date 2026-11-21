@@ -88,23 +88,24 @@ export function DealCard({
       <Link href={href} className="flex flex-1 flex-col rounded-[22px] focus-visible:outline-none">
         <span className={cn("relative block overflow-hidden rounded-[22px] bg-ink-100", compact ? "h-36" : "h-52")}>
           <DealPhoto deal={deal} closed={closed} />
-          <span className="absolute top-3 left-3 flex max-w-[60%] items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-sm">
-            <CategoryIcon name={deal.category_icon ?? "store"} className="size-3.5 shrink-0 text-orange-500" />
-            <span className="truncate text-[0.6875rem] font-black tracking-widest text-ink-900 uppercase">{deal.category_name}</span>
-          </span>
-          {away && (
-            <span className="absolute top-3 right-3 rounded-full bg-blue-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg">
-              {away}
-            </span>
-          )}
           {closed && (
             <span className="absolute bottom-3 left-3 rounded-full bg-black/65 px-3 py-1.5 text-xs font-semibold text-white">
               Closed{deal.opens_next ? `, opens ${deal.opens_next}` : ""}
             </span>
           )}
         </span>
-        <span className={cn("flex flex-1 flex-col", compact ? "px-2.5 pt-3" : "px-3 pt-4")}>
-          <span className="flex items-start justify-between gap-3">
+        <span className={cn("flex flex-1 flex-col", compact ? "px-2.5 pt-3" : "px-3 pt-3.5")}>
+          <span className="flex min-w-0 items-center gap-1.5 text-[0.8125rem] font-medium text-ink-600">
+            <CategoryIcon name={deal.category_icon ?? "store"} className="size-3.5 shrink-0" />
+            <span className="truncate">{deal.category_name}</span>
+            {away && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="shrink-0">{away}</span>
+              </>
+            )}
+          </span>
+          <span className="mt-1 flex items-start justify-between gap-3">
             <span
               className={cn(
                 "min-w-0 font-display leading-tight font-extrabold tracking-tight text-ink-900",
@@ -115,8 +116,8 @@ export function DealCard({
             </span>
             <span
               className={cn(
-                "shrink-0 font-display leading-none font-black text-blue-500 uppercase",
-                compact ? "pt-0.5 text-lg" : "text-[1.625rem]",
+                "shrink-0 rounded-full bg-blue-50 px-2.5 py-1 font-bold whitespace-nowrap text-blue-700",
+                compact ? "text-xs" : "text-sm",
               )}
             >
               {savingLabel(deal)}

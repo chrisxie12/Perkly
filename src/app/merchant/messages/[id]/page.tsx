@@ -1,39 +1,27 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Ban, ChevronLeft } from "lucide-react";
+import { Ban } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
+import { getUserContext } from "@/lib/auth/session";
 import { setConversationBlocked } from "@/features/chat/actions";
-import { ChatThread } from "@/features/chat/components/chat-thread";
-import { getConversation, getMessages } from "@/features/chat/queries";
-import { initials } from "@/features/students/app/format";
+import { getConversation } from "@/features/chat/queries";
+import { ChatRoom } from "@/features/chat/room/chat-room";
+import { RoomHeader } from "@/features/chat/room/room-header";
+import { loadRoom } from "@/features/chat/room/server";
 
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
 
 export default async function MerchantChatPage({ params }: PageProps<"/merchant/messages/[id]">) {
   const { id } = await params;
-  const chat = await getConversation(id);
-  if (!chat || chat.side !== "merchant") notFound();
-  const messages = await getMessages(id);
+  const [chat, ctx] = await Promise.all([getConversation(id), getUserContext()]);
+  if (!chat || chat.side !== "merchant" || !ctx) notFound();
+  const me = { kind: "shop", side: "merchant", userId: ctx.userId } as const;
+  const room = await loadRoom("shop", id, me);
   const name = chat.student_name ?? "Student";
   return (
     <AreaShell area="merchant">
       <div className="max-w-2xl">
-        <header className="sticky top-16 z-10 -mx-4 -mt-6 mb-2 flex items-center gap-2 border-b border-ink-200 bg-paper px-2 py-2 sm:mx-0 md:-mt-12">
-          <Link
-            href="/merchant/messages"
-            className="grid size-11 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
-            aria-label="All messages"
-          >
-            <ChevronLeft className="size-6" aria-hidden />
-          </Link>
-          <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">
-            {initials(name)}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-bold text-ink-900">{name}</span>
-            <span className="block text-xs text-ink-600">Student</span>
-          </span>
+        <RoomHeader backHref="/merchant/messages" backLabel="All messages" name={name} sub="Student">
           <form action={setConversationBlocked}>
             <input type="hidden" name="conversationId" value={id} />
             <input type="hidden" name="blocked" value={chat.blocked ? "false" : "true"} />
@@ -45,16 +33,20 @@ export default async function MerchantChatPage({ params }: PageProps<"/merchant/
               {chat.blocked ? "Unblock" : "Block"}
             </button>
           </form>
-        </header>
+        </RoomHeader>
         {chat.blocked && (
           <p className="mb-2 rounded-xl bg-ink-50 px-4 py-2.5 text-center text-sm text-ink-600">
             You&apos;ve blocked {name}. They can&apos;t send you messages until you unblock them.
           </p>
         )}
-        <ChatThread
-          conversationId={id}
-          me="merchant"
-          initialMessages={messages}
+        <ChatRoom
+          kind="shop"
+          chatId={id}
+          me={me}
+          otherName={name}
+          initialMessages={room.messages}
+          initialReactions={room.reactions}
+          initialOtherReadAt={chat.other_read_at ?? null}
           blocked={false}
           blockedText=""
           emptyText="No messages yet."

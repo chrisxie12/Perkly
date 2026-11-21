@@ -4,8 +4,6 @@ import { hasSupabaseEnv } from "@/lib/env";
 
 export type ChatSide = "student" | "merchant";
 
-export type ChatMessage = { id: string; sender_side: ChatSide; body: string; created_at: string };
-
 export type ConversationSummary = {
   id: string;
   title: string;
@@ -29,6 +27,8 @@ export type ConversationHeader = {
   merchant_whatsapp: string | null;
   student_name: string | null;
   blocked: boolean;
+  /** When the other side last opened the chat (for "Seen"). */
+  other_read_at?: string | null;
 };
 
 export async function listMyConversations(): Promise<ConversationSummary[]> {
@@ -58,18 +58,6 @@ export async function getConversation(id: string) {
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_conversation", { p_conversation_id: id });
   return (data as ConversationHeader | null) ?? null;
-}
-
-/** The latest 200 messages, oldest first. */
-export async function getMessages(conversationId: string): Promise<ChatMessage[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("messages")
-    .select("id, sender_side, body, created_at")
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: false })
-    .limit(200);
-  return ((data ?? []) as ChatMessage[]).reverse();
 }
 
 export async function countUnreadChats(merchantId?: string) {

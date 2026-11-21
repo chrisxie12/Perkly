@@ -124,26 +124,6 @@ export async function openFriendChat(formData: FormData) {
   redirect(`/student/friends/chat/${data}`);
 }
 
-export type FriendSendResult = { ok: true; id: string; createdAt: string } | { ok: false; error: string };
-
-export async function sendFriendMessage(chatId: string, body: string): Promise<FriendSendResult> {
-  if (!uuid.safeParse(chatId).success) return { ok: false, error: friendsErrorMessage("forbidden") };
-  const value = body.trim();
-  if (value.length < 1 || value.length > 1000) return { ok: false, error: friendsErrorMessage("message_invalid") };
-  if (!hasSupabaseEnv()) return { ok: false, error: "This isn't available in this environment yet." };
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("send_friend_message", { p_chat_id: chatId, p_body: value });
-  if (error || !data) return { ok: false, error: friendsErrorMessage(error?.message) };
-  deliverNotificationsSoon();
-  return { ok: true, id: data as string, createdAt: new Date().toISOString() };
-}
-
-export async function markFriendChatRead(chatId: string) {
-  if (!uuid.safeParse(chatId).success || !hasSupabaseEnv()) return;
-  const supabase = await createClient();
-  await supabase.rpc("mark_friend_chat_read", { p_chat_id: chatId });
-}
-
 // Perqly support -----------------------------------------------------------------------------
 export async function setStudentReportStatus(_prev: FormState, formData: FormData): Promise<FormState> {
   const id = uuid.safeParse(formData.get("reportId"));

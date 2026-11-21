@@ -7,7 +7,6 @@ import type {
   Friend,
   FriendChatHeader,
   FriendChatSummary,
-  FriendMessage,
   FriendOnDeal,
   FriendRequest,
   SharedDeal,
@@ -40,19 +39,6 @@ export async function searchClassmates(q: string): Promise<{ results: Classmate[
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("search_classmates", { p_query: q });
   return { results: (data ?? []) as Classmate[], error: error?.message ?? null };
-}
-
-/** The latest 200 messages of a friend chat, oldest first (row security limits this to the two friends). */
-export async function getFriendMessages(chatId: string): Promise<FriendMessage[]> {
-  if (!hasSupabaseEnv()) return [];
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("friend_messages")
-    .select("id, sender_id, body, created_at")
-    .eq("chat_id", chatId)
-    .order("created_at", { ascending: false })
-    .limit(200);
-  return ((data ?? []) as FriendMessage[]).reverse();
 }
 
 export type StudentReportRow = {
