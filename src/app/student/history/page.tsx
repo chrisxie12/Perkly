@@ -94,20 +94,23 @@ export default async function SavingsPage() {
                   <span className="text-[0.8125rem] text-ink-600">
                     {r.merchant_name}, {when.format(new Date(r.redeemed_at))}
                   </span>
-                  {!r.voided && (
+                  {/* Own row so the two links line up under the shop name, even when they wrap */}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    {!r.voided && (
+                      <Link
+                        href={`/student/merchants/${r.merchant_slug}#ratings`}
+                        className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-blue-600"
+                      >
+                        <Star className="size-3.5" aria-hidden /> Rate {r.merchant_name}
+                      </Link>
+                    )}
                     <Link
-                      href={`/student/merchants/${r.merchant_slug}#ratings`}
-                      className="mt-0.5 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-blue-600"
+                      href={`/student/problems/new?redemption=${r.redemption_id}`}
+                      className="inline-flex text-[0.8125rem] font-semibold text-ink-600 underline-offset-2 hover:underline"
                     >
-                      <Star className="size-3.5" aria-hidden /> Rate {r.merchant_name}
+                      Report a problem
                     </Link>
-                  )}{" "}
-                  <Link
-                    href={`/student/problems/new?redemption=${r.redemption_id}`}
-                    className="mt-0.5 ml-3 inline-flex text-[0.8125rem] font-semibold text-ink-600 underline-offset-2 hover:underline"
-                  >
-                    Report a problem
-                  </Link>
+                  </div>
                 </div>
                 {r.voided ? (
                   <span className="text-[0.8125rem] font-semibold text-ink-600">Cancelled by support</span>
