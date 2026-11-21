@@ -16,7 +16,16 @@ type RowLike = { id: string; title?: string; body?: string | null; link?: string
  * message from the service worker when a phone notification lands, and a
  * re-check whenever the app comes back to the foreground.
  */
-export function LiveBell({ userId, initialUnread }: { userId: string; initialUnread: number }) {
+export function LiveBell({
+  userId,
+  initialUnread,
+  labelled = false,
+}: {
+  userId: string;
+  initialUnread: number;
+  /** Icon over a "Notifications" label, for the student top bar. */
+  labelled?: boolean;
+}) {
   const [unread, setUnread] = useState(initialUnread);
   const [pulse, setPulse] = useState(false);
   const [toast, setToast] = useState<ToastNotification | null>(null);
@@ -120,18 +129,25 @@ export function LiveBell({ userId, initialUnread }: { userId: string; initialUnr
       <NotificationToast key={toast?.id ?? "none"} toast={toast} onClose={closeToast} />
       <Link
         href="/account/notifications"
-        className="relative grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
+        className={
+          labelled
+            ? "press flex flex-col items-center gap-0.5 rounded-2xl px-2 py-1 text-[0.6875rem] font-medium text-ink-700"
+            : "relative grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
+        }
         aria-label={unread > 0 ? `Notifications, ${unread} new` : "Notifications"}
       >
-        <Bell className={pulse ? "size-5 motion-safe:animate-[bell-ring_0.6s_ease-in-out_2]" : "size-5"} aria-hidden />
-        {unread > 0 && (
-          <span
-            className="absolute top-1 right-1 grid min-w-4 place-items-center rounded-full bg-orange-500 px-1 text-[0.6875rem] leading-4 font-bold text-white"
-            aria-hidden
-          >
-            {unread > 9 ? "9+" : unread}
-          </span>
-        )}
+        <span className="relative grid size-7 place-items-center">
+          <Bell className={pulse ? "size-[1.375rem] motion-safe:animate-[bell-ring_0.6s_ease-in-out_2]" : "size-[1.375rem]"} aria-hidden />
+          {unread > 0 && (
+            <span
+              className="absolute -top-1 -right-1.5 grid min-w-4 place-items-center rounded-full bg-orange-500 px-1 text-[0.6875rem] leading-4 font-bold text-white"
+              aria-hidden
+            >
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </span>
+        {labelled && <span aria-hidden>Notifications</span>}
       </Link>
     </>
   );

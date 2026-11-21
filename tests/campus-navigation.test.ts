@@ -72,11 +72,11 @@ describe("Campus menu items", () => {
     expect(labels({ ctx: base, verification: "verified", campus: true })).toContain("Campus");
   });
 
-  it("keeps the five student tabs unchanged", () => {
+  it("adds Campus as the fifth student tab only while Campus is switched on", () => {
     const off = navFor("student", { ctx: base, verification: "verified" }).tabs.map((t) => t.label);
     const on = navFor("student", { ctx: base, verification: "verified", campus: true }).tabs.map((t) => t.label);
-    expect(on).toEqual(off);
-    expect(on).toHaveLength(5);
+    expect(off).toEqual(["Home", "Explore", "Scan", "My Deals"]);
+    expect(on).toEqual([...off, "Campus"]);
   });
 
   it("limits the admin Campus pages by staff role", () => {

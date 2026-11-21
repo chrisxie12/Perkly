@@ -35,17 +35,23 @@ const instAdmin: NavContext = { ctx: ctx({ institutionRoles: [{ institutionId: "
 const staff = (platformRole: UserContext["platformRole"]): NavContext => ({ ctx: ctx({ platformRole }) });
 
 describe("menus by role", () => {
-  it("gives students Home, Map, Scan, My deals and Me, with Scan as the raised middle button", () => {
-    expect(labels("student", student)).toEqual(["Home", "Map", "Scan", "My deals", "Me"]);
-    expect(navFor("student", student).tabs.find((t) => t.emphasis)?.key).toBe("scan");
+  it("gives students Home, Explore, Scan and My Deals, plus Campus while it's switched on", () => {
+    expect(labels("student", student)).toEqual(["Home", "Explore", "Scan", "My Deals"]);
+    expect(labels("student", { ...student, campus: true })).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
+    // "Me" is the profile photo in the top bar, not a tab; the sidebar still lists it.
+    const sidebar = navFor("student", student).groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(sidebar).toContain("me");
   });
 
   it("marks Scan locked and Me needing attention until the student is verified", () => {
+    const meIn = (n: NavContext) =>
+      navFor("student", n)
+        .groups.flatMap((g) => g.items)
+        .find((i) => i.key === "me");
     const tabs = navFor("student", { ctx: ctx(), verification: "apply" }).tabs;
     expect(tabs.find((t) => t.key === "scan")?.badge).toBe("lock");
-    expect(tabs.find((t) => t.key === "me")?.badge).toBe("dot");
-    const pending = navFor("student", { ctx: ctx(), verification: "pending" }).tabs;
-    expect(pending.find((t) => t.key === "me")?.badge).toBeUndefined();
+    expect(meIn({ ctx: ctx(), verification: "apply" })?.badge).toBe("dot");
+    expect(meIn({ ctx: ctx(), verification: "pending" })?.badge).toBeUndefined();
     expect(navFor("student", student).tabs.every((t) => !t.badge)).toBe(true);
   });
 
@@ -137,8 +143,7 @@ describe("active tab", () => {
     expect(activeIn(s, "/student/merchants/fresh-fade")).toBe("deals");
     expect(activeIn(s, "/student/redeem/abc")).toBe("scan");
     expect(activeIn(s, "/student/scan/code")).toBe("scan");
-    expect(activeIn(s, "/student/verify")).toBe("me");
-    expect(activeIn(s, "/student/profile")).toBe("me");
+    expect(activeIn(s, "/student/map")).toBe("map");
     expect(activeIn(s, "/student/history")).toBe("savings");
     const m = navFor("merchant", owner).tabs;
     expect(activeIn(m, "/merchant")).toBe("overview");
