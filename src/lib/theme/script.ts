@@ -5,7 +5,8 @@
  * Kept tiny and dependency-free: it's inlined as a string.
  */
 export const THEME_STORAGE_KEY = "perqly-theme";
-export const THEME_COLORS = { light: "#FFFFFF", dark: "#0B1220" } as const;
+// The same as the page background (--color-paper), so the phone's status bar blends into the app.
+export const THEME_COLORS = { light: "#F8FAFC", dark: "#0B1220" } as const;
 
 export const themeScript = `(function(){try{
 var k=${JSON.stringify(THEME_STORAGE_KEY)},c=${JSON.stringify(THEME_COLORS)};
