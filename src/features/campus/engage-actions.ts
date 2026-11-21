@@ -6,7 +6,16 @@ import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
-import { campusErrorMessage, commentFormSchema, eventFormSchema, eventSchema, parseLocalTime, type CampusEvent } from "./schemas";
+import {
+  campusErrorMessage,
+  cedisToPesewas,
+  commentFormSchema,
+  eventFormSchema,
+  eventSchema,
+  parseLocalTime,
+  ticketPriceFormSchema,
+  type CampusEvent,
+} from "./schemas";
 
 // Comments (C2) and events (C3). Each action calls one database function, which checks
 // the caller, their school, their role, the switches and the limits. No notifications.
@@ -22,6 +31,8 @@ const reload: FormState = { status: "error", message: "Reload the page and try a
 function revalidatePost(postId: string, organisationId?: string) {
   revalidatePath(`/student/campus/posts/${postId}`);
   revalidatePath("/student/campus/events");
+  revalidatePath("/student/campus");
+  revalidatePath("/student/campus/tickets");
   if (organisationId) revalidatePath(`/organise/${organisationId}/posts/${postId}`);
 }
 
@@ -114,4 +125,93 @@ export async function removeEventDetails(_prev: FormState, formData: FormData): 
   if (error) return { status: "error", message: campusErrorMessage(error.message) };
   revalidatePost(postId.data, organisationId.data);
   return { status: "success", message: "This post is no longer an event. Its RSVPs were removed." };
+}
+
+// Tickets: a student price paid at the door -------------------------------------------------
+
+export async function takeTicket(postId: string): Promise<{ ok: true; event: CampusEvent } | { ok: false; message: string }> {
+  if (!uuid.safeParse(postId).success) return { ok: false, message: "Reload the page and try again." };
+  if (!hasSupabaseEnv()) return { ok: false, message: "This isn't available in this environment yet." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("take_event_ticket", { p_post_id: postId });
+  if (error) return { ok: false, message: campusErrorMessage(error.message) };
+  const event = eventSchema.safeParse(data);
+  if (!event.success) return { ok: false, message: "Something went wrong. Try again." };
+  revalidatePost(postId);
+  return { ok: true, event: event.data };
+}
+
+export async function saveTicketPrices(_prev: FormState, formData: FormData): Promise<FormState> {
+  const sold = formData.get("ticketed") === "on";
+  const parsed = ticketPriceFormSchema.safeParse({
+    postId: text(formData.get("postId")),
+    organisationId: text(formData.get("organisationId")),
+    normal: sold ? (text(formData.get("normal")) ?? "") : undefined,
+    student: sold ? (text(formData.get("student")) ?? "") : undefined,
+  });
+  if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  if (!hasSupabaseEnv()) return unavailable;
+  const d = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_event_tickets", {
+    p_post_id: d.postId,
+    p_normal_price: sold ? cedisToPesewas(d.normal) : null,
+    p_student_price: sold ? cedisToPesewas(d.student) : null,
+  });
+  if (error) return { status: "error", message: campusErrorMessage(error.message) };
+  revalidatePost(d.postId, d.organisationId);
+  revalidatePath(`/organise/${d.organisationId}/posts/${d.postId}/door`);
+  return { status: "success", message: sold ? "Ticket prices saved." : "Tickets turned off. Students RSVP for free." };
+}
+
+const doorTicketSchema = z.object({
+  code: z.string(),
+  status: z.enum(["active", "checked_in", "cancelled"]),
+  normal_price: z.number(),
+  student_price: z.number(),
+  checked_in_at: z.string().nullable(),
+  name: z.string().optional(),
+  photo_path: z.string().nullable().optional(),
+  still_verified: z.boolean().optional(),
+});
+export type DoorTicket = z.infer<typeof doorTicketSchema> & { photo_url: string | null };
+
+export type DoorState =
+  | { status: "idle" }
+  | { status: "error"; message: string; code?: string }
+  | { status: "found"; ticket: DoorTicket }
+  | { status: "checked_in"; ticket: DoorTicket };
+
+const cleanCode = (v: FormDataEntryValue | null) =>
+  typeof v === "string"
+    ? v
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 8)
+    : "";
+
+/** Door: look a code up (step "find") or check it in (step "check_in"). */
+export async function doorAction(_prev: DoorState, formData: FormData): Promise<DoorState> {
+  const postId = uuid.safeParse(formData.get("postId"));
+  const code = cleanCode(formData.get("code"));
+  if (!postId.success) return { status: "error", message: "Reload the page and try again." };
+  if (code.length !== 8) return { status: "error", message: "Ticket codes are 8 letters and numbers.", code };
+  if (!hasSupabaseEnv()) return { status: "error", message: "This isn't available in this environment yet." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("door_lookup_ticket", { p_post_id: postId.data, p_code: code });
+  if (error) return { status: "error", message: campusErrorMessage(error.message), code };
+  const found = doorTicketSchema.safeParse(data);
+  if (!found.success) return { status: "error", message: "Something went wrong. Try again.", code };
+  let photo_url: string | null = null;
+  if (found.data.photo_path) {
+    // Storage lets the organiser read this photo only while the ticket is live and doors are open.
+    const signed = await supabase.storage.from("pass-photos").createSignedUrl(found.data.photo_path, 300);
+    photo_url = signed.data?.signedUrl ?? null;
+  }
+  const ticket: DoorTicket = { ...found.data, photo_url };
+  if (formData.get("step") !== "check_in") return { status: "found", ticket };
+  const res = await supabase.rpc("door_check_in", { p_post_id: postId.data, p_code: code });
+  if (res.error) return { status: "error", message: campusErrorMessage(res.error.message), code };
+  revalidatePath("/organise", "layout");
+  return { status: "checked_in", ticket: { ...ticket, status: "checked_in", checked_in_at: new Date().toISOString() } };
 }

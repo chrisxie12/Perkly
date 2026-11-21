@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ExternalLink } from "lucide-react";
+import { ChevronLeft, ExternalLink, ScanLine } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getCampusEnabled, getEventDetail, getOrganisationForEditor, getPostDetail, signCampusMedia } from "@/features/campus/queries";
@@ -10,6 +10,7 @@ import { PostEditor } from "@/features/campus/components/post-editor";
 import { statusLabel } from "@/features/campus/components/post-card";
 import { PinForm, PublishForm, StatusButtons } from "@/features/campus/components/post-controls";
 import { EventForm } from "@/features/campus/components/event-form";
+import { TicketPriceForm } from "@/features/campus/components/ticket-price-form";
 
 export const metadata: Metadata = { title: "Edit post", robots: { index: false } };
 
@@ -63,6 +64,16 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
           {!post.is_emergency && (
             <div className="rounded-2xl bg-white p-4 ring-1 ring-ink-200">
               <EventForm postId={post.id} organisationId={org.id} event={event} />
+            </div>
+          )}
+          {!post.is_emergency && event && (
+            <div className="rounded-2xl bg-white p-4 ring-1 ring-ink-200">
+              <TicketPriceForm postId={post.id} organisationId={org.id} event={event} />
+              {event.ticketed && (
+                <Link href={`/organise/${org.id}/posts/${post.id}/door`} className={buttonVariants({ className: "mt-4 w-full" })}>
+                  <ScanLine aria-hidden /> Door check-in
+                </Link>
+              )}
             </div>
           )}
           <StatusButtons postId={post.id} organisationId={org.id} status={status} scheduled={scheduled} />

@@ -284,3 +284,14 @@ async function rpcEvents(fn: string, args: Record<string, unknown>): Promise<Cam
 export const getUpcomingEvents = (cursor: Cursor | null) =>
   rpcEvents("upcoming_events", { p_after_at: cursor?.at ?? null, p_after_id: cursor?.id ?? null });
 export const getMyEvents = () => rpcEvents("my_events", {});
+export const getMyTickets = () => rpcEvents("my_tickets", {});
+
+/** Ticket counts for an event's organisers: how many are held, how many are in. */
+export async function getTicketStats(postId: string): Promise<{ active: number; checked_in: number; door_open: boolean } | null> {
+  if (!hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("event_ticket_stats", { p_post_id: postId });
+  if (error || !data) return null;
+  const parsed = z.object({ active: z.number(), checked_in: z.number(), door_open: z.boolean() }).safeParse(data);
+  return parsed.success ? parsed.data : null;
+}

@@ -235,6 +235,14 @@ const MESSAGES: Record<string, string> = {
   event_over: "This event has finished.",
   event_full: "This event is full.",
   rsvp_closed: "The organisers have closed RSVPs for this event.",
+  ticket_required: "This event needs a ticket. Tap Get ticket.",
+  not_ticketed: "This event doesn't have tickets.",
+  tickets_exist: "Students already hold tickets, so the prices have to stay. You can still change the amounts.",
+  prices_invalid: "Set a normal price of at least GH₵1 and a lower student price.",
+  door_closed: "Check-in opens 24 hours before the event and closes when it ends.",
+  ticket_not_found: "No ticket with that code for this event. Check the code and try again.",
+  already_checked_in: "This ticket has already been checked in.",
+  not_verified: "This student isn't verified any more, so the student price doesn't apply.",
 };
 
 export function campusErrorMessage(raw: string | undefined | null): string {
@@ -339,8 +347,61 @@ export const eventSchema = z.object({
   going: z.number(),
   i_am_going: z.boolean(),
   over: z.boolean(),
+  ticketed: z.boolean().default(false),
+  normal_price: z.number().nullable().default(null),
+  student_price: z.number().nullable().default(null),
+  my_ticket: z
+    .object({
+      id: z.uuid(),
+      code: z.string(),
+      status: z.enum(["active", "checked_in", "cancelled"]),
+      normal_price: z.number(),
+      student_price: z.number(),
+      created_at: z.string(),
+      checked_in_at: z.string().nullable(),
+    })
+    .nullable()
+    .default(null),
 });
 export type CampusEvent = z.infer<typeof eventSchema>;
+export type EventTicket = NonNullable<CampusEvent["my_ticket"]>;
+
+/** GH₵ from pesewas: "GH₵30", "GH₵12.50". */
+export function formatCedis(pesewas: number): string {
+  return `GH₵${(pesewas / 100).toLocaleString("en-GH", { minimumFractionDigits: pesewas % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
+}
+
+/** Tickets show as two groups of four, "ABCD 2345", easier to read out at the door. */
+export const formatTicketCode = (code: string) => `${code.slice(0, 4)} ${code.slice(4)}`;
+
+/** Cedis typed by an organiser ("30", "12.5") to pesewas, or null if it isn't a price. */
+export function cedisToPesewas(value: string | undefined): number | null {
+  if (value === undefined) return null;
+  const v = value.replace(/[^0-9.]/g, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(v)) return null;
+  return Math.round(Number(v) * 100);
+}
+
+export const ticketPriceFormSchema = z
+  .object({
+    postId: UUID,
+    organisationId: UUID,
+    normal: z.string().optional(),
+    student: z.string().optional(),
+  })
+  .superRefine((d, ctx) => {
+    if (d.normal === undefined && d.student === undefined) return;
+    const normal = cedisToPesewas(d.normal);
+    const student = cedisToPesewas(d.student);
+    if (normal === null || normal < 100)
+      ctx.addIssue({ code: "custom", path: ["normal"], message: "Enter the normal price, at least GH₵1." });
+    if (student === null) ctx.addIssue({ code: "custom", path: ["student"], message: "Enter the student price. Use 0 for free." });
+    else if (normal !== null && student >= normal)
+      ctx.addIssue({ code: "custom", path: ["student"], message: "The student price must be lower than the normal price." });
+  });
+
+/** "Save GH₵20" from a ticket's two prices. */
+export const savingLabel = (normal: number, student: number) => `Save ${formatCedis(normal - student)}`;
 
 export const eventPostSchema = postSchema.extend({ event: eventSchema });
 export type CampusEventPost = z.infer<typeof eventPostSchema>;
