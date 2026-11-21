@@ -187,7 +187,8 @@ function studentNav(n: NavContext): AreaNav {
     item("map", "Explore", "/student/map", "compass", ["/student/map*"]),
     item("scan", "Scan", "/student/scan", "scan", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
     item("savings", "My Deals", "/student/history", "ticket", ["/student/history*"]),
-    ...(n.campus ? [item("campus", "Campus", "/student/campus", "cap", ["/student/campus*"])] : []),
+    // Always a tab: while Campus is switched off the page says "Campus isn't open yet".
+    item("campus", "Campus", "/student/campus", "cap", ["/student/campus*"]),
   ];
   const me = item("me", "Me", "/student/me", "user", ["/student/me*"], needsAction ? "dot" : undefined);
   return {

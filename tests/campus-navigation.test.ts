@@ -18,7 +18,6 @@ const base: UserContext = {
 };
 const ORG = "11111111-1111-4111-8111-111111111111";
 const member: UserContext = { ...base, organisationRoles: [{ organisationId: ORG, name: "GCTU SRC", role: "editor", status: "verified" }] };
-const labels = (n: NavContext) => navFor("student", n).groups.flatMap((g) => g.items.map((i) => i.label));
 
 describe("Organise area", () => {
   it("is only for organisation members", () => {
@@ -66,17 +65,11 @@ describe("Organise area", () => {
 });
 
 describe("Campus menu items", () => {
-  it("show the student Campus link only when Campus is switched on", () => {
-    expect(labels({ ctx: base, verification: "verified" })).not.toContain("Campus");
-    expect(labels({ ctx: base, verification: "verified", campus: false })).not.toContain("Campus");
-    expect(labels({ ctx: base, verification: "verified", campus: true })).toContain("Campus");
-  });
-
-  it("adds Campus as the fifth student tab only while Campus is switched on", () => {
+  it("always shows Campus as the fifth student tab; the page itself says when Campus is closed", () => {
     const off = navFor("student", { ctx: base, verification: "verified" }).tabs.map((t) => t.label);
     const on = navFor("student", { ctx: base, verification: "verified", campus: true }).tabs.map((t) => t.label);
-    expect(off).toEqual(["Home", "Explore", "Scan", "My Deals"]);
-    expect(on).toEqual([...off, "Campus"]);
+    expect(off).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
+    expect(on).toEqual(off);
   });
 
   it("limits the admin Campus pages by staff role", () => {
