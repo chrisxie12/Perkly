@@ -141,7 +141,7 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
   return (
     <nav
       aria-label={`${nav.label} tabs`}
-      className="glass fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 mx-auto max-w-md rounded-[2rem] px-1 md:hidden"
+      className="glass fixed inset-x-3 bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.375rem))] z-30 mx-auto max-w-md rounded-[2rem] px-1 md:hidden"
     >
       <ul className="grid h-16 auto-cols-fr grid-flow-col items-center">
         {nav.tabs.slice(0, nav.more.length > 0 ? 4 : 5).map((it) => {
@@ -186,7 +186,12 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
                     current && "bg-blue-500/12",
                   )}
                 >
-                  <Icon className="size-[1.375rem]" strokeWidth={current ? 2.4 : 1.9} aria-hidden />
+                  <Icon
+                    className={it.icon === "ticket" ? "size-5" : "size-[1.375rem]"}
+                    // The ticket outline reads heavier than the other icons; thin it to match.
+                    strokeWidth={(current ? 2.4 : 1.9) - (it.icon === "ticket" ? 0.3 : 0)}
+                    aria-hidden
+                  />
                   <Badge badge={it.badge} />
                 </span>
                 <span className="max-w-full truncate px-0.5">

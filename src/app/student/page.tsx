@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DealCard } from "@/features/students/app/deal-card";
-import { ArrowRight, Flame, LayoutGrid, Map as MapIcon, Search, Store } from "lucide-react";
+import { ArrowRight, LayoutGrid, Map as MapIcon, Search, Store } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
 import { getCategories } from "@/features/merchants/queries";
 import { money } from "@/features/offers/schemas";
 import { DEAL_SORTS, listDeals, sortDeals, type DealSort } from "@/features/offers/queries";
-import { cn } from "@/lib/utils";
 import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { CategoryChip } from "@/features/students/app/bits";
+import { SortMenu } from "@/features/students/app/sort-menu";
 import { getCampusEnabled } from "@/features/campus/queries";
 import { CampusHomeCard } from "@/features/campus/components/campus-home-card";
 
@@ -103,7 +103,28 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             </div>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <form
+            role="search"
+            action="/student"
+            className="glass-dark mt-4 flex h-12 items-center gap-2 rounded-full px-4 focus-within:ring-2 focus-within:ring-white/70"
+          >
+            {category && <input type="hidden" name="category" value={category} />}
+            <Search className="size-5 text-white/80" aria-hidden />
+            <label htmlFor="q" className="sr-only">
+              Search deals or shops
+            </label>
+            <input
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Search deals or shops"
+              autoComplete="off"
+              className="h-full min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/70"
+            />
+          </form>
+
+          <div className="mt-4 space-y-3">
             {live && (
               <Link
                 href={`/student/redeem/${live}`}
@@ -174,54 +195,11 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               </div>
             )}
           </div>
-
-          <form
-            role="search"
-            action="/student"
-            className="glass-dark mt-4 flex h-12 items-center gap-2 rounded-full px-4 focus-within:ring-2 focus-within:ring-white/70"
-          >
-            {category && <input type="hidden" name="category" value={category} />}
-            <Search className="size-5 text-white/80" aria-hidden />
-            <label htmlFor="q" className="sr-only">
-              Search deals or shops
-            </label>
-            <input
-              id="q"
-              name="q"
-              type="search"
-              defaultValue={q}
-              placeholder="Search deals or shops"
-              autoComplete="off"
-              className="h-full min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/70"
-            />
-          </form>
         </section>
-
-        <nav aria-label="Sort deals" className="flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pt-4 sm:px-0">
-          {SORTS.map((o) => {
-            const active = (o.value ?? null) === sort;
-            return (
-              <Link
-                key={o.label}
-                href={link({ q, category, sort: o.value })}
-                aria-current={active ? "true" : undefined}
-                className={cn(
-                  "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-[0.8125rem] font-semibold ring-1 transition-all duration-300 active:scale-95",
-                  active
-                    ? "bg-ink-900 text-white ring-ink-900"
-                    : "bg-white text-ink-700 ring-ink-200 hover:text-blue-500 hover:ring-blue-300",
-                )}
-              >
-                {o.value === "hot" && <Flame className={cn("size-3.5", active ? "text-white" : "text-orange-500")} aria-hidden />}
-                {o.label}
-              </Link>
-            );
-          })}
-        </nav>
 
         <nav
           aria-label="Categories"
-          className="sticky top-16 z-10 flex [scrollbar-width:none] gap-2 overflow-x-auto bg-paper px-4 pt-3 pb-2 sm:px-0"
+          className="sticky top-16 z-10 flex [scrollbar-width:none] gap-2 overflow-x-auto bg-paper [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] px-4 pt-4 pb-2 sm:px-0"
         >
           <CategoryChip href={link({ q, sort })} active={!category} label="All" />
           {categories.map((c) => (
@@ -252,10 +230,14 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             <h2 id="all-h" className="font-display text-lg font-bold">
               {q ? `Results for “${q}”` : chosen ? chosen.name : sort ? SORTS.find((o) => o.value === sort)?.heading : "All deals"}
             </h2>
-            <span className="text-[0.8125rem] font-medium text-ink-600">
-              {deals.length} {deals.length === 1 ? "deal" : "deals"}
-            </span>
+            <SortMenu
+              current={sort}
+              options={SORTS.map((o) => ({ label: o.label, href: link({ q, category, sort: o.value }), value: o.value }))}
+            />
           </div>
+          <p className="-mt-1 px-4 pb-2 text-[0.8125rem] font-medium text-ink-600 sm:px-0">
+            {deals.length} {deals.length === 1 ? "deal" : "deals"}
+          </p>
           {deals.length === 0 ? (
             <div className="flex flex-col items-center px-6 py-10 text-center">
               <span className="mb-2 grid size-16 place-items-center rounded-2xl bg-blue-50 text-blue-600">

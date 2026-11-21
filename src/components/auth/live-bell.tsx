@@ -19,12 +19,12 @@ type RowLike = { id: string; title?: string; body?: string | null; link?: string
 export function LiveBell({
   userId,
   initialUnread,
-  labelled = false,
+  round = false,
 }: {
   userId: string;
   initialUnread: number;
-  /** Icon over a "Notifications" label, for the student top bar. */
-  labelled?: boolean;
+  /** A frosted round button the size of the profile photo, for the student top bar. */
+  round?: boolean;
 }) {
   const [unread, setUnread] = useState(initialUnread);
   const [pulse, setPulse] = useState(false);
@@ -130,8 +130,8 @@ export function LiveBell({
       <Link
         href="/account/notifications"
         className={
-          labelled
-            ? "press flex flex-col items-center gap-0.5 rounded-2xl px-2 py-1 text-[0.6875rem] font-medium text-ink-700"
+          round
+            ? "press glass grid size-11 place-items-center rounded-full text-ink-900"
             : "relative grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
         }
         aria-label={unread > 0 ? `Notifications, ${unread} new` : "Notifications"}
@@ -147,7 +147,6 @@ export function LiveBell({
             </span>
           )}
         </span>
-        {labelled && <span aria-hidden>Notifications</span>}
       </Link>
     </>
   );

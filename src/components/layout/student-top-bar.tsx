@@ -57,12 +57,12 @@ export async function StudentTopBar() {
         )}
         {needsAction && <span className="absolute top-0 right-0 size-3 rounded-full bg-orange-500 ring-2 ring-white" aria-hidden />}
       </Link>
-      <div className="flex items-center gap-1">
-        <LiveBell userId={ctx.userId} initialUnread={unread} labelled />
+      <div className="flex items-center gap-2">
+        <LiveBell userId={ctx.userId} initialUnread={unread} round />
         <Link
           href="/student/messages"
           aria-label={chatCount > 0 ? `Chat, ${chatCount} new` : "Chat"}
-          className="press flex flex-col items-center gap-0.5 rounded-2xl px-2 py-1 text-[0.6875rem] font-medium text-ink-700"
+          className="press glass grid size-11 place-items-center rounded-full text-ink-900"
         >
           <span className="relative grid size-7 place-items-center">
             <MessageCircle className="size-[1.375rem]" aria-hidden />
@@ -75,7 +75,6 @@ export async function StudentTopBar() {
               </span>
             )}
           </span>
-          <span aria-hidden>Chat</span>
         </Link>
       </div>
     </div>
