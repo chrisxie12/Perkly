@@ -1,26 +1,36 @@
-import { BadgeCheck, MapPin, PiggyBank, Smartphone, Download } from "lucide-react";
+import { BadgeCheck, CalendarClock, Compass, Download, MessageCircle, PiggyBank, Users } from "lucide-react";
 import { PageContainer, SectionHeading } from "@/components/layout/page-container";
 
 const smallCards = [
   {
     icon: BadgeCheck,
     title: "Only verified students",
-    body: "Perqly checks every student's ID, so merchants can offer prices they'd never give the general public.",
+    body: "Perqly checks every student's ID, so businesses can offer prices they'd never give the general public.",
   },
   {
-    icon: MapPin,
-    title: "Close to campus",
-    body: "Businesses around your campus, with branch addresses, opening hours and directions.",
+    icon: Compass,
+    title: "Explore near campus",
+    body: "See the businesses around your campus on a map, with branch addresses, opening hours and directions.",
   },
   {
-    icon: Smartphone,
-    title: "Any phone, any browser",
-    body: "Android or iPhone. Perqly runs in your browser and stays light on data.",
+    icon: Users,
+    title: "Friends from your school",
+    body: "Once you're verified, find classmates by name, share deals and chat. Nobody can find you until you switch it on.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Message a business",
+    body: "Ask a question before you go. Your chats with businesses stay in the app.",
+  },
+  {
+    icon: CalendarClock,
+    title: "Book ahead",
+    body: "At businesses that take bookings, like barbers and salons, pick a time in the app.",
   },
   {
     icon: Download,
     title: "Installs like an app",
-    body: "Add Perqly to your home screen in two taps. No Play Store, no App Store, no big download.",
+    body: "Android or iPhone, right in your browser. Add Perqly to your home screen in two taps, no app store needed.",
   },
 ];
 
