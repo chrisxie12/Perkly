@@ -41,7 +41,14 @@ export async function AreaFrame({ area, children }: { area: NavArea; children: R
     <FrameChrome
       area={area}
       header={
-        <header className="pt-safe sticky top-0 z-30 border-b border-ink-200/60 bg-white/75 backdrop-blur-xl backdrop-saturate-150">
+        <header
+          className={
+            area === "student"
+              ? // Same colour as the page and the phone's status bar, with no line, so the top of the app reads as one surface.
+                "pt-safe sticky top-0 z-30 bg-paper/85 backdrop-blur-xl backdrop-saturate-150"
+              : "pt-safe sticky top-0 z-30 border-b border-ink-200/60 bg-white/75 backdrop-blur-xl backdrop-saturate-150"
+          }
+        >
           {area === "student" ? (
             <React.Suspense fallback={<div className="h-16" />}>
               <StudentTopBar />
