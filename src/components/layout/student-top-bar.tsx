@@ -8,7 +8,7 @@ import { getMyPassPhotoPath, signPassPhoto } from "@/features/pass-photo/server"
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { countUnreadChats } from "@/features/chat/queries";
-import { countFriendRequests } from "@/features/friends/queries";
+import { countFriendRequests, countUnreadFriendChats } from "@/features/friends/queries";
 
 const NEEDS_ACTION = ["needs_profile", "apply", "resubmit", "rejected", "expired"];
 
@@ -20,10 +20,11 @@ export async function StudentTopBar() {
   const ctx = await getUserContext();
   if (!ctx) return null;
   const supabase = await createClient();
-  const [status, photoPath, unreadChats, friendRequests, unreadRes] = await Promise.all([
+  const [status, photoPath, unreadChats, unreadFriendChats, friendRequests, unreadRes] = await Promise.all([
     getMyStudentStatus(),
     getMyPassPhotoPath(),
     countUnreadChats(),
+    countUnreadFriendChats(),
     countFriendRequests(),
     supabase.rpc("unread_notification_count"),
   ]);
@@ -33,7 +34,7 @@ export async function StudentTopBar() {
   const verified = view === "verified";
   const needsAction = view !== null && NEEDS_ACTION.includes(view);
   const name = ctx.fullName ?? ctx.firstName ?? "Me";
-  const chatCount = unreadChats + (verified ? friendRequests : 0);
+  const chatCount = unreadChats + (verified ? unreadFriendChats + friendRequests : 0);
   const unread = typeof unreadRes.data === "number" ? unreadRes.data : 0;
 
   return (
@@ -59,7 +60,7 @@ export async function StudentTopBar() {
       <div className="flex items-center gap-1">
         <LiveBell userId={ctx.userId} initialUnread={unread} labelled />
         <Link
-          href={verified ? "/student/friends" : "/student/messages"}
+          href="/student/messages"
           aria-label={chatCount > 0 ? `Chat, ${chatCount} new` : "Chat"}
           className="press flex flex-col items-center gap-0.5 rounded-2xl px-2 py-1 text-[0.6875rem] font-medium text-ink-700"
         >

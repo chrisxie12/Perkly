@@ -173,40 +173,17 @@ export default async function FriendsPage({ searchParams }: PageProps<"/student/
         )}
 
         {chats.length > 0 && (
-          <section aria-labelledby="chats-h" className={card}>
-            <h2 id="chats-h" className="font-display text-lg font-bold">
-              Chats
-            </h2>
-            <ul className="mt-1 divide-y divide-ink-100">
-              {chats.map((c) => (
-                <li key={c.id}>
-                  <Link href={`/student/friends/chat/${c.id}`} className="flex items-center gap-3 py-3">
-                    <span
-                      aria-hidden
-                      className="grid size-11 shrink-0 place-items-center rounded-full bg-blue-50 font-display font-bold text-blue-700"
-                    >
-                      {initials(c.friend_name)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className={cn("block truncate text-ink-900", c.unread > 0 ? "font-bold" : "font-semibold")}>
-                        {c.friend_name}
-                      </span>
-                      <span className="block truncate text-sm text-ink-600">
-                        {c.last_from_me ? "You: " : ""}
-                        {c.last_message_preview}
-                      </span>
-                    </span>
-                    {c.unread > 0 && (
-                      <span className="grid size-6 place-items-center rounded-full bg-blue-500 text-xs font-bold text-white">
-                        {c.unread}
-                        <span className="sr-only"> unread</span>
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <Link href="/student/messages" className={cn(card, "flex items-center justify-between gap-3 font-semibold text-ink-900")}>
+            <span>
+              Your chats
+              {chats.some((c) => c.unread > 0) && (
+                <span className="ml-2 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">
+                  {chats.reduce((n, c) => n + c.unread, 0)} new
+                </span>
+              )}
+            </span>
+            <span className="text-sm text-blue-700">Open Chats</span>
+          </Link>
         )}
 
         <section aria-labelledby="friends-h" className={card}>
