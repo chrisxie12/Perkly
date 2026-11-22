@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { showsTopBar } from "@/components/layout/frame-chrome";
 
-describe("student top bar", () => {
+describe("student top bar and tabs", () => {
   it("shows on the main pages", () => {
     for (const p of ["/student", "/student/map", "/student/history", "/student/campus", "/student/messages", "/student/me"]) {
       expect(showsTopBar("student", p)).toBe(true);

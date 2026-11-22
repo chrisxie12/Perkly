@@ -256,7 +256,7 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
           </section>
         )}
 
-        <div className="sticky bottom-24 z-10 mt-6 bg-gradient-to-t from-paper from-70% px-4 pt-4 pb-2 sm:px-0 md:bottom-0">
+        <div className="sticky bottom-[calc(var(--frame-bottom,7rem)-1rem)] z-10 mt-6 bg-gradient-to-t from-paper from-70% px-4 pt-4 pb-2 sm:px-0 md:bottom-0">
           {verified ? (
             <Link
               href="/student/scan"

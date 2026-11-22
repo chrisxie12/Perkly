@@ -519,9 +519,11 @@ export function ChatRoom({
       </ol>
 
       {blocked ? (
-        <p className="sticky bottom-28 rounded-2xl bg-ink-50 px-4 py-3 text-center text-sm text-ink-700 md:bottom-4">{blockedText}</p>
+        <p className="sticky bottom-[var(--frame-bottom,7rem)] rounded-2xl bg-ink-50 px-4 py-3 text-center text-sm text-ink-700 md:bottom-4">
+          {blockedText}
+        </p>
       ) : (
-        <div className="glass sticky bottom-28 rounded-[1.75rem] p-1.5 md:bottom-4">
+        <div className="glass sticky bottom-[var(--frame-bottom,7rem)] rounded-[1.75rem] p-1.5 md:bottom-4">
           {(replyTo || photo) && (
             <div className="flex items-center gap-2 px-2 pt-1 pb-2">
               {photo && (
