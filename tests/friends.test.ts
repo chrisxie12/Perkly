@@ -36,12 +36,13 @@ describe("friends privacy", () => {
     expect(migration).toMatch(/share_activity boolean not null default false/);
   });
 
-  it("only lets verified students open Friends", () => {
+  it("only lets verified students open Friends, and only while Friends is switched on", () => {
     const rule = ROUTE_RULES.find((r) => r.path === "/student/friends*");
     expect(rule).toBeDefined();
     const ctx = {} as never;
-    expect(rule!.allow({ ctx, verification: "verified" })).toBe(true);
-    expect(rule!.allow({ ctx, verification: "pending" })).toBe(false);
+    expect(rule!.allow({ ctx, verification: "verified", friends: true })).toBe(true);
+    expect(rule!.allow({ ctx, verification: "verified" })).toBe(false);
+    expect(rule!.allow({ ctx, verification: "pending", friends: true })).toBe(false);
     expect(rule!.allow({ ctx })).toBe(false);
   });
 

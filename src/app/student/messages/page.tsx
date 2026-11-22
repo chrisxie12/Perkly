@@ -8,12 +8,14 @@ import { loadInbox } from "@/features/chat/inbox";
 import { countFriendRequests } from "@/features/friends/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
+import { getFeatureSwitches } from "@/features/platform/switches";
 
 export const metadata: Metadata = { title: "Chats", robots: { index: false } };
 
 export default async function StudentMessagesPage() {
-  const status = await getMyStudentStatus();
-  const verified = verificationView(status) === "verified";
+  const [status, switches] = await Promise.all([getMyStudentStatus(), getFeatureSwitches()]);
+  // Friend chats only when Friends is switched on (off for the pilot).
+  const verified = verificationView(status) === "verified" && switches.friends;
   const [items, requests] = await Promise.all([loadInbox(verified), verified ? countFriendRequests() : Promise.resolve(0)]);
 
   return (

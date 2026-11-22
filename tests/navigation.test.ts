@@ -35,8 +35,8 @@ const instAdmin: NavContext = { ctx: ctx({ institutionRoles: [{ institutionId: "
 const staff = (platformRole: UserContext["platformRole"]): NavContext => ({ ctx: ctx({ platformRole }) });
 
 describe("menus by role", () => {
-  it("gives students Home, Explore, Scan, My Deals and Campus", () => {
-    expect(labels("student", student)).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
+  it("gives students Home, Explore, Scan and My Deals, plus Campus when it's switched on", () => {
+    expect(labels("student", student)).toEqual(["Home", "Explore", "Scan", "My Deals"]);
     expect(labels("student", { ...student, campus: true })).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
     // "Me" is the profile photo in the top bar, not a tab; the sidebar still lists it.
     const sidebar = navFor("student", student).groups.flatMap((g) => g.items.map((i) => i.key));

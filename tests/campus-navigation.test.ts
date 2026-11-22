@@ -65,11 +65,11 @@ describe("Organise area", () => {
 });
 
 describe("Campus menu items", () => {
-  it("always shows Campus as the fifth student tab; the page itself says when Campus is closed", () => {
+  it("shows Campus as the fifth student tab only while Campus is switched on (off for the pilot)", () => {
     const off = navFor("student", { ctx: base, verification: "verified" }).tabs.map((t) => t.label);
     const on = navFor("student", { ctx: base, verification: "verified", campus: true }).tabs.map((t) => t.label);
-    expect(off).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
-    expect(on).toEqual(off);
+    expect(off).toEqual(["Home", "Explore", "Scan", "My Deals"]);
+    expect(on).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
   });
 
   it("limits the admin Campus pages by staff role", () => {

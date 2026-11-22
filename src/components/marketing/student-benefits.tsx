@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarClock, Compass, Download, MessageCircle, PiggyBank, Users } from "lucide-react";
+import { BadgeCheck, CalendarClock, Compass, Download, MessageCircle, PiggyBank, Share2 } from "lucide-react";
 import { PageContainer, SectionHeading } from "@/components/layout/page-container";
 
 const smallCards = [
@@ -13,9 +13,9 @@ const smallCards = [
     body: "See the businesses around your campus on a map, with branch addresses, opening hours and directions.",
   },
   {
-    icon: Users,
-    title: "Friends from your school",
-    body: "Once you're verified, find classmates by name, share deals and chat. Nobody can find you until you switch it on.",
+    icon: Share2,
+    title: "Share a deal",
+    body: "Send a deal to your class group on WhatsApp. It shows the shop and the saving before anyone taps.",
   },
   {
     icon: MessageCircle,
@@ -24,8 +24,8 @@ const smallCards = [
   },
   {
     icon: CalendarClock,
-    title: "Book ahead",
-    body: "At businesses that take bookings, like barbers and salons, pick a time in the app.",
+    title: "On today",
+    body: "Some shops run their student price on set days and times. Home shows what's on today.",
   },
   {
     icon: Download,

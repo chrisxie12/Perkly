@@ -11,6 +11,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { RequestForm } from "@/features/bookings/components/request-form";
 import { getBookableServices, getSlots } from "@/features/bookings/queries";
+import { getFeatureSwitches } from "@/features/platform/switches";
 import { dayLabel, nextDays } from "@/features/bookings/schemas";
 
 export const metadata: Metadata = { title: "Book", robots: { index: false } };
@@ -38,8 +39,8 @@ export default async function BookPage({ params, searchParams }: PageProps<"/stu
   const { slug } = await params;
   const sp = await searchParams;
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound();
-  const [shop, status] = await Promise.all([getMerchantPage(slug), getMyStudentStatus()]);
-  if (!shop) notFound();
+  const [shop, status, switches] = await Promise.all([getMerchantPage(slug), getMyStudentStatus(), getFeatureSwitches()]);
+  if (!shop || !switches.bookings) notFound();
   const base = `/student/merchants/${slug}/book`;
   const back = (
     <Link href={`/student/merchants/${slug}`} className="mb-4 inline-flex items-center gap-1 font-semibold text-blue-600">

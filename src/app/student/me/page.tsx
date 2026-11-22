@@ -30,6 +30,7 @@ import { formatDate } from "@/features/students/components/status-card";
 import { countUnreadChats } from "@/features/chat/queries";
 import { countFriendRequests } from "@/features/friends/queries";
 import { getCampusEnabled } from "@/features/campus/queries";
+import { getFeatureSwitches } from "@/features/platform/switches";
 
 export const metadata: Metadata = { title: "Me", robots: { index: false } };
 
@@ -58,7 +59,7 @@ export default async function MePage() {
     countFriendRequests(),
   ]);
   // Campus (C1): a row only while Campus is switched on.
-  const campusOn = (await getCampusEnabled()).posts;
+  const [campusOn, switches] = await Promise.all([getCampusEnabled().then((c) => c.posts), getFeatureSwitches()]);
   const photoUrl = await signPassPhoto(photoPath, 120);
   const view = verificationView(status);
   const others = ctx ? areasFor(ctx).filter((a) => a !== "student") : [];
@@ -142,7 +143,7 @@ export default async function MePage() {
           label="Photo for your pass"
           note={photoUrl ? "Added" : "Not added yet. Cashiers use it to check it's you"}
         />
-        {view === "verified" && (
+        {view === "verified" && switches.friends && (
           <Row
             href="/student/friends"
             icon={Users}

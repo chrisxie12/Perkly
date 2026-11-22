@@ -9,6 +9,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { countUnreadChats } from "@/features/chat/queries";
 import { countFriendRequests, countUnreadFriendChats } from "@/features/friends/queries";
+import { getFeatureSwitches } from "@/features/platform/switches";
 
 const NEEDS_ACTION = ["needs_profile", "apply", "resubmit", "rejected", "expired"];
 
@@ -20,13 +21,14 @@ export async function StudentTopBar() {
   const ctx = await getUserContext();
   if (!ctx) return null;
   const supabase = await createClient();
-  const [status, photoPath, unreadChats, unreadFriendChats, friendRequests, unreadRes] = await Promise.all([
+  const [status, photoPath, unreadChats, unreadFriendChats, friendRequests, unreadRes, switches] = await Promise.all([
     getMyStudentStatus(),
     getMyPassPhotoPath(),
     countUnreadChats(),
     countUnreadFriendChats(),
     countFriendRequests(),
     supabase.rpc("unread_notification_count"),
+    getFeatureSwitches(),
   ]);
   // Long enough that the photo stays put while you move between tabs.
   const photoUrl = await signPassPhoto(photoPath, 3600);
@@ -34,7 +36,7 @@ export async function StudentTopBar() {
   const verified = view === "verified";
   const needsAction = view !== null && NEEDS_ACTION.includes(view);
   const name = ctx.fullName ?? ctx.firstName ?? "Me";
-  const chatCount = unreadChats + (verified ? unreadFriendChats + friendRequests : 0);
+  const chatCount = unreadChats + (verified && switches.friends ? unreadFriendChats + friendRequests : 0);
   const unread = typeof unreadRes.data === "number" ? unreadRes.data : 0;
 
   return (
