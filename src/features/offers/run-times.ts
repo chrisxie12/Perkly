@@ -123,3 +123,22 @@ export function parseRunTimesForm(input: {
     return { ok: false, field: "runUntil", message: "The end time must be after the start, on the same day." };
   return { ok: true, value: { run_days: days.length === 7 ? null : days, run_from: input.from!, run_until: input.until! } };
 }
+
+/**
+ * Deals with set days or times that still run later today or are on now (every-day deals are
+ * left out: they aren't news). On-now first, then by start time.
+ */
+export function onToday<T extends RunTimes>(deals: T[], at: Date) {
+  const m = minuteOfDay(at);
+  return deals
+    .filter((d) => {
+      if (isEveryDay(d)) return false;
+      if (d.run_days?.length && !d.run_days.includes(isoDay(at))) return false;
+      return !d.run_until || m < minutes(d.run_until);
+    })
+    .sort((a, b) => {
+      const onA = runsAt(a, at) ? 0 : 1;
+      const onB = runsAt(b, at) ? 0 : 1;
+      return onA - onB || (a.run_from ? minutes(a.run_from) : 0) - (b.run_from ? minutes(b.run_from) : 0);
+    });
+}

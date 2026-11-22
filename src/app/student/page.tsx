@@ -7,7 +7,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
 import { getCategories } from "@/features/merchants/queries";
 import { money } from "@/features/offers/schemas";
-import { DEAL_SORTS, listDeals, sortDeals, type DealSort } from "@/features/offers/queries";
+import { DEAL_SORTS, listDeals, sortDeals, type Deal, type DealSort } from "@/features/offers/queries";
+import { onToday } from "@/features/offers/run-times";
+
+/** A deal with its run-time fields filled in (missing = every day). */
+const withRunTimes = (d: Deal) => ({ ...d, run_days: d.run_days ?? null, run_from: d.run_from ?? null, run_until: d.run_until ?? null });
 import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
@@ -51,6 +55,8 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
         .sort((a, b) => (a.distance_m ?? 0) - (b.distance_m ?? 0))
         .slice(0, 6);
   const anyHours = near.some((d) => d.has_hours);
+  // Like Stories: deals that only run on some days or times, and are on today. Ghana time is UTC.
+  const today = filtering ? [] : onToday(deals.map(withRunTimes), new Date()).slice(0, 8);
   const campus = deals.find((d) => d.campus_name)?.campus_name ?? null;
   const chosen = categories.find((c) => c.slug === category);
   const link = (next: { q?: string; category?: string; sort?: string | null }) => {
@@ -206,6 +212,24 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             <CategoryChip key={c.id} href={link({ q, category: c.slug, sort })} active={category === c.slug} icon={c.icon} label={c.name} />
           ))}
         </nav>
+
+        {today.length > 0 && (
+          <section aria-labelledby="today-h">
+            <div className="flex items-baseline justify-between px-4 pt-4 pb-2 sm:px-0">
+              <h2 id="today-h" className="font-display text-lg font-bold">
+                On today
+              </h2>
+              <span className="text-[0.8125rem] font-medium text-ink-600">Set days and times</span>
+            </div>
+            <ul className="flex snap-x [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
+              {today.map((d) => (
+                <li key={d.offer_id} className="w-60 shrink-0 snap-start">
+                  <DealCard deal={d} back={link({ q, category })} locked={!verified} compact />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {near.length > 0 && (
           <section aria-labelledby="near-h">
