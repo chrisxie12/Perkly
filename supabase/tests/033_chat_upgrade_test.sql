@@ -92,7 +92,7 @@ select throws_ok(format('select public.send_message(%L, %L, null, %L)', :'c2', '
 -- Reactions
 select tests.as_user(:'owner', 'aal2');
 select lives_ok(format('select public.react_to_message(%L, %L)', :'q', '👍'), 'the business reacts to a message');
-select throws_ok(format('select public.react_to_message(%L, %L)', :'q', '💩'), 'P0001', 'reaction_invalid', 'only the six reactions');
+select throws_ok(format('select public.react_to_message(%L, %L)', :'q', 'lol'), 'P0001', 'reaction_invalid', 'reactions are emoji only');
 select tests.as_user(:'s1');
 select lives_ok(format('select public.react_to_message(%L, %L)', :'a', '❤️'), 'the student reacts');
 select lives_ok(format('select public.react_to_message(%L, %L)', :'a', '😂'), 'and changes the reaction');

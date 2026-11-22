@@ -4,7 +4,8 @@ import { z } from "zod";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
-import { REACTIONS, type RoomKind } from "./model";
+import type { RoomKind } from "./model";
+import { isEmoji } from "./emoji";
 
 const uuid = z.string().uuid();
 const kind = z.enum(["shop", "friend"]);
@@ -19,7 +20,7 @@ const ERRORS: Record<string, string> = {
   message_invalid: "Write a message of up to 1,000 characters.",
   reply_invalid: "That message can't be replied to any more.",
   photo_invalid: "That photo didn't upload. Try again.",
-  reaction_invalid: "Pick one of the reactions shown.",
+  reaction_invalid: "Reactions can only be emoji.",
   rate_limited: "You're going too fast. Wait a minute and try again.",
   forbidden: "You can't write in this chat.",
   not_a_student: "Set up your student profile first, then you can message businesses.",
@@ -57,7 +58,7 @@ export async function sendRoomMessage(
 
 export async function reactInRoom(k: RoomKind, messageId: string, emoji: string | null): Promise<{ ok: boolean; error?: string }> {
   if (!kind.safeParse(k).success || !uuid.safeParse(messageId).success) return { ok: false, error: ERRORS.forbidden };
-  if (emoji !== null && !(REACTIONS as readonly string[]).includes(emoji)) return { ok: false, error: ERRORS.reaction_invalid };
+  if (emoji !== null && !isEmoji(emoji)) return { ok: false, error: ERRORS.reaction_invalid };
   if (!hasSupabaseEnv()) return { ok: false, error: "This isn't available in this environment yet." };
   const supabase = await createClient();
   const { error } = await supabase.rpc(k === "shop" ? "react_to_message" : "react_to_friend_message", {
@@ -100,4 +101,13 @@ export async function reportChat(k: RoomKind, chatId: string, reason: string, de
   if (!error) return { ok: true };
   if (error.message.includes("rate_limited")) return { ok: false, error: "You've sent several reports today. Try again tomorrow." };
   return { ok: false, error: "That didn't send. Try again." };
+}
+
+/** Pin or unpin a message for everyone in the chat. */
+export async function pinMessage(k: RoomKind, messageId: string, pin: boolean): Promise<{ ok: boolean; error?: string }> {
+  if (!kind.safeParse(k).success || !uuid.safeParse(messageId).success) return { ok: false, error: ERRORS.forbidden };
+  if (!hasSupabaseEnv()) return { ok: false, error: "This isn't available in this environment yet." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("pin_message", { p_kind: k, p_message_id: messageId, p_pin: pin });
+  return error ? { ok: false, error: messageFor(error) } : { ok: true };
 }

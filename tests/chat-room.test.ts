@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import {
   GROUP_GAP_MS,
-  REACTIONS,
   photoPathFor,
   place,
   seenState,
@@ -14,6 +13,7 @@ import {
   type RoomMessage,
 } from "@/features/chat/room/model";
 import { fitWithin } from "@/features/chat/room/photo";
+import { QUICK_REACTIONS, isBigEmoji, isEmoji } from "@/features/chat/room/emoji";
 import { applyPrefs, filterInbox, mergeInbox, type InboxItem } from "@/features/chat/inbox-model";
 
 const at = (min: number) => new Date(Date.UTC(2026, 10, 21, 10, min)).toISOString();
@@ -71,9 +71,19 @@ describe("seen receipts", () => {
 });
 
 describe("reactions", () => {
-  it("allows the six reactions the database allows", () => {
-    const sql = readFileSync("supabase/migrations/20261121120000_chat_upgrade.sql", "utf8");
-    for (const e of REACTIONS) expect(sql).toContain(e);
+  it("accepts emoji only, by the same rule as the database", () => {
+    for (const e of [...QUICK_REACTIONS, "👍🏾", "👨‍👩‍👧", "🇬🇭"]) expect(isEmoji(e)).toBe(true);
+    for (const e of ["lol", "<b>", "🔥 🔥", "é", "", "1"]) expect(isEmoji(e)).toBe(false);
+    const sql = readFileSync("supabase/migrations/20261123090000_chat_emoji_pins.sql", "utf8");
+    expect(sql).toContain("p !~ '[\\x01-\\x7F]' and p !~ '[[:alpha:]]'");
+  });
+  it("shows messages of 1 to 3 emoji large", () => {
+    expect(isBigEmoji("😂")).toBe(true);
+    expect(isBigEmoji("🔥🔥🔥")).toBe(true);
+    expect(isBigEmoji("👍🏾")).toBe(true);
+    expect(isBigEmoji("🔥🔥🔥🔥")).toBe(false);
+    expect(isBigEmoji("ok 👍")).toBe(false);
+    expect(isBigEmoji("123")).toBe(false);
   });
   it("keeps one per person and counts them", () => {
     let list = upsertReaction([], { message_id: "m", user_id: "me", emoji: "👍" });

@@ -2,9 +2,6 @@
 
 export type RoomKind = "shop" | "friend";
 
-export const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"] as const;
-export type ReactionEmoji = (typeof REACTIONS)[number];
-
 export type RoomMessage = {
   id: string;
   mine: boolean;
@@ -12,6 +9,8 @@ export type RoomMessage = {
   created_at: string;
   reply_to: string | null;
   photo_path: string | null;
+  /** Set while the message is pinned in the chat. */
+  pinned_at?: string | null;
   /** A short-lived signed URL for the photo, when there is one. */
   photo_url?: string | null;
   pending?: boolean;
@@ -32,6 +31,7 @@ type RawRow = {
   photo_path?: string | null;
   sender_side?: string | null;
   sender_id?: string | null;
+  pinned_at?: string | null;
 };
 
 export function toRoomMessage(row: RawRow, me: RoomMe): RoomMessage {
@@ -43,7 +43,13 @@ export function toRoomMessage(row: RawRow, me: RoomMe): RoomMessage {
     created_at: row.created_at,
     reply_to: row.reply_to ?? null,
     photo_path: row.photo_path ?? null,
+    pinned_at: row.pinned_at ?? null,
   };
+}
+
+/** The most recently pinned message, shown under the chat's header. */
+export function latestPin(messages: RoomMessage[]) {
+  return messages.filter((m) => m.pinned_at).sort((a, b) => new Date(b.pinned_at!).getTime() - new Date(a.pinned_at!).getTime())[0];
 }
 
 export function photoPathFor(kind: RoomKind, chatId: string, userId: string, ext: "webp" | "jpg" | "png") {
