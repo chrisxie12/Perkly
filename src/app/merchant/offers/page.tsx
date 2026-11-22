@@ -13,6 +13,7 @@ import { getCatalogue, getMerchantOffers } from "@/features/offers/queries";
 import { OFFER_STATUS_LABEL, discountLabel, limitLabel, offerErrorMessage } from "@/features/offers/schemas";
 import { getActiveMembership, getMerchant } from "@/features/merchants/queries";
 import { formatDate } from "@/features/students/components/status-card";
+import { formatRunTimes } from "@/features/offers/run-times";
 import { canManage } from "../merchant-nav";
 
 export const metadata: Metadata = { title: "Offers", robots: { index: false } };
@@ -69,6 +70,11 @@ export default async function MerchantOffersPage({ searchParams }: PageProps<"/m
           Saved as a draft. Submit it when you&apos;re ready.
         </p>
       )}
+      {query.times && (
+        <p role="status" className="mb-6 rounded-lg bg-green-50 px-4 py-3 font-medium text-success">
+          Days and times saved. Students see them straight away.
+        </p>
+      )}
       {error && (
         <p role="alert" className="mb-6 rounded-lg bg-orange-50 px-4 py-3 font-medium text-ink-900 ring-1 ring-orange-200">
           {offerErrorMessage(error)}
@@ -108,6 +114,7 @@ export default async function MerchantOffersPage({ searchParams }: PageProps<"/m
                         : ` Used ${offer.redemption_count} times.`}
                       {offer.ends_at ? ` Ends ${formatDate(offer.ends_at)}.` : ""}
                     </p>
+                    <p className="mt-1 text-sm font-medium text-ink-600">Runs: {formatRunTimes(offer)}</p>
                     {offer.status_reason && offer.status === "rejected" && (
                       <p className="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-sm text-ink-900">
                         Perqly&apos;s note: {offer.status_reason}
@@ -125,6 +132,11 @@ export default async function MerchantOffersPage({ searchParams }: PageProps<"/m
                         <input type="hidden" name="offerId" value={offer.id} />
                         <SubmitButton size="sm">Submit</SubmitButton>
                       </form>
+                    )}
+                    {["active", "pending_review"].includes(offer.status) && (
+                      <Link href={`/merchant/offers/${offer.id}/times`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                        Days and times
+                      </Link>
                     )}
                     {offer.status === "active" && <StateButton offerId={offer.id} action="pause" label="Pause" />}
                     {offer.status === "paused" && <StateButton offerId={offer.id} action="resume" label="Resume" />}

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Footprints, Lock } from "lucide-react";
+import { Clock, Footprints, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "@/features/offers/components/marketplace";
 import type { Deal } from "@/features/offers/queries";
 import { openLabel } from "@/features/merchants/hours";
+import { formatRunTimes, isEveryDay, type RunTimes } from "@/features/offers/run-times";
 import { initials, toneFor, walkLabel } from "./format";
 
 export { initials, toneFor, walkLabel };
@@ -115,5 +116,18 @@ export function CategoryChip({ href, active, icon, label }: { href: string; acti
       {icon && <CategoryIcon name={icon} className="size-4" />}
       {label}
     </Link>
+  );
+}
+
+/** When a deal with set days or times runs, and whether it's on now. Nothing for every-day deals. */
+export function RunTimesTag({ deal, className }: { deal: RunTimes & { running_now?: boolean }; className?: string }) {
+  if (isEveryDay(deal)) return null;
+  const on = deal.running_now !== false;
+  return (
+    <span className={cn("inline-flex items-center gap-1 font-medium", on ? "text-green-700" : "text-ink-600", className)}>
+      <Clock className="size-3.5 shrink-0" aria-hidden />
+      {on ? "On now · " : "Not on now · "}
+      {formatRunTimes(deal)}
+    </span>
   );
 }

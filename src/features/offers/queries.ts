@@ -1,8 +1,9 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { getPublicEnv } from "@/lib/env";
+import { getPublicEnv, hasSupabaseEnv } from "@/lib/env";
 import { shopPhotoUrl } from "@/features/merchants/shop";
 import type { DiscountType, LimitPeriod } from "./schemas";
+import { EVERY_DAY, type RunTimes } from "./run-times";
 
 export type OfferListing = {
   offer_id: string;
@@ -180,6 +181,9 @@ export type MerchantOffer = {
   discount_value: number;
   starts_at: string;
   ends_at: string | null;
+  run_days: number[] | null;
+  run_from: string | null;
+  run_until: string | null;
   status: string;
   status_reason: string | null;
   per_student_limit: number;
@@ -191,7 +195,7 @@ export type MerchantOffer = {
 };
 
 const OFFER_COLUMNS =
-  "id, service_id, product_id, title, description, conditions, discount_type, discount_value, starts_at, ends_at, status, status_reason, per_student_limit, per_student_period, total_cap, redemption_count, offer_branches(branch_id), offer_institutions(institution_id)";
+  "id, service_id, product_id, title, description, conditions, discount_type, discount_value, starts_at, ends_at, run_days, run_from, run_until, status, status_reason, per_student_limit, per_student_period, total_cap, redemption_count, offer_branches(branch_id), offer_institutions(institution_id)";
 
 export async function getMerchantOffers(merchantId: string) {
   const supabase = await createClient();
@@ -278,6 +282,12 @@ export type Deal = {
   rating?: number | null;
   reviews?: number;
   published_at?: string | null;
+  /** When the student price runs. Missing or null = every day. */
+  run_days?: number[] | null;
+  run_from?: string | null;
+  run_until?: string | null;
+  /** False when the deal has set times and isn't on right now. */
+  running_now?: boolean;
 };
 
 export const DEAL_SORTS = ["top", "new", "hot"] as const;
@@ -315,10 +325,11 @@ export async function listDeals(params: { query?: string; category?: string; mer
   if (error) throw new Error(`Could not load deals (${error.code ?? "unknown"})`);
   const deals = (data ?? []) as Deal[];
   const merchantIds = deals.map((d) => d.merchant_id);
-  const [covers, ratings, dates] = await Promise.all([
+  const [covers, ratings, dates, times] = await Promise.all([
     getCoverPhotos(merchantIds),
     getRatings(merchantIds),
     getPublishedDates(deals.map((d) => d.offer_id)),
+    getRunTimes(deals.map((d) => d.offer_id)),
   ]);
   return deals.map((d) => ({
     ...d,
@@ -326,7 +337,19 @@ export async function listDeals(params: { query?: string; category?: string; mer
     rating: ratings.get(d.merchant_id)?.rating ?? null,
     reviews: ratings.get(d.merchant_id)?.reviews ?? 0,
     published_at: dates.get(d.offer_id) ?? null,
+    ...(times.get(d.offer_id) ?? { ...EVERY_DAY, running_now: true }),
   }));
+}
+
+/** When each live deal runs, by offer id. Deals not in the map run every day. */
+export async function getRunTimes(offerIds: string[]) {
+  const map = new Map<string, RunTimes & { running_now: boolean }>();
+  if (offerIds.length === 0 || !hasSupabaseEnv()) return map;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("offer_run_times", { p_offer_ids: offerIds });
+  for (const row of (data ?? []) as (RunTimes & { offer_id: string; running_now: boolean })[])
+    map.set(row.offer_id, { run_days: row.run_days, run_from: row.run_from, run_until: row.run_until, running_now: row.running_now });
+  return map;
 }
 
 /** Average rating and count per business, for businesses with at least one visible rating. */

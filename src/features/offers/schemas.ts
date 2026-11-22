@@ -99,6 +99,8 @@ export const offerSchema = z
   });
 
 export function offerErrorMessage(code: string | undefined): string {
+  if (code?.includes("run_days_invalid")) return "Pick at least one day.";
+  if (code?.includes("run_times_invalid")) return "The end time must be after the start, on the same day.";
   switch (code) {
     case "forbidden":
       return "You don't have permission to do that. Business owners need two-step verification.";

@@ -10,6 +10,7 @@ import { fieldErrors } from "@/features/auth/schemas";
 import type { FormState } from "@/features/auth/types";
 import { readForm } from "@/features/admin/schemas";
 import { catalogueItemSchema, offerErrorMessage, offerSchema } from "./schemas";
+import { parseRunTimesForm, type RunTimes } from "./run-times";
 import { deliverNotificationsSoon } from "@/lib/notifications/dispatch";
 
 const unavailable: FormState = { status: "error", message: "This isn't available in this environment yet." };
@@ -62,6 +63,8 @@ export async function saveOffer(_prev: FormState, formData: FormData): Promise<F
     branchIds: formData.getAll("branchIds").map(String),
   });
   if (!parsed.success) return { status: "error", fieldErrors: fieldErrors(parsed.error) };
+  const times = runTimesFrom(formData);
+  if (!times.ok) return { status: "error", fieldErrors: { [times.field]: times.message } };
   if (!hasSupabaseEnv()) return unavailable;
   const v = parsed.data;
   const [kind, itemId] = v.item.split(":");
@@ -85,8 +88,44 @@ export async function saveOffer(_prev: FormState, formData: FormData): Promise<F
     p_branch_ids: v.branchIds,
   });
   if (error) return { status: "error", message: offerErrorMessage(error.message) };
+  const timesError = await setRunTimes(supabase, data as string, times.value);
+  if (timesError) return { status: "error", message: `The offer was saved, but its days and times weren't: ${timesError}` };
   revalidatePath("/merchant/offers");
   redirect(`/merchant/offers?saved=${data as string}`);
+}
+
+function runTimesFrom(formData: FormData) {
+  return parseRunTimesForm({
+    mode: String(formData.get("runMode") ?? "every"),
+    days: formData.getAll("runDays").map(String),
+    allDay: formData.get("runAllDay") === "on",
+    from: String(formData.get("runFrom") ?? "") || undefined,
+    until: String(formData.get("runUntil") ?? "") || undefined,
+  });
+}
+
+async function setRunTimes(supabase: Awaited<ReturnType<typeof createClient>>, offerId: string, t: RunTimes) {
+  const { error } = await supabase.rpc("set_offer_run_times", {
+    p_offer_id: offerId,
+    p_days: t.run_days,
+    p_from: t.run_from,
+    p_until: t.run_until,
+  });
+  return error ? offerErrorMessage(error.message) : null;
+}
+
+/** Change when a deal runs, even while it's live. Prices don't change, so no review is needed. */
+export async function saveOfferRunTimes(_prev: FormState, formData: FormData): Promise<FormState> {
+  const id = z.uuid().safeParse(formData.get("offerId"));
+  if (!id.success) return { status: "error", message: "That offer wasn't found." };
+  const times = runTimesFrom(formData);
+  if (!times.ok) return { status: "error", fieldErrors: { [times.field]: times.message } };
+  if (!hasSupabaseEnv()) return unavailable;
+  const supabase = await createClient();
+  const timesError = await setRunTimes(supabase, id.data, times.value);
+  if (timesError) return { status: "error", message: timesError };
+  revalidatePath("/merchant/offers");
+  redirect(`/merchant/offers?times=${id.data}`);
 }
 
 const offerIdSchema = z.uuid();

@@ -15,6 +15,7 @@ import {
   Repeat,
   ScanLine,
   Star,
+  Timer,
 } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { verificationView } from "@/features/students/status";
 import { formatDate } from "@/features/students/components/status-card";
 import { DealRow, HeartButton, initials, toneFor, walkLabel } from "@/features/students/app/bits";
 import { openLabel } from "@/features/merchants/hours";
+import { formatRunTimes, isEveryDay } from "@/features/offers/run-times";
 import { FriendsOnDeal } from "@/features/friends/components/friends-on-deal";
 
 export const metadata: Metadata = { title: "Deal", robots: { index: false } };
@@ -54,7 +56,15 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
     { title: "Scan the shop's code", text: "Tap Scan and point at the Perqly QR at the counter." },
     { title: "Show your live pass", text: "The cashier confirms, you confirm, and you pay the student price." },
   ];
+  const times = { run_days: here?.run_days ?? null, run_from: here?.run_from ?? null, run_until: here?.run_until ?? null };
+  const notOnNow = here?.running_now === false;
   const facts = [
+    {
+      icon: Timer,
+      label: "Student price runs",
+      value: formatRunTimes(times),
+      tone: isEveryDay(times) ? undefined : notOnNow ? undefined : "text-emerald-700",
+    },
     { icon: CalendarClock, label: "Valid until", value: offer.ends_at ? formatDate(offer.ends_at) : "No end date" },
     {
       icon: Clock,
@@ -257,7 +267,11 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
         )}
 
         <div className="sticky bottom-[calc(var(--frame-bottom,7rem)-1rem)] z-10 mt-6 bg-gradient-to-t from-paper from-70% px-4 pt-4 pb-2 sm:px-0 md:bottom-0">
-          {verified ? (
+          {verified && notOnNow ? (
+            <p className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-ink-100 px-4 text-center text-[0.9375rem] font-semibold text-ink-700">
+              <Timer className="size-5 shrink-0" aria-hidden /> Not on right now. The student price runs {formatRunTimes(times)}.
+            </p>
+          ) : verified ? (
             <Link
               href="/student/scan"
               className="text-on-lime flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-lime-400 text-base font-bold shadow-lg transition-transform hover:brightness-105 active:scale-[0.98]"
