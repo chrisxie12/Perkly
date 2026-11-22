@@ -1,13 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Check, CheckCheck, Copy, ImagePlus, Reply, SendHorizontal, X } from "lucide-react";
+import { Check, CheckCheck, ImagePlus, Pin, SendHorizontal, Smile, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { playSound } from "@/lib/sound";
-import { markRoomRead, reactInRoom, sendRoomMessage } from "./actions";
+import { markRoomRead, pinMessage, reactInRoom, sendRoomMessage } from "./actions";
+import { isBigEmoji } from "./emoji";
+import { EmojiSheet } from "./emoji-picker";
+import { MessageOverlay } from "./message-overlay";
 import {
-  REACTIONS,
+  latestPin,
   photoPathFor,
   place,
   seenState,
@@ -16,6 +19,7 @@ import {
   toRoomMessage,
   typingTopic,
   upsertReaction,
+  type Placed,
   type RoomKind,
   type RoomMe,
   type RoomMessage,
@@ -71,7 +75,15 @@ export function ChatRoom({
   const [draft, setDraft] = useState("");
   const [photo, setPhoto] = useState<Draft>(null);
   const [replyTo, setReplyTo] = useState<RoomMessage | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  /** The message being held, and where it sits on screen. */
+  const [held, setHeld] = useState<{
+    id: string;
+    rect: { top: number; left: number; right: number; width: number; height: number };
+  } | null>(null);
+  /** The full emoji set, for a reaction or for the message box. */
+  const [sheet, setSheet] = useState<{ mode: "react"; message: RoomMessage } | { mode: "compose" } | null>(null);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdStart = useRef<{ x: number; y: number } | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -121,6 +133,15 @@ export function ChatRoom({
                 void markRoomRead(kind, chatId);
               }
             }
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: t.messages, filter: `${t.chatColumn}=eq.${chatId}` },
+          (payload) => {
+            // Pins (the only change to a sent message).
+            const row = payload.new as { id: string; pinned_at?: string | null };
+            setMessages((list) => list.map((x) => (x.id === row.id ? { ...x, pinned_at: row.pinned_at ?? null } : x)));
           },
         )
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: t.chat, filter: `id=eq.${chatId}` }, (payload) => {
@@ -181,21 +202,6 @@ export function ChatRoom({
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
   }, [messages.length, otherTyping]);
-
-  // Tapping anywhere else closes the message menu.
-  useEffect(() => {
-    if (!selected) return;
-    const close = (e: PointerEvent) => {
-      if (!(e.target as HTMLElement).closest(`[data-msg="${selected}"]`)) setSelected(null);
-    };
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
-    document.addEventListener("pointerdown", close);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("pointerdown", close);
-      document.removeEventListener("keydown", esc);
-    };
-  }, [selected]);
 
   const signalTyping = useCallback((stopped = false) => {
     const ch = typingChannel.current;
@@ -287,7 +293,8 @@ export function ChatRoom({
   }
 
   function react(m: RoomMessage, emoji: string) {
-    setSelected(null);
+    setHeld(null);
+    setSheet(null);
     const current = reactions.find((r) => r.message_id === m.id && r.user_id === me.userId)?.emoji ?? null;
     const next = current === emoji ? null : emoji;
     const before = reactions;
@@ -301,6 +308,75 @@ export function ChatRoom({
     });
   }
 
+  function pin(m: RoomMessage) {
+    setHeld(null);
+    const next = m.pinned_at ? null : new Date().toISOString();
+    const before = m.pinned_at ?? null;
+    setMessages((list) => list.map((x) => (x.id === m.id ? { ...x, pinned_at: next } : x)));
+    startTransition(async () => {
+      const result = await pinMessage(kind, m.id, next !== null);
+      if (!result.ok) {
+        setMessages((list) => list.map((x) => (x.id === m.id ? { ...x, pinned_at: before } : x)));
+        setError(result.error ?? "Couldn't pin. Try again.");
+      }
+    });
+  }
+
+  /** Hold a message (or right-click it) to open its options. */
+  function openHeld(m: RoomMessage, el: HTMLElement) {
+    const r = el.getBoundingClientRect();
+    navigator.vibrate?.(12);
+    setHeld({ id: m.id, rect: { top: r.top, left: r.left, right: r.right, width: r.width, height: r.height } });
+  }
+  function holdHandlers(m: RoomMessage, can: boolean) {
+    const cancel = () => {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+      holdStart.current = null;
+    };
+    return {
+      onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+        if (!can || (e.pointerType === "mouse" && e.button !== 0)) return;
+        const el = e.currentTarget;
+        holdStart.current = { x: e.clientX, y: e.clientY };
+        holdTimer.current = setTimeout(() => {
+          holdTimer.current = null;
+          openHeld(m, el);
+        }, 420);
+      },
+      onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+        const s0 = holdStart.current;
+        if (s0 && Math.hypot(e.clientX - s0.x, e.clientY - s0.y) > 10) cancel();
+      },
+      onPointerUp: cancel,
+      onPointerCancel: cancel,
+      onPointerLeave: cancel,
+      onContextMenu: (e: React.MouseEvent<HTMLElement>) => {
+        e.preventDefault();
+        cancel();
+        if (can) openHeld(m, e.currentTarget);
+      },
+      onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+        if (can && (e.key === "Enter" || e.key === " " || e.key === "ContextMenu")) {
+          e.preventDefault();
+          openHeld(m, e.currentTarget);
+        }
+      },
+    };
+  }
+
+  function insertEmoji(emoji: string) {
+    const el = input.current;
+    const start = el?.selectionStart ?? draft.length;
+    const end = el?.selectionEnd ?? draft.length;
+    const next = (draft.slice(0, start) + emoji + draft.slice(end)).slice(0, 1000);
+    setDraft(next);
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(start + emoji.length, start + emoji.length);
+    });
+  }
+
   function jumpTo(id: string) {
     const el = document.querySelector<HTMLElement>(`[data-msg="${id}"]`);
     if (!el) return;
@@ -309,11 +385,78 @@ export function ChatRoom({
     setTimeout(() => setHighlight((h) => (h === id ? null : h)), 1600);
   }
 
+  /** A message's bubble. Used in the list and, lifted, when the message is held. */
+  function renderBubble(m: Placed | RoomMessage, ring = false) {
+    const first = "first" in m ? m.first : true;
+    const last = "last" in m ? m.last : true;
+    const photoOnly = !!m.photo_path && !m.body;
+    // Only emoji (1 to 3): shown large, without a bubble, like a sticker.
+    if (!m.photo_path && isBigEmoji(m.body)) {
+      return (
+        <span className={cn("block px-1 text-[3rem] leading-none", m.pending && "opacity-70", ring && "rounded-2xl ring-2 ring-blue-400")}>
+          {m.body.trim()}
+        </span>
+      );
+    }
+    return (
+      <div
+        className={cn(
+          "overflow-hidden rounded-[1.25rem] text-[0.9375rem] leading-snug break-words whitespace-pre-wrap",
+          m.mine
+            ? cn(
+                "bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-900/15",
+                !last && "rounded-br-md",
+                !first && "rounded-tr-md",
+                last && "rounded-br-[0.4rem]",
+              )
+            : cn(
+                "bg-white text-ink-900 shadow-sm ring-1 ring-ink-200/70",
+                !last && "rounded-bl-md",
+                !first && "rounded-tl-md",
+                last && "rounded-bl-[0.4rem]",
+              ),
+          photoOnly ? "p-0" : m.photo_path ? "pb-2" : "px-3.5 py-2",
+          m.pending && "opacity-70",
+          ring && "ring-2 ring-blue-400 ring-offset-2 ring-offset-paper",
+        )}
+      >
+        {m.photo_path &&
+          (m.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- private signed link or local preview
+            <img
+              src={m.photo_url}
+              alt={m.body ? "" : `Photo from ${who(m)}`}
+              className="block max-h-80 w-full min-w-40 object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <span className="grid h-40 w-56 place-items-center bg-ink-100 text-sm text-ink-600">Photo</span>
+          ))}
+        {m.body && <span className={cn("block", m.photo_path && "px-3.5 pt-2")}>{m.body}</span>}
+      </div>
+    );
+  }
+
+  const heldMessage = held ? messages.find((x) => x.id === held.id) : undefined;
+  const pinned = latestPin(messages);
   const canSend = (draft.trim().length > 0 || !!photo) && draft.trim().length <= 1000;
   const who = (m: RoomMessage | undefined) => (m?.mine ? "You" : otherName);
 
   return (
     <div className="flex min-h-[calc(100dvh-15rem)] flex-col md:min-h-[calc(100dvh-12rem)]">
+      {pinned && (
+        <button
+          type="button"
+          onClick={() => jumpTo(pinned.id)}
+          className="glass sticky top-[calc(var(--frame-top,4.5rem)+4.25rem)] z-10 mb-2 flex w-full items-center gap-2.5 rounded-2xl px-3.5 py-2 text-left"
+        >
+          <Pin className="size-4 shrink-0 text-blue-700" aria-hidden />
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-blue-700">Pinned</span>
+            <span className="block truncate text-sm text-ink-900">{snippet(pinned)}</span>
+          </span>
+        </button>
+      )}
       <ol className="flex flex-1 flex-col px-1 pb-4" aria-label="Messages">
         {messages.length === 0 &&
           (emptyCard ? (
@@ -324,8 +467,7 @@ export function ChatRoom({
         {placed.map((m) => {
           const quoted = m.reply_to ? byId.get(m.reply_to) : undefined;
           const counts = tally(reactions, m.id, me.userId);
-          const isSelected = selected === m.id;
-          const photoOnly = !!m.photo_path && !m.body;
+          const isHeld = held?.id === m.id;
           const canAct = !m.pending && !m.failed && !m.id.startsWith("temp-");
           return (
             <li
@@ -360,107 +502,21 @@ export function ChatRoom({
                 </button>
               )}
 
-              {isSelected && canAct && !blocked && (
-                <div
-                  role="toolbar"
-                  aria-label="Message options"
-                  className="glass anim-pop mb-1.5 flex items-center gap-0.5 rounded-full p-1"
-                >
-                  {REACTIONS.map((e) => {
-                    const on = counts.some((c) => c.emoji === e && c.mine);
-                    return (
-                      <button
-                        key={e}
-                        type="button"
-                        onClick={() => react(m, e)}
-                        aria-label={on ? `Remove ${e}` : `React ${e}`}
-                        aria-pressed={on}
-                        className={cn(
-                          "grid size-10 place-items-center rounded-full text-xl transition-transform active:scale-90",
-                          on && "bg-blue-100",
-                        )}
-                      >
-                        {e}
-                      </button>
-                    );
-                  })}
-                  <span aria-hidden className="mx-1 h-6 w-px bg-ink-200" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReplyTo(m);
-                      setSelected(null);
-                      input.current?.focus();
-                    }}
-                    aria-label="Reply"
-                    className="grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
-                  >
-                    <Reply className="size-5" aria-hidden />
-                  </button>
-                  {m.body && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void navigator.clipboard?.writeText(m.body);
-                        setSelected(null);
-                      }}
-                      aria-label="Copy text"
-                      className="grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
-                    >
-                      <Copy className="size-5" aria-hidden />
-                    </button>
-                  )}
-                </div>
-              )}
-
               <div className="relative max-w-[80%]">
                 <div
                   role="button"
                   tabIndex={0}
-                  aria-label={`${who(m)}: ${snippet(m) || "message"}. Options`}
-                  aria-expanded={isSelected}
-                  onClick={() => canAct && setSelected(isSelected ? null : m.id)}
-                  onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && canAct) {
-                      e.preventDefault();
-                      setSelected(isSelected ? null : m.id);
-                    }
-                  }}
+                  aria-label={`${who(m)}: ${snippet(m) || "message"}. Hold for options`}
+                  aria-haspopup="dialog"
+                  aria-expanded={isHeld}
+                  {...holdHandlers(m, canAct)}
                   onDoubleClick={() => canAct && !blocked && react(m, "❤️")}
                   className={cn(
-                    "cursor-pointer overflow-hidden text-[0.9375rem] leading-snug break-words whitespace-pre-wrap transition-[transform,box-shadow] select-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 active:scale-[0.98]",
-                    "rounded-[1.25rem]",
-                    m.mine
-                      ? cn(
-                          "bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-900/15",
-                          !m.last && "rounded-br-md",
-                          !m.first && "rounded-tr-md",
-                          m.last && "rounded-br-[0.4rem]",
-                        )
-                      : cn(
-                          "bg-white text-ink-900 shadow-sm ring-1 ring-ink-200/70",
-                          !m.last && "rounded-bl-md",
-                          !m.first && "rounded-tl-md",
-                          m.last && "rounded-bl-[0.4rem]",
-                        ),
-                    photoOnly ? "p-0" : m.photo_path ? "pb-2" : "px-3.5 py-2",
-                    m.pending && "opacity-70",
-                    (isSelected || highlight === m.id) && "ring-2 ring-blue-400 ring-offset-2 ring-offset-paper",
+                    "cursor-pointer rounded-[1.25rem] transition-[transform,opacity] select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 active:scale-[0.98]",
+                    isHeld && "opacity-0",
                   )}
                 >
-                  {m.photo_path &&
-                    (m.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- private signed link or local preview
-                      <img
-                        src={m.photo_url}
-                        alt={m.body ? "" : `Photo from ${who(m)}`}
-                        className="block max-h-80 w-full min-w-40 object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="grid h-40 w-56 place-items-center bg-ink-100 text-sm text-ink-600">Photo</span>
-                    ))}
-                  {m.body && <span className={cn("block", m.photo_path && "px-3.5 pt-2")}>{m.body}</span>}
+                  {renderBubble(m, highlight === m.id)}
                 </div>
 
                 {counts.length > 0 && (
@@ -595,6 +651,14 @@ export function ChatRoom({
             >
               <ImagePlus className="size-5" aria-hidden />
             </button>
+            <button
+              type="button"
+              onClick={() => setSheet({ mode: "compose" })}
+              aria-label="Add an emoji"
+              className="grid size-11 shrink-0 place-items-center rounded-full text-blue-700 hover:bg-blue-50"
+            >
+              <Smile className="size-5" aria-hidden />
+            </button>
             <label htmlFor="chat-input" className="sr-only">
               Message
             </label>
@@ -632,6 +696,45 @@ export function ChatRoom({
         <p role="alert" className="mt-2 text-center text-sm font-medium text-red-700">
           {error}
         </p>
+      )}
+
+      {held && heldMessage && (
+        <MessageOverlay
+          rect={held.rect}
+          mine={heldMessage.mine}
+          preview={renderBubble(heldMessage)}
+          myReaction={reactions.find((r) => r.message_id === heldMessage.id && r.user_id === me.userId)?.emoji ?? null}
+          canReact={!blocked}
+          canReply={!blocked}
+          canCopy={!!heldMessage.body}
+          pinned={!!heldMessage.pinned_at}
+          onReact={(e) => react(heldMessage, e)}
+          onMore={() => {
+            setHeld(null);
+            setSheet({ mode: "react", message: heldMessage });
+          }}
+          onReply={() => {
+            setReplyTo(heldMessage);
+            setHeld(null);
+            input.current?.focus();
+          }}
+          onCopy={() => {
+            void navigator.clipboard?.writeText(heldMessage.body);
+            setHeld(null);
+          }}
+          onPin={() => pin(heldMessage)}
+          onClose={() => setHeld(null)}
+        />
+      )}
+      {sheet && (
+        <EmojiSheet
+          title={sheet.mode === "react" ? "React with" : "Add an emoji"}
+          onPick={(e) => {
+            if (sheet.mode === "react") react(sheet.message, e);
+            else insertEmoji(e);
+          }}
+          onClose={() => setSheet(null)}
+        />
       )}
     </div>
   );

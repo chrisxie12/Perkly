@@ -19,7 +19,7 @@ export async function loadRoom(kind: RoomKind, chatId: string, me: RoomMe) {
   const supabase = await createClient();
   const { data } = await supabase
     .from(t.messages)
-    .select(`id, ${t.sender}, body, created_at, reply_to, photo_path`)
+    .select(`id, ${t.sender}, body, created_at, reply_to, photo_path, pinned_at`)
     .eq(t.chatColumn, chatId)
     .order("created_at", { ascending: false })
     .limit(200);
