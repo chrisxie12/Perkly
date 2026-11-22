@@ -384,3 +384,35 @@ export async function getCoverPhotos(merchantIds: string[]) {
   for (const row of (data ?? []) as { merchant_id: string; path: string }[]) map.set(row.merchant_id, shopPhotoUrl(base, row.path));
   return map;
 }
+
+export type DealPreview = RunTimes & {
+  offer_id: string;
+  merchant_name: string;
+  merchant_slug: string;
+  item: string;
+  category: string | null;
+  discount_type: DiscountType;
+  discount_value: number;
+  regular_price: number;
+  final_price: number;
+  discount_amount: number;
+  cover_url: string | null;
+};
+
+/** What a shared deal link shows anyone, signed in or not. Null if the deal isn't live. */
+export async function getDealPreview(offerId: string): Promise<DealPreview | null> {
+  if (!/^[0-9a-f-]{36}$/.test(offerId) || !hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("deal_preview", { p_offer_id: offerId });
+  const row = (data as (Omit<DealPreview, "cover_url"> & { cover_path: string | null })[] | null)?.[0];
+  if (!row) return null;
+  const { cover_path, ...rest } = row;
+  return {
+    ...rest,
+    discount_value: Number(rest.discount_value),
+    regular_price: Number(rest.regular_price),
+    final_price: Number(rest.final_price),
+    discount_amount: Number(rest.discount_amount),
+    cover_url: cover_path ? shopPhotoUrl(getPublicEnv().NEXT_PUBLIC_SUPABASE_URL, cover_path) : null,
+  };
+}

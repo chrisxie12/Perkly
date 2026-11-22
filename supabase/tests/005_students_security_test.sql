@@ -193,7 +193,9 @@ select is_empty($$
     and p.proname <> 'join_waitlist' -- the landing page's waitlist form (migration 0020), rate-limited
     -- Campus C1 public pages (decision record, detail 5): live public content only, no names.
     and p.proname not in ('campus_enabled', 'public_post', 'public_organisation')
-$$, 'anonymous visitors cannot execute any Perqly function in public except the waitlist and Campus public pages');
+    -- Shared deal links (migration 20261122200000): one live deal's poster details, nothing personal.
+    and p.proname <> 'deal_preview'
+$$, 'anonymous visitors cannot execute any Perqly function in public except the waitlist, Campus public pages and shared deals');
 
 select * from finish();
 rollback;

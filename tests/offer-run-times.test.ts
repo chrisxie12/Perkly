@@ -9,6 +9,7 @@ import {
   nextStart,
   parseRunTimesForm,
   runsAt,
+  onToday,
   type RunTimes,
 } from "@/features/offers/run-times";
 
@@ -87,5 +88,42 @@ describe("the business form", () => {
       field: "runUntil",
     });
     expect(parseRunTimesForm({ mode: "set", days: ["1"], allDay: false })).toMatchObject({ ok: false, field: "runUntil" });
+  });
+});
+
+describe("On today row", () => {
+  type D = RunTimes & { id: string };
+  const deals: D[] = [
+    { id: "every", run_days: null, run_from: null, run_until: null },
+    { id: "tue-evening", run_days: [2], run_from: "18:00", run_until: "21:00" },
+    { id: "tue-afternoon", run_days: [2], run_from: "14:00", run_until: "17:00" },
+    { id: "wed", run_days: [3], run_from: null, run_until: null },
+    { id: "tue-morning", run_days: [2], run_from: "08:00", run_until: "10:00" },
+    { id: "daily-lunch", run_days: null, run_from: "12:00", run_until: "14:00" },
+  ];
+  it("shows deals on today, on-now first, leaving out every-day and finished ones", () => {
+    // Tuesday 3 pm: the afternoon deal is on; the evening one is later; the morning and lunch ones are over.
+    expect(onToday(deals, at("2026-11-24T15:00:00")).map((d) => d.id)).toEqual(["tue-afternoon", "tue-evening"]);
+    // Tuesday 9 am: the morning deal is on; lunch, afternoon and evening are still to come.
+    expect(onToday(deals, at("2026-11-24T09:00:00")).map((d) => d.id)).toEqual([
+      "tue-morning",
+      "daily-lunch",
+      "tue-afternoon",
+      "tue-evening",
+    ]);
+    expect(onToday(deals, at("2026-11-25T10:00:00")).map((d) => d.id)).toEqual(["wed", "daily-lunch"]);
+  });
+});
+
+describe("shared deal links", () => {
+  it("point at the public preview page, which has its own share image", () => {
+    const page = readFileSync("src/app/student/offers/[id]/page.tsx", "utf8");
+    expect(page).toContain("path={`/d/${offer.offer_id}`}");
+    expect(readFileSync("src/app/(marketing)/d/[id]/opengraph-image.tsx", "utf8")).toContain("getDealPreview");
+  });
+  it("only shows a poster's worth of detail publicly", () => {
+    const sql = readFileSync("supabase/migrations/20261122200000_deal_preview.sql", "utf8");
+    expect(sql).toContain("grant execute on function public.deal_preview(uuid) to anon");
+    expect(sql).not.toMatch(/phone|whatsapp|latitude|email/);
   });
 });

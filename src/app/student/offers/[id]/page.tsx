@@ -99,7 +99,11 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
               <ChevronLeft className="size-6" aria-hidden />
             </Link>
             <div className="flex items-center gap-2">
-              <ShareButton title={`${offer.title} at ${offer.merchant.display_name}`} path={back} className={iconButton} />
+              <ShareButton
+                title={`${offer.title} at ${offer.merchant.display_name}`}
+                path={`/d/${offer.offer_id}`}
+                className={iconButton}
+              />
               <span className="rounded-2xl bg-white shadow-sm">
                 <HeartButton merchantId={offer.merchant.id} saved={offer.is_favourite} back={back} label={offer.merchant.display_name} />
               </span>
