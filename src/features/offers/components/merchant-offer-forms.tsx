@@ -6,6 +6,7 @@ import { FormMessage } from "@/features/auth/components/form-message";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { idleState } from "@/features/auth/types";
 import { saveCatalogueItem, saveOffer } from "../actions";
+import { RunTimesFields } from "./run-times-fields";
 import { discountLabel, money, previewPrice, type DiscountType } from "../schemas";
 import type { CatalogueItem, MerchantOffer } from "../queries";
 
@@ -260,6 +261,7 @@ export function OfferForm({
           <Input id="totalCap" name="totalCap" inputMode="numeric" defaultValue={offer?.total_cap ?? ""} />
         </Field>
       </div>
+      <RunTimesFields initial={offer} errors={{ runDays: e.runDays, runUntil: e.runUntil }} />
 
       <fieldset>
         <legend className="mb-2 text-sm font-semibold text-ink-900">Branches</legend>

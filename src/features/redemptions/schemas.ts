@@ -68,7 +68,7 @@ export function redemptionErrorMessage(code: string | undefined, detail: LimitDe
     case "merchant_unavailable":
       return "This business isn't taking Perqly discounts right now.";
     case "no_eligible_offers":
-      return "There are no student discounts you can use here right now.";
+      return "There are no student discounts you can use here right now. Some shops only run their student price on certain days or times: check the deal for when it runs.";
     case "session_in_progress":
       return `You have another redemption open${detail.merchant_name ? ` at ${detail.merchant_name}` : ""}. Finish or cancel it first.`;
     case "limit_reached": {

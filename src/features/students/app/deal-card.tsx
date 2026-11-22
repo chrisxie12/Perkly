@@ -3,9 +3,18 @@ import { ChevronRight, Lock, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "@/features/offers/components/marketplace";
 import type { Deal } from "@/features/offers/queries";
+import { isEveryDay } from "@/features/offers/run-times";
 import { initials, toneFor } from "./format";
 import { HeartButton } from "./heart-button";
-import { OpenTag } from "./bits";
+import { OpenTag, RunTimesTag } from "./bits";
+
+/** A deal's run times, with missing fields read as every day. */
+const runTimesOf = (d: Deal) => ({
+  run_days: d.run_days ?? null,
+  run_from: d.run_from ?? null,
+  run_until: d.run_until ?? null,
+  running_now: d.running_now,
+});
 
 const cedis = (n: number) => `GH₵${Number(n).toFixed(2)}`;
 
@@ -133,6 +142,7 @@ export function DealCard({
             <RatingTag rating={deal.rating} reviews={deal.reviews} />
             {!compact && !closed && deal.has_hours && <OpenTag deal={deal} />}
           </span>
+          {!isEveryDay(runTimesOf(deal)) && <RunTimesTag deal={runTimesOf(deal)} className="mt-1.5 text-[0.8125rem]" />}
         </span>
       </Link>
       <span className={cn("flex items-center gap-2", compact ? "px-0.5 pt-3 pb-0.5" : "px-1 pt-4 pb-1")}>
