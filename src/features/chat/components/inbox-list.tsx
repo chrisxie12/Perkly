@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Store, X } from "lucide-react";
+import { BellOff, Search, Store, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/features/students/app/format";
 import { filterInbox, type InboxFilter, type InboxItem } from "../inbox-model";
@@ -16,16 +16,26 @@ function when(iso: string) {
   return ghanaDay(d) === ghanaDay(new Date()) ? time.format(d) : date.format(d);
 }
 
-export function InboxList({ items, showFriends }: { items: InboxItem[]; showFriends: boolean }) {
+export function InboxList({
+  items,
+  showFriends,
+  initialFilter = "all",
+}: {
+  items: InboxItem[];
+  showFriends: boolean;
+  initialFilter?: InboxFilter;
+}) {
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<InboxFilter>("all");
+  const [filter, setFilter] = useState<InboxFilter>(initialFilter);
   const shown = useMemo(() => filterInbox(items, filter, q), [items, filter, q]);
-  const unreadTotal = items.reduce((n, i) => n + (i.unread > 0 ? 1 : 0), 0);
+  const unreadTotal = items.reduce((n, i) => n + (i.unread > 0 && !i.archived ? 1 : 0), 0);
+  const archivedTotal = items.filter((i) => i.archived).length;
   const filters: { id: InboxFilter; label: string }[] = [
     { id: "all", label: "All" },
     { id: "unread", label: unreadTotal > 0 ? `Unread (${unreadTotal})` : "Unread" },
     ...(showFriends ? [{ id: "friend" as const, label: "Friends" }] : []),
     { id: "shop", label: "Businesses" },
+    ...(archivedTotal > 0 || filter === "archived" ? [{ id: "archived" as const, label: `Archived (${archivedTotal})` }] : []),
   ];
 
   return (
@@ -74,7 +84,13 @@ export function InboxList({ items, showFriends }: { items: InboxItem[]; showFrie
 
       {shown.length === 0 ? (
         <p className="px-4 py-10 text-center text-[0.9375rem] text-ink-600">
-          {q ? `No chats match "${q.trim()}".` : filter === "unread" ? "You're all caught up." : "No chats here yet."}
+          {q
+            ? `No chats match "${q.trim()}".`
+            : filter === "unread"
+              ? "You're all caught up."
+              : filter === "archived"
+                ? "No archived chats."
+                : "No chats here yet."}
         </p>
       ) : (
         <ul className="mt-3 divide-y divide-ink-200/70 overflow-hidden rounded-3xl bg-white ring-1 ring-ink-200/70">
@@ -111,7 +127,18 @@ export function InboxList({ items, showFriends }: { items: InboxItem[]; showFrie
                       {c.title}
                       <span className="sr-only">{c.kind === "shop" ? ", business" : ", friend"}</span>
                     </span>
-                    <span className={cn("shrink-0 text-xs", c.unread > 0 ? "font-semibold text-blue-700" : "text-ink-600")}>
+                    <span
+                      className={cn(
+                        "flex shrink-0 items-center gap-1 text-xs",
+                        c.unread > 0 ? "font-semibold text-blue-700" : "text-ink-600",
+                      )}
+                    >
+                      {c.muted && (
+                        <>
+                          <BellOff className="size-3.5 text-ink-600" aria-hidden />
+                          <span className="sr-only">Muted, </span>
+                        </>
+                      )}
                       {when(c.at)}
                     </span>
                   </span>

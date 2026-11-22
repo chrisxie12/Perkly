@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Flag } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
 import { ChatRoom } from "@/features/chat/room/chat-room";
 import { RoomHeader } from "@/features/chat/room/room-header";
-import { loadRoom } from "@/features/chat/room/server";
+import { getChatPref, loadRoom } from "@/features/chat/room/server";
+import { ChatMenu } from "@/features/chat/room/chat-menu";
 import { getFriendChat } from "@/features/friends/queries";
 
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
@@ -17,18 +16,19 @@ export default async function FriendChatPage({ params }: PageProps<"/student/fri
   const [chat, ctx] = await Promise.all([getFriendChat(id), getUserContext()]);
   if (!chat || !ctx) notFound();
   const me = { kind: "friend", userId: ctx.userId } as const;
-  const room = await loadRoom("friend", id, me);
+  const [room, pref] = await Promise.all([loadRoom("friend", id, me), getChatPref("friend", id)]);
   return (
     <AreaShell area="student">
       <div className="max-w-2xl">
-        <RoomHeader backHref="/student/messages" backLabel="All chats" name={chat.friend_name} sub="Friend" friend>
-          <Link
-            href={`/student/friends/report/${chat.friend_id}?chat=${chat.id}`}
-            className="grid size-11 place-items-center rounded-full text-ink-600 hover:bg-ink-100"
-            aria-label={`Report ${chat.friend_name}`}
-          >
-            <Flag className="size-5" aria-hidden />
-          </Link>
+        <RoomHeader backHref="/student/messages" backLabel="All chats" name={chat.friend_name} sub="Friend" friend chatId={id}>
+          <ChatMenu
+            kind="friend"
+            chatId={id}
+            muted={pref.muted}
+            archived={pref.archived}
+            inboxHref="/student/messages"
+            reportHref={`/student/friends/report/${chat.friend_id}?chat=${chat.id}`}
+          />
         </RoomHeader>
         <ChatRoom
           kind="friend"

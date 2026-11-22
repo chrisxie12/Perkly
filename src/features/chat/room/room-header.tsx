@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/features/students/app/format";
+import { HeaderStatus } from "./header-status";
 
 /** The frosted bar at the top of a chat: back, who you're talking to, and actions on the right. */
 export function RoomHeader({
@@ -12,6 +13,7 @@ export function RoomHeader({
   photo,
   nameHref,
   friend,
+  chatId,
   children,
 }: {
   backHref: string;
@@ -21,6 +23,8 @@ export function RoomHeader({
   photo?: string | null;
   nameHref?: string;
   friend?: boolean;
+  /** When given, the line under the name says "typing…" while the other person types. */
+  chatId?: string;
   children?: React.ReactNode;
 }) {
   const who = (
@@ -41,7 +45,7 @@ export function RoomHeader({
       )}
       <span className="min-w-0">
         <span className="block truncate font-bold text-ink-900">{name}</span>
-        {sub && <span className="block truncate text-xs text-ink-600">{sub}</span>}
+        {chatId ? <HeaderStatus chatId={chatId} sub={sub} /> : sub && <span className="block truncate text-xs text-ink-600">{sub}</span>}
       </span>
     </>
   );

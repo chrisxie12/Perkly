@@ -7,7 +7,8 @@ import { setConversationBlocked } from "@/features/chat/actions";
 import { getConversation } from "@/features/chat/queries";
 import { ChatRoom } from "@/features/chat/room/chat-room";
 import { RoomHeader } from "@/features/chat/room/room-header";
-import { loadRoom } from "@/features/chat/room/server";
+import { getChatPref, loadRoom } from "@/features/chat/room/server";
+import { ChatMenu } from "@/features/chat/room/chat-menu";
 
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
 
@@ -16,12 +17,12 @@ export default async function MerchantChatPage({ params }: PageProps<"/merchant/
   const [chat, ctx] = await Promise.all([getConversation(id), getUserContext()]);
   if (!chat || chat.side !== "merchant" || !ctx) notFound();
   const me = { kind: "shop", side: "merchant", userId: ctx.userId } as const;
-  const room = await loadRoom("shop", id, me);
+  const [room, pref] = await Promise.all([loadRoom("shop", id, me), getChatPref("shop", id)]);
   const name = chat.student_name ?? "Student";
   return (
     <AreaShell area="merchant">
       <div className="max-w-2xl">
-        <RoomHeader backHref="/merchant/messages" backLabel="All messages" name={name} sub="Student">
+        <RoomHeader backHref="/merchant/messages" backLabel="All messages" name={name} sub="Student" chatId={id}>
           <form action={setConversationBlocked}>
             <input type="hidden" name="conversationId" value={id} />
             <input type="hidden" name="blocked" value={chat.blocked ? "false" : "true"} />
@@ -33,6 +34,7 @@ export default async function MerchantChatPage({ params }: PageProps<"/merchant/
               {chat.blocked ? "Unblock" : "Block"}
             </button>
           </form>
+          <ChatMenu kind="shop" chatId={id} muted={pref.muted} archived={pref.archived} inboxHref="/merchant/messages" />
         </RoomHeader>
         {chat.blocked && (
           <p className="mb-2 rounded-xl bg-ink-50 px-4 py-2.5 text-center text-sm text-ink-600">

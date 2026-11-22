@@ -50,3 +50,21 @@ async function signPhotos(paths: string[]) {
   for (const s of data ?? []) if (s.path && s.signedUrl) out.set(s.path, s.signedUrl);
   return out;
 }
+
+export type ChatPref = { kind: RoomKind; chat_id: string; muted: boolean; archived_at: string | null };
+
+/** My mute and archive settings for every chat that has any. */
+export async function getMyChatPrefs(): Promise<ChatPref[]> {
+  if (!hasSupabaseEnv()) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.from("chat_prefs").select("kind, chat_id, muted, archived_at");
+  return (data ?? []) as ChatPref[];
+}
+
+/** My settings for one chat. */
+export async function getChatPref(kind: RoomKind, chatId: string) {
+  if (!hasSupabaseEnv()) return { muted: false, archived: false };
+  const supabase = await createClient();
+  const { data } = await supabase.from("chat_prefs").select("muted, archived_at").eq("kind", kind).eq("chat_id", chatId).maybeSingle();
+  return { muted: Boolean(data?.muted), archived: Boolean(data?.archived_at) };
+}
