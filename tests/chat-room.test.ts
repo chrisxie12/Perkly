@@ -14,7 +14,7 @@ import {
   type RoomMessage,
 } from "@/features/chat/room/model";
 import { fitWithin } from "@/features/chat/room/photo";
-import { filterInbox, mergeInbox, type InboxItem } from "@/features/chat/inbox-model";
+import { applyPrefs, filterInbox, mergeInbox, type InboxItem } from "@/features/chat/inbox-model";
 
 const at = (min: number) => new Date(Date.UTC(2026, 10, 21, 10, min)).toISOString();
 const msg = (id: string, mine: boolean, min: number, extra: Partial<RoomMessage> = {}): RoomMessage => ({
@@ -127,5 +127,39 @@ describe("one inbox", () => {
     expect(filterInbox(items, "friend", "").map((i) => i.key)).toEqual(["f1", "f2"]);
     expect(filterInbox(items, "all", "stud").map((i) => i.key)).toEqual(["s1"]);
     expect(filterInbox(items, "shop", "kojo")).toEqual([]);
+  });
+});
+
+describe("mute and archive in the inbox", () => {
+  const base = (key: string, min: number): InboxItem => ({
+    key,
+    kind: "shop",
+    title: key,
+    href: "/",
+    photo: null,
+    preview: null,
+    fromMe: false,
+    at: at(min),
+    unread: 0,
+    closed: false,
+  });
+  const items = [base("shop:a", 10), base("shop:b", 20)];
+  const prefs = [
+    { kind: "shop" as const, chat_id: "a", muted: true, archived_at: at(15) },
+    { kind: "shop" as const, chat_id: "b", muted: false, archived_at: at(15) },
+  ];
+  it("hides archived chats until a new message arrives", () => {
+    const marked = applyPrefs(items, prefs);
+    expect(marked.map((i) => [i.key, i.archived, i.muted])).toEqual([
+      ["shop:a", true, true],
+      ["shop:b", false, false],
+    ]);
+    expect(filterInbox(marked, "all", "").map((i) => i.key)).toEqual(["shop:b"]);
+    expect(filterInbox(marked, "archived", "").map((i) => i.key)).toEqual(["shop:a"]);
+  });
+  it("matches the database's muted-notification rule", () => {
+    const sql = readFileSync("supabase/migrations/20261122230000_chat_prefs_reports.sql", "utf8");
+    expect(sql).toContain("before insert on public.notifications");
+    expect(sql).toContain("'chat.message', 'friendchat.message'");
   });
 });

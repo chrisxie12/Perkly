@@ -80,6 +80,7 @@ describe("menus by role", () => {
       "Redemptions",
       "Problem reports",
       "Student reports",
+      "Chat reports",
       "Reports",
       "Audit logs",
       "Settings",

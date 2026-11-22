@@ -22,6 +22,7 @@ import {
   type RoomReaction,
 } from "./model";
 import { MAX_UPLOAD_BYTES, shrinkPhoto } from "./photo";
+import { TYPING_EVENT, type TypingDetail } from "./header-status";
 
 const time = new Intl.DateTimeFormat("en-GH", { hour: "numeric", minute: "2-digit", timeZone: "Africa/Accra" });
 
@@ -48,6 +49,7 @@ export function ChatRoom({
   blocked,
   blockedText,
   emptyText,
+  emptyCard,
 }: {
   kind: RoomKind;
   chatId: string;
@@ -59,6 +61,8 @@ export function ChatRoom({
   blocked: boolean;
   blockedText: string;
   emptyText: string;
+  /** Shown instead of emptyText before the first message, such as the shop and its deals. */
+  emptyCard?: React.ReactNode;
 }) {
   const [messages, setMessages] = useState<RoomMessage[]>(initialMessages);
   const [reactions, setReactions] = useState<RoomReaction[]>(initialReactions);
@@ -167,6 +171,11 @@ export function ChatRoom({
       cleanup();
     };
   }, [kind, chatId]);
+
+  // Tell the header, so it can say "typing…" under the name.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent<TypingDetail>(TYPING_EVENT, { detail: { chatId, typing: otherTyping } }));
+  }, [chatId, otherTyping]);
 
   // Keep the newest message in view when something arrives.
   useEffect(() => {
@@ -306,7 +315,12 @@ export function ChatRoom({
   return (
     <div className="flex min-h-[calc(100dvh-15rem)] flex-col md:min-h-[calc(100dvh-12rem)]">
       <ol className="flex flex-1 flex-col px-1 pb-4" aria-label="Messages">
-        {messages.length === 0 && <li className="m-auto max-w-[30ch] py-10 text-center text-[0.9375rem] text-ink-600">{emptyText}</li>}
+        {messages.length === 0 &&
+          (emptyCard ? (
+            <li className="mt-auto pt-6 pb-2">{emptyCard}</li>
+          ) : (
+            <li className="m-auto max-w-[30ch] py-10 text-center text-[0.9375rem] text-ink-600">{emptyText}</li>
+          ))}
         {placed.map((m) => {
           const quoted = m.reply_to ? byId.get(m.reply_to) : undefined;
           const counts = tally(reactions, m.id, me.userId);

@@ -12,7 +12,8 @@ import { getFeatureSwitches } from "@/features/platform/switches";
 
 export const metadata: Metadata = { title: "Chats", robots: { index: false } };
 
-export default async function StudentMessagesPage() {
+export default async function StudentMessagesPage({ searchParams }: PageProps<"/student/messages">) {
+  const archivedView = (await searchParams).archived === "1";
   const [status, switches] = await Promise.all([getMyStudentStatus(), getFeatureSwitches()]);
   // Friend chats only when Friends is switched on (off for the pilot).
   const verified = verificationView(status) === "verified" && switches.friends;
@@ -69,7 +70,7 @@ export default async function StudentMessagesPage() {
             </div>
           </div>
         ) : (
-          <InboxList items={items} showFriends={verified} />
+          <InboxList items={items} showFriends={verified} initialFilter={archivedView ? "archived" : "all"} />
         )}
       </div>
     </AreaShell>

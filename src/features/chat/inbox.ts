@@ -2,15 +2,20 @@ import "server-only";
 import { listMyConversations } from "./queries";
 import { listFriendChats } from "@/features/friends/queries";
 import { getCoverPhotos } from "@/features/offers/queries";
-import { mergeInbox, type InboxItem } from "./inbox-model";
+import { applyPrefs, mergeInbox, type InboxItem } from "./inbox-model";
+import { getMyChatPrefs } from "./room/server";
 
 export type { InboxItem };
 
 /** Friend chats and business chats in one list, newest first. Friend chats only for verified students. */
 export async function loadInbox(includeFriends: boolean): Promise<InboxItem[]> {
-  const [shops, friends] = await Promise.all([listMyConversations(), includeFriends ? listFriendChats() : Promise.resolve([])]);
+  const [shops, friends, prefs] = await Promise.all([
+    listMyConversations(),
+    includeFriends ? listFriendChats() : Promise.resolve([]),
+    getMyChatPrefs(),
+  ]);
   const covers = await getCoverPhotos(shops.flatMap((c) => (c.merchant_id ? [c.merchant_id] : [])));
-  return mergeInbox(
+  const merged = mergeInbox(
     shops.map((c) => ({
       key: `shop:${c.id}`,
       kind: "shop" as const,
@@ -36,4 +41,5 @@ export async function loadInbox(includeFriends: boolean): Promise<InboxItem[]> {
       closed: !c.can_send,
     })),
   );
+  return applyPrefs(merged, prefs);
 }

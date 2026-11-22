@@ -73,3 +73,31 @@ export async function markRoomRead(k: RoomKind, chatId: string) {
   if (k === "shop") await supabase.rpc("mark_conversation_read", { p_conversation_id: chatId });
   else await supabase.rpc("mark_friend_chat_read", { p_chat_id: chatId });
 }
+
+/** Mute or archive a chat for yourself. Pass null to leave a setting as it is. */
+export async function setChatPref(k: RoomKind, chatId: string, muted: boolean | null, archived: boolean | null) {
+  if (!kind.safeParse(k).success || !uuid.safeParse(chatId).success || !hasSupabaseEnv()) return { ok: false };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_chat_pref", { p_kind: k, p_chat_id: chatId, p_muted: muted, p_archived: archived });
+  return { ok: !error };
+}
+
+const REPORT_REASONS = ["spam", "rude", "scam", "other"] as const;
+
+/** Report a chat to Perqly support. */
+export async function reportChat(k: RoomKind, chatId: string, reason: string, details: string): Promise<{ ok: boolean; error?: string }> {
+  if (!kind.safeParse(k).success || !uuid.safeParse(chatId).success) return { ok: false, error: ERRORS.forbidden };
+  if (!(REPORT_REASONS as readonly string[]).includes(reason)) return { ok: false, error: "Choose what's wrong." };
+  if (details.trim().length > 1000) return { ok: false, error: "Keep the details under 1,000 characters." };
+  if (!hasSupabaseEnv()) return { ok: false, error: "This isn't available in this environment yet." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("report_chat", {
+    p_kind: k,
+    p_chat_id: chatId,
+    p_reason: reason,
+    p_details: details.trim() || null,
+  });
+  if (!error) return { ok: true };
+  if (error.message.includes("rate_limited")) return { ok: false, error: "You've sent several reports today. Try again tomorrow." };
+  return { ok: false, error: "That didn't send. Try again." };
+}

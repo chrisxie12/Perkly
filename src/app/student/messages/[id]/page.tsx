@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircle, Phone } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
 import { getConversation } from "@/features/chat/queries";
+import { ChatMenu } from "@/features/chat/room/chat-menu";
 import { ChatRoom } from "@/features/chat/room/chat-room";
 import { RoomHeader } from "@/features/chat/room/room-header";
-import { loadRoom } from "@/features/chat/room/server";
+import { getChatPref, loadRoom } from "@/features/chat/room/server";
 import { telUrl, whatsappUrl } from "@/features/merchants/shop";
-import { getCoverPhotos } from "@/features/offers/queries";
+import { getCoverPhotos, listDeals } from "@/features/offers/queries";
+import { money } from "@/features/offers/schemas";
+import { formatRunTimes, isEveryDay } from "@/features/offers/run-times";
+import { initials } from "@/features/students/app/format";
 
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
 
@@ -17,8 +21,49 @@ export default async function StudentChatPage({ params }: PageProps<"/student/me
   const [chat, ctx] = await Promise.all([getConversation(id), getUserContext()]);
   if (!chat || chat.side !== "student" || !ctx) notFound();
   const me = { kind: "shop", side: "student", userId: ctx.userId } as const;
-  const [room, covers] = await Promise.all([loadRoom("shop", id, me), getCoverPhotos([chat.merchant_id])]);
-  const iconLink = "grid size-11 place-items-center rounded-full text-blue-700 hover:bg-blue-50";
+  const [room, covers, pref] = await Promise.all([loadRoom("shop", id, me), getCoverPhotos([chat.merchant_id]), getChatPref("shop", id)]);
+  const cover = covers.get(chat.merchant_id) ?? null;
+  // Before the first message: the shop and up to two of its deals, so the student knows what to ask about.
+  const deals = room.messages.length === 0 ? (await listDeals({ merchantId: chat.merchant_id })).slice(0, 2) : [];
+  const shopHref = `/student/merchants/${chat.merchant_slug}`;
+
+  const intro = (
+    <div className="mx-auto max-w-sm rounded-3xl bg-white p-4 text-center shadow-sm ring-1 ring-ink-200/70">
+      {cover ? (
+        // eslint-disable-next-line @next/next/no-img-element -- public storage URL
+        <img src={cover} alt="" className="mx-auto size-16 rounded-full object-cover" />
+      ) : (
+        <span aria-hidden className="mx-auto grid size-16 place-items-center rounded-full bg-blue-50 text-xl font-bold text-blue-700">
+          {initials(chat.merchant_name)}
+        </span>
+      )}
+      <p className="mt-2 font-display text-lg font-bold text-ink-900">{chat.merchant_name}</p>
+      <p className="mt-1 text-sm text-ink-600">Ask about a deal, opening times or anything else. The owners and managers reply here.</p>
+      {deals.length > 0 && (
+        <ul className="mt-3 space-y-2 text-left">
+          {deals.map((d) => (
+            <li key={d.offer_id}>
+              <Link
+                href={`/student/offers/${d.offer_id}`}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-ink-50 px-3 py-2.5 hover:bg-ink-100"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-ink-900">{d.title}</span>
+                  {!isEveryDay({ run_days: d.run_days ?? null, run_from: d.run_from ?? null, run_until: d.run_until ?? null }) && (
+                    <span className="block truncate text-xs text-ink-600">
+                      {formatRunTimes({ run_days: d.run_days ?? null, run_from: d.run_from ?? null, run_until: d.run_until ?? null })}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 text-sm font-bold text-ink-900">{money(d.final_price)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
   return (
     <AreaShell area="student">
       <div className="max-w-2xl">
@@ -27,25 +72,25 @@ export default async function StudentChatPage({ params }: PageProps<"/student/me
           backLabel="All chats"
           name={chat.merchant_name}
           sub="Business · See shop"
-          photo={covers.get(chat.merchant_id)}
-          nameHref={`/student/merchants/${chat.merchant_slug}`}
+          photo={cover}
+          nameHref={shopHref}
+          chatId={id}
         >
-          {chat.merchant_phone && (
-            <a href={telUrl(chat.merchant_phone)} className={iconLink} aria-label={`Call ${chat.merchant_name}`}>
-              <Phone className="size-5" aria-hidden />
-            </a>
-          )}
-          {chat.merchant_whatsapp && (
-            <a
-              href={whatsappUrl(chat.merchant_whatsapp)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={iconLink}
-              aria-label={`WhatsApp ${chat.merchant_name}`}
-            >
-              <MessageCircle className="size-5" aria-hidden />
-            </a>
-          )}
+          <ChatMenu
+            kind="shop"
+            chatId={id}
+            muted={pref.muted}
+            archived={pref.archived}
+            inboxHref="/student/messages"
+            viewHref={shopHref}
+            viewLabel="View shop"
+            links={[
+              ...(chat.merchant_phone ? [{ label: "Call", href: telUrl(chat.merchant_phone), icon: "phone" as const }] : []),
+              ...(chat.merchant_whatsapp
+                ? [{ label: "WhatsApp", href: whatsappUrl(chat.merchant_whatsapp), icon: "whatsapp" as const, external: true }]
+                : []),
+            ]}
+          />
         </RoomHeader>
         <ChatRoom
           kind="shop"
@@ -57,7 +102,8 @@ export default async function StudentChatPage({ params }: PageProps<"/student/me
           initialOtherReadAt={chat.other_read_at ?? null}
           blocked={chat.blocked}
           blockedText="This business isn't taking messages from you."
-          emptyText={`Ask ${chat.merchant_name} about a deal, opening times or anything else. Their owners and managers reply here.`}
+          emptyText={`Ask ${chat.merchant_name} about a deal, opening times or anything else.`}
+          emptyCard={intro}
         />
       </div>
     </AreaShell>
