@@ -33,6 +33,7 @@ import { ShopGallery } from "@/features/students/app/shop-gallery";
 import { DAYS, openLabel } from "@/features/merchants/hours";
 import { SOCIALS, directionsUrl, shopPhotoUrl, telUrl, whatsappUrl } from "@/features/merchants/shop";
 import { getBookableServices } from "@/features/bookings/queries";
+import { getFeatureSwitches } from "@/features/platform/switches";
 
 export const metadata: Metadata = { title: "Shop", robots: { index: false } };
 
@@ -80,12 +81,14 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound();
   const [shop, status] = await Promise.all([getMerchantPage(slug), getMyStudentStatus()]);
   if (!shop) notFound();
+  const switches = await getFeatureSwitches();
   const [deals, reviews, mine, ratings, bookable] = await Promise.all([
     listDeals({ merchantId: shop.id }),
     listMerchantReviews(shop.id, 20),
     getMyReview(shop.id),
     getRatings([shop.id]),
-    getBookableServices(shop.id),
+    // Bookings are switched off for the pilot.
+    switches.bookings ? getBookableServices(shop.id) : Promise.resolve([]),
   ]);
   const score = ratings.get(shop.id) ?? null;
   const verified = verificationView(status) === "verified";

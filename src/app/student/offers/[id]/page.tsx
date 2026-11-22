@@ -23,6 +23,7 @@ import { getCoverPhotos, getOffer, listDeals, savingShare } from "@/features/off
 import { CategoryIcon } from "@/features/offers/components/marketplace";
 import { savingLabel } from "@/features/students/app/deal-card";
 import { ShareButton } from "@/features/students/app/share-button";
+import { getFeatureSwitches } from "@/features/platform/switches";
 import { discountLabel, limitLabel, money } from "@/features/offers/schemas";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
@@ -37,7 +38,7 @@ export const metadata: Metadata = { title: "Deal", robots: { index: false } };
 export default async function DealPage({ params }: PageProps<"/student/offers/[id]">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [offer, status] = await Promise.all([getOffer(id), getMyStudentStatus()]);
+  const [offer, status, switches] = await Promise.all([getOffer(id), getMyStudentStatus(), getFeatureSwitches()]);
   const cover = offer ? ((await getCoverPhotos([offer.merchant.id])).get(offer.merchant.id) ?? null) : null;
   if (!offer) notFound();
   const merchantDeals = await listDeals({ merchantId: offer.merchant.id });
@@ -176,7 +177,7 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
             ))}
           </ul>
 
-          {verified && (
+          {verified && switches.friends && (
             <Suspense fallback={null}>
               <FriendsOnDeal offerId={offer.offer_id} />
             </Suspense>

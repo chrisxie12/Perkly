@@ -65,6 +65,9 @@ export type NavContext = {
   membership?: MerchantMembership | null;
   /** Campus switched on (C1). Unset or false: no Campus links appear. */
   campus?: boolean;
+  /** Pilot switches: unset or false hides Friends (and friend chat) and Bookings. */
+  friends?: boolean;
+  bookings?: boolean;
 };
 
 export const AREA_TITLE: Record<NavArea, string> = {
@@ -95,11 +98,20 @@ const hasMembership = (n: NavContext) => Boolean(n.membership);
 /** Sub-page permissions inside each area, longest match wins. Paths not listed are open to everyone in the area. */
 export const ROUTE_RULES: Rule[] = [
   // Students
-  { path: "/student/friends*", allow: (n) => n.verification === "verified", reason: "Friends open once you're a verified student." },
+  {
+    path: "/student/friends*",
+    allow: (n) => Boolean(n.friends) && n.verification === "verified",
+    reason: "Friends aren't part of the Perqly pilot yet. Your chats with businesses are in Chats.",
+  },
+  { path: "/student/bookings*", allow: (n) => Boolean(n.bookings), reason: "Booking ahead isn't part of the Perqly pilot yet." },
   // Business
   { path: "/merchant/bookings/setup*", allow: isManager, reason: "Only owners and managers set booking hours." },
   { path: "/merchant/problems*", allow: (n) => hasMembership(n) && isLive(n), reason: "Problem reports open once your business is live." },
-  { path: "/merchant/bookings*", allow: (n) => hasMembership(n) && isLive(n), reason: "Bookings open once your business is live." },
+  {
+    path: "/merchant/bookings*",
+    allow: (n) => Boolean(n.bookings) && hasMembership(n) && isLive(n),
+    reason: "Bookings aren't part of the Perqly pilot yet, or open once your business is live.",
+  },
   { path: "/merchant/offers*", allow: isManager, reason: "Only owners and managers manage offers." },
   { path: "/merchant/catalogue*", allow: isManager, reason: "Only owners and managers manage the catalogue." },
   { path: "/merchant/counter*", allow: (n) => hasMembership(n) && isLive(n), reason: "The counter opens once your business is live." },
@@ -187,8 +199,8 @@ function studentNav(n: NavContext): AreaNav {
     item("map", "Explore", "/student/map", "compass", ["/student/map*"]),
     item("scan", "Scan", "/student/scan", "scan", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
     item("savings", "My Deals", "/student/history", "ticket", ["/student/history*"]),
-    // Always a tab: while Campus is switched off the page says "Campus isn't open yet".
-    item("campus", "Campus", "/student/campus", "cap", ["/student/campus*"]),
+    // Only while Campus is switched on (it's off for the pilot).
+    ...(n.campus ? [item("campus", "Campus", "/student/campus", "cap", ["/student/campus*"])] : []),
   ];
   const me = item("me", "Me", "/student/me", "user", ["/student/me*"], needsAction ? "dot" : undefined);
   return {
@@ -203,10 +215,10 @@ function studentNav(n: NavContext): AreaNav {
         items: [
           me,
           item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
-          item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"]),
-          item("friends", "Friends", "/student/friends", "users", ["/student/friends*"]),
+          ...(n.bookings ? [item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"])] : []),
+          ...(n.friends ? [item("friends", "Friends", "/student/friends", "users", ["/student/friends*"])] : []),
           item("problems", "Problem reports", "/student/problems", "inbox", ["/student/problems*"]),
-          item("messages", "Messages", "/student/messages", "chat", ["/student/messages*"]),
+          item("messages", "Chats", "/student/messages", "chat", ["/student/messages*"]),
           item("details", "School details", "/student/profile", "building", ["/student/profile*"]),
           item("verify", "Verification", "/student/verify", "badge", ["/student/verify*"]),
         ],
@@ -251,7 +263,7 @@ function merchantNav(n: NavContext): AreaNav {
       items: [
         overview,
         ...(manage ? [messages] : []),
-        ...(live ? [bookings] : []),
+        ...(live && n.bookings ? [bookings] : []),
         ...(live ? [scan] : []),
         ...(live && !manage ? [history] : []),
       ],

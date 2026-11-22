@@ -3,6 +3,9 @@ import Link from "next/link";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { getUserContext } from "@/lib/auth/session";
 import { canManagePlatform } from "@/lib/auth/roles";
+import { ActionForm } from "@/features/campus/components/action-form";
+import { getFeatureSwitches } from "@/features/platform/switches";
+import { setFeatureSwitch } from "@/features/platform/actions";
 import { SettingForm } from "@/features/admin/components/platform-forms";
 import { getPlatformSettings } from "@/features/admin/insights";
 import { formatDate } from "@/features/students/components/status-card";
@@ -48,7 +51,23 @@ export default async function SettingsPage() {
       </AreaShell>
     );
   }
-  const [settings, billing] = await Promise.all([getPlatformSettings(), getBillingSettings()]);
+  const [settings, billing, switches] = await Promise.all([getPlatformSettings(), getBillingSettings(), getFeatureSwitches()]);
+  const pilot = [
+    {
+      key: "pilot.friends_enabled",
+      name: "Friends",
+      on: switches.friends,
+      onText: "Verified students can find classmates, send friend requests and chat with friends.",
+      offText: "Hidden from students: no Friends page, no friend chats in Chats. Nothing is deleted.",
+    },
+    {
+      key: "pilot.bookings_enabled",
+      name: "Bookings",
+      on: switches.bookings,
+      onText: "Students can book times at businesses that set booking hours.",
+      offText: "Hidden from students and businesses. Nothing is deleted.",
+    },
+  ];
   const superAdmin = ctx.platformRole === "super_admin";
   return (
     <AreaShell area="admin">
@@ -67,6 +86,31 @@ export default async function SettingsPage() {
         </Link>
         .
       </p>
+      <Card className="mb-6">
+        <CardTitle>Pilot features</CardTitle>
+        <CardDescription>Off keeps the GCTU pilot to deals and redemption. Campus has its own switch on the Campus page.</CardDescription>
+        <div className="mt-4 space-y-3">
+          {pilot.map((p) => (
+            <div key={p.key} className="flex flex-wrap items-start justify-between gap-3 rounded-xl bg-ink-50 p-4">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-ink-900">
+                  {p.name}: {p.on ? "on" : "off"}
+                </p>
+                <p className="text-sm text-ink-600">{p.on ? p.onText : p.offText}</p>
+              </div>
+              {superAdmin && (
+                <ActionForm
+                  action={setFeatureSwitch}
+                  fields={{ key: p.key, on: p.on ? "0" : "1" }}
+                  label={p.on ? "Switch off" : "Switch on"}
+                  variant={p.on ? "secondary" : "primary"}
+                  confirm={`Switch ${p.name} ${p.on ? "off" : "on"}? It changes for everyone straight away.`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </Card>
       {billing && (
         <Card className="mb-6">
           <CardTitle>Business billing</CardTitle>

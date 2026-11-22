@@ -13,6 +13,7 @@ import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { BottomNav, SideNav } from "./app-nav";
 import { getCampusEnabled } from "@/features/campus/queries";
+import { getFeatureSwitches } from "@/features/platform/switches";
 import { FrameChrome } from "./frame-chrome";
 import { StudentTopBar } from "./student-top-bar";
 
@@ -20,10 +21,13 @@ async function navContext(area: NavArea): Promise<NavContext | null> {
   const ctx = await getUserContext();
   if (!ctx) return null;
   if (area === "student") {
-    const [status, campus] = await Promise.all([getMyStudentStatus(), getCampusEnabled()]);
-    return { ctx, verification: verificationView(status), campus: campus.posts };
+    const [status, switches] = await Promise.all([getMyStudentStatus(), getFeatureSwitches()]);
+    return { ctx, verification: verificationView(status), ...switches };
   }
-  if (area === "merchant") return { ctx, membership: await getActiveMembership() };
+  if (area === "merchant") {
+    const [membership, switches] = await Promise.all([getActiveMembership(), getFeatureSwitches()]);
+    return { ctx, membership, bookings: switches.bookings };
+  }
   if (area === "admin") return { ctx, campus: (await getCampusEnabled()).posts };
   return { ctx };
 }
