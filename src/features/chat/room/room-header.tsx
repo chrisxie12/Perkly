@@ -46,7 +46,7 @@ export function RoomHeader({
     </>
   );
   return (
-    <header className="glass sticky top-18 z-10 mb-2 flex items-center gap-1.5 rounded-full py-1.5 pr-1.5 pl-1">
+    <header className="glass sticky top-[var(--frame-top,4.5rem)] z-10 mb-2 flex items-center gap-1.5 rounded-full py-1.5 pr-1.5 pl-1">
       <Link
         href={backHref}
         className="grid size-11 shrink-0 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
