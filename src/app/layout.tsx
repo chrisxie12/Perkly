@@ -57,11 +57,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // The theme script in <head> switches this to match a chosen light or dark theme.
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
-    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
-  ],
+  // White by default; the theme script in <head> switches it when dark mode is turned on in Account.
+  themeColor: THEME_COLORS.light,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
