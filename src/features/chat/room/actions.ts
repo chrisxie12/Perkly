@@ -14,7 +14,10 @@ const photoPath = z
   .regex(/^(shop|friend)\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|jpg|png)$/)
   .nullable();
 
+// Longer codes first: the lookup matches the first key the error contains.
 const ERRORS: Record<string, string> = {
+  chat_blocked_by_student: "This student has blocked your business, so you can't send messages.",
+  chat_blocked_by_you: "You've blocked this business. Unblock it to send a message.",
   chat_blocked: "This business isn't taking messages from you.",
   not_friends: "You can only message friends. This chat is closed.",
   message_invalid: "Write a message of up to 1,000 characters.",

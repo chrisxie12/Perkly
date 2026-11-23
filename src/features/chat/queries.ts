@@ -26,7 +26,10 @@ export type ConversationHeader = {
   merchant_phone: string | null;
   merchant_whatsapp: string | null;
   student_name: string | null;
+  /** The business blocked the student. */
   blocked: boolean;
+  /** The student blocked the business. */
+  blocked_by_student?: boolean;
   /** When the other side last opened the chat (for "Seen"). */
   other_read_at?: string | null;
 };

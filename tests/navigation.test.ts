@@ -82,6 +82,7 @@ describe("menus by role", () => {
       "Problem reports",
       "Student reports",
       "Chat reports",
+      "Rating reports",
       "Reports",
       "Audit logs",
       "Settings",

@@ -60,8 +60,9 @@ export default function PrivacyPage() {
           details and photos, to check you&apos;re a student. Every time someone opens your ID photos, it&apos;s recorded.
         </li>
         <li>
-          <strong>A business&apos;s cashier</strong> sees your pass photo and first name when you redeem a discount there. Businesses you
-          message see your name and your messages.
+          <strong>A business&apos;s cashier</strong> sees your pass photo, first name, school and the deal you picked when you redeem a
+          discount there. Businesses you message see your name and your messages. A business sees your first name and initial on ratings you
+          leave it.
         </li>
         <li>
           <strong>Perqly staff</strong> can see account and redemption details to run the service, handle problem reports and stop fraud.
@@ -119,8 +120,9 @@ export default function PrivacyPage() {
           <Link href="/delete-account" className="font-semibold text-blue-700 underline underline-offset-2">
             Delete your Perqly account
           </Link>
-          . A person at Perqly carries it out. Your name and contact details are removed. A record of discounts you used is kept without
-          your name, because it&apos;s the business&apos;s and Perqly&apos;s record of discounts given.
+          . A person at Perqly carries it out within 30 days and emails you when it&apos;s done. Your name, contact details, chats, ratings
+          and photos are removed. A record of discounts you used is kept without your name, because it&apos;s the business&apos;s and
+          Perqly&apos;s record of discounts given.
         </li>
         <li>Turn notifications off at any time in your notification settings.</li>
         <li>

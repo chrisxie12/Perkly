@@ -21,9 +21,9 @@ export default async function MerchantReviewsPage() {
         <div className="rounded-3xl bg-white p-5 ring-1 ring-ink-200/70">
           <RatingSummary rating={score?.rating ?? null} reviews={score?.reviews ?? 0} />
         </div>
-        <ReviewList reviews={reviews} />
+        <ReviewList reviews={reviews} reportable />
         <p className="text-sm text-ink-600">
-          Only students who redeemed a deal here can rate you, once each. If a review breaks the rules, message Perqly support.
+          Only students who redeemed a deal here can rate you, once each. If a review breaks the rules, choose Report under it.
         </p>
       </div>
     </AreaShell>

@@ -30,7 +30,7 @@ returns void language sql as $$
      set verification_status = 'verified', verified_at = now() - interval '2 years', verified_until = now() + p_until
    where user_id = p_user;
 $$;
-select plan(20);
+select plan(21);
 
 select id as gctu from public.institutions where slug = 'gctu' \gset
 select id as food from public.merchant_categories where slug = 'food' \gset
@@ -62,8 +62,9 @@ select tests.as_user(:'s2');
 select is((select count(*)::int from public.account_deletion_requests), 0, 'other users cannot see it');
 select throws_ok(format('select public.resolve_account_deletion(%L, %L, %L)', :'req', 'completed', 'Done by support'), 'P0001', 'forbidden', 'students cannot resolve requests');
 select tests.as_user(:'padmin', 'aal2');
-select throws_ok(format('select public.resolve_account_deletion(%L, %L, %L)', :'req', 'completed', 'x'), 'P0001', 'reason_required', 'resolving needs a note');
-select lives_ok(format('select public.resolve_account_deletion(%L, %L, %L)', :'req', 'completed', 'Deleted after export'), 'an admin resolves a request');
+select throws_ok(format('select public.resolve_account_deletion(%L, %L, %L)', :'req', 'declined', 'x'), 'P0001', 'reason_required', 'resolving needs a note');
+select lives_ok(format('select public.resolve_account_deletion(%L, %L, %L)', :'req', 'declined', 'Duplicate of an earlier request'), 'an admin declines a request');
+select throws_ok(format('select public.resolve_account_deletion(%L, %L, %L)', :'req', 'declined', 'Declined twice'), 'P0001', 'request_not_open', 'a handled request cannot be resolved again');
 select tests.as_postgres();
 select is((select count(*)::int from public.audit_logs where action like 'account.deletion_%'), 2, 'requests and resolutions are audited');
 

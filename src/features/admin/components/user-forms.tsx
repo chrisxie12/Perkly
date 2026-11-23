@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { FieldError, Label, Textarea } from "@/components/ui/input";
+import { useActionState } from "react";
+import { FieldError, FieldHint, Input, Label, Textarea } from "@/components/ui/input";
 import { FormMessage } from "@/features/auth/components/form-message";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { idleState } from "@/features/auth/types";
-import { resolveDeletion, setSuspension } from "../user-actions";
+import { completeDeletion, declineDeletion, openDeletionRequest, setSuspension } from "../user-actions";
 
 export function SuspensionForm({ userId, suspended }: { userId: string; suspended: boolean }) {
   const [state, action] = useActionState(setSuspension, idleState);
@@ -28,38 +28,75 @@ export function SuspensionForm({ userId, suspended }: { userId: string; suspende
   );
 }
 
-export function DeletionForm({ requestId }: { requestId: string }) {
-  const [state, action] = useActionState(resolveDeletion, idleState);
-  const [status, setStatus] = useState("completed");
+export function CompleteDeletionForm({ requestId }: { requestId: string }) {
+  const [state, action] = useActionState(completeDeletion, idleState);
+  if (state.status === "success") return <FormMessage state={state} />;
   return (
     <form action={action} noValidate className="space-y-3">
       <input type="hidden" name="requestId" value={requestId} />
-      <fieldset className="flex flex-wrap gap-4">
-        <legend className="sr-only">Outcome</legend>
-        {[
-          ["completed", "Deleted"],
-          ["declined", "Not deleted"],
-        ].map(([value, label]) => (
-          <label key={value} className="flex items-center gap-2 font-medium text-ink-900">
-            <input
-              type="radio"
-              name="status"
-              value={value}
-              checked={status === value}
-              onChange={() => setStatus(value)}
-              className="size-4 accent-blue-500"
-            />{" "}
-            {label}
-          </label>
-        ))}
-      </fieldset>
       <div>
-        <Label htmlFor={`note-${requestId}`}>What was done</Label>
-        <Textarea id={`note-${requestId}`} name="note" maxLength={500} invalid={Boolean(state.fieldErrors?.note)} />
+        <Label htmlFor={`note-${requestId}`}>How they asked</Label>
+        <Textarea
+          id={`note-${requestId}`}
+          name="note"
+          maxLength={500}
+          defaultValue="Asked in the app"
+          invalid={Boolean(state.fieldErrors?.note)}
+        />
+        {state.fieldErrors?.note && <FieldError>{state.fieldErrors.note}</FieldError>}
+      </div>
+      <div>
+        <Label htmlFor={`confirm-${requestId}`}>Type DELETE to confirm</Label>
+        <Input
+          id={`confirm-${requestId}`}
+          name="confirm"
+          autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          invalid={Boolean(state.fieldErrors?.confirm)}
+        />
+        <FieldHint>This can&apos;t be undone. They get a confirmation email.</FieldHint>
+        {state.fieldErrors?.confirm && <FieldError>{state.fieldErrors.confirm}</FieldError>}
+      </div>
+      <SubmitButton size="sm">Delete account</SubmitButton>
+      <FormMessage state={state} />
+    </form>
+  );
+}
+
+export function DeclineDeletionForm({ requestId }: { requestId: string }) {
+  const [state, action] = useActionState(declineDeletion, idleState);
+  if (state.status === "success") return <FormMessage state={state} />;
+  return (
+    <form action={action} noValidate className="space-y-3">
+      <input type="hidden" name="requestId" value={requestId} />
+      <div>
+        <Label htmlFor={`decline-${requestId}`}>Why it isn&apos;t being deleted</Label>
+        <Textarea id={`decline-${requestId}`} name="note" maxLength={500} invalid={Boolean(state.fieldErrors?.note)} />
         {state.fieldErrors?.note && <FieldError>{state.fieldErrors.note}</FieldError>}
       </div>
       <SubmitButton variant="secondary" size="sm">
-        Record outcome
+        Don&apos;t delete
+      </SubmitButton>
+      <FormMessage state={state} />
+    </form>
+  );
+}
+
+export function OpenDeletionRequestForm({ userId }: { userId: string }) {
+  const [state, action] = useActionState(openDeletionRequest, idleState);
+  if (state.status === "success") return <FormMessage state={state} />;
+  return (
+    <form action={action} noValidate className="space-y-3">
+      <input type="hidden" name="userId" value={userId} />
+      <div>
+        <Label htmlFor={`emailed-${userId}`}>When and from which address they emailed</Label>
+        <Textarea id={`emailed-${userId}`} name="note" maxLength={500} invalid={Boolean(state.fieldErrors?.note)} />
+        <FieldHint>Only record it if the email came from this account&apos;s own address.</FieldHint>
+        {state.fieldErrors?.note && <FieldError>{state.fieldErrors.note}</FieldError>}
+      </div>
+      <SubmitButton variant="secondary" size="sm">
+        Record deletion request
       </SubmitButton>
       <FormMessage state={state} />
     </form>

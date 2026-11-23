@@ -63,3 +63,31 @@ export async function setReviewHidden(formData: FormData) {
   await supabase.rpc("staff_set_review_hidden", { p_review_id: id.data, p_hidden: formData.get("hidden") === "true" });
   revalidatePath(back.startsWith("/") ? back : "/admin");
 }
+
+const REPORT_REASONS = ["spam", "rude", "false", "personal", "other"] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+const REPORT_MESSAGES: Record<string, string> = {
+  own_review: "That's your own rating. You can change or delete it instead.",
+  review_not_found: "That rating has already been removed.",
+  report_invalid: "Choose a reason.",
+  rate_limited: "You've reported a lot today. Try again tomorrow.",
+};
+
+export async function reportReview(reviewId: string, reason: string, note: string): Promise<{ ok: boolean; message: string }> {
+  const id = z.string().uuid().safeParse(reviewId);
+  const why = z.enum(REPORT_REASONS).safeParse(reason);
+  if (!id.success || !why.success) return { ok: false, message: "Choose a reason." };
+  if (!hasSupabaseEnv()) return { ok: false, message: "This isn't available in this environment yet." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("report_review", {
+    p_review_id: id.data,
+    p_reason: why.data,
+    p_note: note.trim().slice(0, 500) || null,
+  });
+  if (error) {
+    const key = Object.keys(REPORT_MESSAGES).find((k) => error.message.includes(k));
+    return { ok: false, message: key ? REPORT_MESSAGES[key] : "Couldn't send the report. Try again." };
+  }
+  return { ok: true, message: "Thanks. Perqly support will look at this rating." };
+}
