@@ -69,8 +69,9 @@ insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values (
 update public.profiles set avatar_path = :'ama' || '/pass.webp', phone = '+233200000001' where id = :'ama';
 insert into storage.objects (bucket_id, name) values ('pass-photos', :'ama' || '/pass.webp'),
   ('verification-documents', :'ama' || '/' || gen_random_uuid() || '/card.webp');
-insert into auth.identities (user_id) values (:'ama');
-insert into auth.sessions (user_id) values (:'ama');
+insert into auth.identities (id, user_id, provider, provider_id, identity_data)
+values (gen_random_uuid(), :'ama', 'email', :'ama', jsonb_build_object('sub', :'ama'));
+insert into auth.sessions (id, user_id) values (gen_random_uuid(), :'ama');
 
 -- Asking alerts admins -----------------------------------------------------------------
 select tests.as_user(:'ama');
