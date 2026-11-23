@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BadgeCheck, Clock3, FileWarning, ShieldAlert, ShieldQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { REJECTION_REASONS, stateLabel, verificationView, type StudentStatus } from "../status";
+import { REJECTION_REASONS, REVIEW_PROMISE, stateLabel, verificationView, type StudentStatus } from "../status";
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Accra" });
 
@@ -29,7 +29,7 @@ export function VerificationStatusCard({ status, showAction = true }: { status: 
     pending: {
       icon: Clock3,
       tone: "bg-orange-100 text-orange-800",
-      text: `Your application is with Perqly's reviewers. Sent ${formatDate(status.application?.submitted_at)}.`,
+      text: `Your application is with Perqly's reviewers. Sent ${formatDate(status.application?.submitted_at)}. Expect a decision ${REVIEW_PROMISE}.`,
       action: { href: "/student/verify", label: "View application" },
     },
     resubmit: {
@@ -41,8 +41,8 @@ export function VerificationStatusCard({ status, showAction = true }: { status: 
     rejected: {
       icon: FileWarning,
       tone: "bg-orange-100 text-orange-800",
-      text: REJECTION_REASONS[status.application?.decision_reason ?? "other"] ?? "Your application wasn't approved.",
-      action: { href: "/student/verify", label: "Apply again" },
+      text: `${REJECTION_REASONS[status.application?.decision_reason ?? "other"] ?? "Your application wasn't approved."} You can fix this and send a new application.`,
+      action: { href: "/student/verify", label: "Send a new application" },
     },
     verified: {
       icon: BadgeCheck,

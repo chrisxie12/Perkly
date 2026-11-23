@@ -14,7 +14,7 @@ import { onToday } from "@/features/offers/run-times";
 const withRunTimes = (d: Deal) => ({ ...d, run_days: d.run_days ?? null, run_from: d.run_from ?? null, run_until: d.run_until ?? null });
 import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
-import { verificationView } from "@/features/students/status";
+import { REVIEW_PROMISE, verificationView } from "@/features/students/status";
 import { CategoryChip } from "@/features/students/app/bits";
 import { SortMenu } from "@/features/students/app/sort-menu";
 import { getCampusEnabled } from "@/features/campus/queries";
@@ -171,7 +171,9 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
                   </span>
                   Perqly is checking your details
                 </h2>
-                <p className="mt-1 text-sm text-white/80">You can browse deals now. Redeeming unlocks when they approve you.</p>
+                <p className="mt-1 text-sm text-white/80">
+                  You can browse deals now. Redeeming unlocks when you&apos;re approved, usually {REVIEW_PROMISE}.
+                </p>
                 <Link
                   href="/student/verify"
                   className="mt-3 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-ink-900"
@@ -182,20 +184,32 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             ) : (
               <div className="glass-dark spring-in rounded-3xl p-4">
                 <h2 className="font-display text-lg leading-snug font-bold">
-                  {view === "expired" ? "Your verification has expired" : "Get verified to unlock student prices"}
+                  {view === "expired"
+                    ? "Your verification has expired"
+                    : view === "rejected"
+                      ? "Your application wasn't approved"
+                      : "Get verified to unlock student prices"}
                 </h2>
                 <p className="mt-1 text-sm text-white/80">
                   {view === "needs_profile"
                     ? "Start by choosing your school."
                     : view === "resubmit"
                       ? "Your reviewer asked you to change something."
-                      : "You'll need your student ID card."}
+                      : view === "rejected"
+                        ? "See why, then send a new application."
+                        : "You'll need your student ID card."}
                 </p>
                 <Link
                   href={view === "needs_profile" ? "/student/profile" : "/student/verify"}
                   className="gloss-orange mt-3 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ink-900"
                 >
-                  {view === "needs_profile" ? "Choose your school" : view === "resubmit" ? "See what to change" : "Start verification"}{" "}
+                  {view === "needs_profile"
+                    ? "Choose your school"
+                    : view === "resubmit"
+                      ? "See what to change"
+                      : view === "rejected"
+                        ? "See why"
+                        : "Start verification"}{" "}
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
               </div>

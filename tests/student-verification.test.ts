@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { applicationSchema, institutionalEmailSchema, studentProfileSchema } from "@/features/students/schemas";
-import { parseStudentStatus, stateLabel, studentErrorMessage, verificationView, type StudentStatus } from "@/features/students/status";
+import {
+  REVIEW_PROMISE,
+  parseStudentStatus,
+  stateLabel,
+  studentErrorMessage,
+  verificationView,
+  type StudentStatus,
+} from "@/features/students/status";
 
 const profile = {
   institution_id: "00000000-0000-4000-8000-0000000000aa",
@@ -109,6 +116,18 @@ describe("verification state on screen", () => {
     const s = status({ profile: { ...profile, institutional_email: "ama@st.gctu.edu.gh", institutional_email_confirmed: true } });
     expect(verificationView(s)).toBe("apply");
     expect(stateLabel(s)).toBe("Not verified");
+  });
+
+  it("names the three main states pending, approved and not approved", () => {
+    expect(stateLabel(status({ state: "pending", application }))).toBe("Pending review");
+    expect(stateLabel(status({ state: "verified", application: { ...application, status: "approved" } }))).toBe("Approved");
+    expect(stateLabel(status({ application: { ...application, status: "rejected", decision_reason: "id_mismatch" } }))).toBe(
+      "Not approved",
+    );
+  });
+
+  it("promises a decision within 2 working days", () => {
+    expect(REVIEW_PROMISE).toBe("within 2 working days");
   });
 
   it("explains database errors in plain words", () => {
