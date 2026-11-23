@@ -10,17 +10,18 @@ The Android app is a thin wrapper made with [Bubblewrap](https://github.com/Goog
 | Build    | `host` in `twa-manifest.json`                 | Where it goes                         |
 | -------- | --------------------------------------------- | ------------------------------------- |
 | Staging  | `perqly-git-main-vision61-studios.vercel.app` | Your own and testers' phones only     |
-| Production | `perqly.online`                             | Google Play, only after approval      |
+| Production | `perqly.online`                             | Friends' phones now; Google Play later |
 
-`twa-manifest.json` in git is the **staging** build. Switching to production changes `host`, `fullScopeUrl`, `webManifestUrl`, the icon URLs and the shortcut URLs to `perqly.online`, and raises `appVersionCode`. Nothing else changes. `tests/android-config.test.ts` fails CI if the package id, colours, fallback or target SDK drift.
+`twa-manifest.json` in git is the **production** build (perqly.online) since version 1.1.0 (code 2). Switching between the two changes `host`, `fullScopeUrl`, `webManifestUrl`, the icon URLs and the shortcut URLs to `perqly.online`, and raises `appVersionCode`. Nothing else changes. `tests/android-config.test.ts` fails CI if the package id, colours, fallback or target SDK drift.
 
-The website vouches for the app at `/.well-known/assetlinks.json` only where the Vercel variable `ANDROID_ASSET_LINK_FINGERPRINTS` is set (comma-separated SHA-256 fingerprints). Staging (Preview) gets the upload key; production stays unset until approved, then gets the upload key and Google Play's app signing key. Unset means 404 and no link.
+The website vouches for the app at `/.well-known/assetlinks.json` only where the Vercel variable `ANDROID_ASSET_LINK_FINGERPRINTS` is set (comma-separated SHA-256 fingerprints). Staging (Preview) and production both have the upload key. When the app goes on Google Play, add Play's app signing key to the same variable (comma-separated) and redeploy. Unset means 404 and no link.
 
 ## Rules
 
 - The signing keystore lives in `C:\perqly-keys\`, never in this repository, with one offline backup. Passwords go in a password manager only, never in chat, files or git.
 - Never commit `.apk`, `.aab` or keystores (`android/.gitignore` and the root `.gitignore` block them).
-- A staging APK is never uploaded to Google Play. Uninstall it before installing a production build: Play signs with a different key.
+- A staging APK is never uploaded to Google Play.
+- Uninstall the staging build before installing the perqly.online build: both use the package id `com.perqly.app`, and the old one still opens staging.
 
 ## First build on Windows (staging)
 

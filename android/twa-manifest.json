@@ -1,7 +1,7 @@
 {
   "packageId": "com.perqly.app",
   "minSdkVersion": 24,
-  "host": "perqly-git-main-vision61-studios.vercel.app",
+  "host": "perqly.online",
   "name": "Perqly",
   "launcherName": "Perqly",
   "display": "standalone",
@@ -15,29 +15,29 @@
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
   "startUrl": "/student",
-  "fullScopeUrl": "https://perqly-git-main-vision61-studios.vercel.app/",
-  "webManifestUrl": "https://perqly-git-main-vision61-studios.vercel.app/manifest.webmanifest",
-  "iconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-512.png",
-  "maskableIconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-maskable-512.png",
+  "fullScopeUrl": "https://perqly.online/",
+  "webManifestUrl": "https://perqly.online/manifest.webmanifest",
+  "iconUrl": "https://perqly.online/icons/icon-512.png",
+  "maskableIconUrl": "https://perqly.online/icons/icon-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "C:\\perqly-keys\\perqly-upload.keystore",
     "alias": "perqly-upload"
   },
-  "appVersion": "1.0.0",
-  "appVersionCode": 1,
+  "appVersion": "1.1.0",
+  "appVersionCode": 2,
   "shortcuts": [
     {
       "name": "Scan to redeem",
       "shortName": "Scan",
-      "url": "https://perqly-git-main-vision61-studios.vercel.app/student/scan",
-      "chosenIconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-192.png"
+      "url": "https://perqly.online/student/scan",
+      "chosenIconUrl": "https://perqly.online/icons/icon-192.png"
     },
     {
       "name": "Your savings",
       "shortName": "Savings",
-      "url": "https://perqly-git-main-vision61-studios.vercel.app/student/history",
-      "chosenIconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-192.png"
+      "url": "https://perqly.online/student/history",
+      "chosenIconUrl": "https://perqly.online/icons/icon-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",
