@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DraftLegalPage } from "@/components/layout/draft-legal-page";
 import { LEGAL_CONTACT_EMAIL, OPERATOR_NAME, TERMS_VERSION } from "@/config/legal";
 
@@ -114,9 +115,12 @@ export default function PrivacyPage() {
           <strong>Download your data</strong> from Your account.
         </li>
         <li>
-          <strong>Delete your account</strong> from Your account. A person at Perqly carries it out. Your name and contact details are
-          removed. A record of discounts you used is kept without your name, because it&apos;s the business&apos;s and Perqly&apos;s record
-          of discounts given.
+          <strong>Delete your account</strong> from Your account, or without the app as explained on{" "}
+          <Link href="/delete-account" className="font-semibold text-blue-700 underline underline-offset-2">
+            Delete your Perqly account
+          </Link>
+          . A person at Perqly carries it out. Your name and contact details are removed. A record of discounts you used is kept without
+          your name, because it&apos;s the business&apos;s and Perqly&apos;s record of discounts given.
         </li>
         <li>Turn notifications off at any time in your notification settings.</li>
         <li>

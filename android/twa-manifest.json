@@ -1,0 +1,52 @@
+{
+  "packageId": "com.perqly.app",
+  "host": "perqly-git-main-vision61-studios.vercel.app",
+  "name": "Perqly",
+  "launcherName": "Perqly",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#FFFFFF",
+  "themeColorDark": "#FFFFFF",
+  "navigationColor": "#FFFFFF",
+  "navigationColorDark": "#FFFFFF",
+  "navigationDividerColor": "#E5E7EB",
+  "navigationDividerColorDark": "#E5E7EB",
+  "backgroundColor": "#FFFFFF",
+  "enableNotifications": true,
+  "startUrl": "/student",
+  "fullScopeUrl": "https://perqly-git-main-vision61-studios.vercel.app/",
+  "webManifestUrl": "https://perqly-git-main-vision61-studios.vercel.app/manifest.webmanifest",
+  "iconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\perqly-keys\\perqly-upload.keystore",
+    "alias": "perqly-upload"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Scan to redeem",
+      "shortName": "Scan",
+      "url": "https://perqly-git-main-vision61-studios.vercel.app/student/scan",
+      "chosenIconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-192.png"
+    },
+    {
+      "name": "Your savings",
+      "shortName": "Savings",
+      "url": "https://perqly-git-main-vision61-studios.vercel.app/student/history",
+      "chosenIconUrl": "https://perqly-git-main-vision61-studios.vercel.app/icons/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fingerprints": []
+}
