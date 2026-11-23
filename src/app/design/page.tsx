@@ -17,7 +17,7 @@ const swatches = [
   { name: "Perqly Blue", value: "#0066FF", className: "bg-blue-500", text: "text-white" },
   { name: "Perk Orange", value: "#FF6B35", className: "bg-orange-500", text: "text-ink-900" },
   { name: "Ink", value: "#1F2937", className: "bg-ink-900", text: "text-white" },
-  { name: "Paper", value: "#F8FAFC", className: "bg-paper ring-1 ring-ink-200", text: "text-ink-900" },
+  { name: "Paper", value: "#FFFFFF", className: "bg-paper ring-1 ring-ink-200", text: "text-ink-900" },
   { name: "White", value: "#FFFFFF", className: "bg-white ring-1 ring-ink-200", text: "text-ink-900" },
 ];
 

@@ -55,7 +55,7 @@
   --color-ink-800: #283240;
   --color-ink-900: #1f2937;
 
-  --color-paper: #f8fafc;
+  --color-paper: #ffffff;
 
   /* Lime: call-to-action buttons only, always with dark text (.text-on-lime). */
   --color-lime-300: #e4ff5c;
@@ -446,7 +446,7 @@
   --color-ink-700: #374151;
   --color-ink-800: #283240;
   --color-ink-900: #1f2937;
-  --color-paper: #f8fafc;
+  --color-paper: #ffffff;
   --color-blue-50: #ebf3ff;
   --color-blue-100: #d6e6ff;
   --color-blue-200: #adcdff;

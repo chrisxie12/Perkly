@@ -6,8 +6,8 @@ export const siteConfig = {
   pilotInstitution: "GCTU",
   pilotInstitutionLong: "Ghana Communication Technology University",
   // White, like the app's top bar, so the phone's status and navigation bars blend in.
-  themeColor: "#F8FAFC",
-  backgroundColor: "#F8FAFC",
+  themeColor: "#FFFFFF",
+  backgroundColor: "#FFFFFF",
 } as const;
 
 export const marketingNav = [
