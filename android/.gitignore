@@ -1,0 +1,22 @@
+# Signing keys and passwords: never commit
+*.keystore
+*.jks
+*.p12
+keystore.properties
+*service-account*.json
+
+# Build outputs
+*.apk
+*.aab
+*.idsig
+build/
+.gradle/
+.cxx/
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Bubblewrap's local copy. The site serves its own from ANDROID_ASSET_LINK_FINGERPRINTS.
+assetlinks.json

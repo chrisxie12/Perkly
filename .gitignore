@@ -55,3 +55,9 @@ supabase/.branches
 
 # local HTTPS certificates from `next dev --experimental-https`
 certificates
+
+# Android (android/.gitignore has the full list): never commit signing keys or builds
+*.keystore
+*.jks
+*.apk
+*.aab

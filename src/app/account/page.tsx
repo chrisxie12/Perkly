@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Download } from "lucide-react";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
@@ -81,7 +82,10 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
               <>
                 <CardDescription>
                   Perqly support deletes your profile, verification details and saved businesses. Records of discounts you redeemed are kept
-                  without your name, because businesses rely on them.
+                  without your name, because businesses rely on them.{" "}
+                  <Link href="/delete-account" className="font-semibold text-blue-700 underline underline-offset-2">
+                    How deletion works
+                  </Link>
                 </CardDescription>
                 <form action={requestDeletion} className="mt-4 space-y-3">
                   <div>

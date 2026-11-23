@@ -41,7 +41,11 @@ const nextConfig: NextConfig = {
   // The service worker is built by Serwist and registered from /serwist/sw.js.
   // /sw.js serves the same file at the conventional address (for checks and tools).
   async rewrites() {
-    return [{ source: "/sw.js", destination: "/serwist/sw.js" }];
+    return [
+      { source: "/sw.js", destination: "/serwist/sw.js" },
+      // Android app links (docs: android/README.md). The route answers 404 unless the environment opts in.
+      { source: "/.well-known/assetlinks.json", destination: "/api/android/asset-links" },
+    ];
   },
   async headers() {
     return [
