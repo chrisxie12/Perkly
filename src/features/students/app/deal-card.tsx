@@ -166,7 +166,7 @@ export function DealCard({
           href={href}
           tabIndex={-1}
           aria-hidden
-          className="text-on-lime flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-lime-400 text-[0.9375rem] font-bold shadow-sm transition-transform hover:brightness-105 active:scale-[0.98]"
+          className="text-on-lime flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-orange-500 text-[0.9375rem] font-bold shadow-sm transition-transform hover:brightness-105 active:scale-[0.98]"
         >
           {locked ? "See deal" : "Get this deal"} <ChevronRight className="size-4" />
         </Link>
@@ -226,7 +226,7 @@ function CompactDealCard({ deal, back, locked }: { deal: Deal; back: string; loc
           href={href}
           tabIndex={-1}
           aria-hidden
-          className="text-on-lime flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-lime-400 text-sm font-bold shadow-sm transition-transform hover:brightness-105 active:scale-[0.98]"
+          className="text-on-lime flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-orange-500 text-sm font-bold shadow-sm transition-transform hover:brightness-105 active:scale-[0.98]"
         >
           {locked ? "See deal" : "Get this deal"} <ChevronRight className="size-4" />
         </Link>

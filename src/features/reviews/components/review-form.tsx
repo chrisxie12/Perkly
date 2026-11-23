@@ -66,7 +66,7 @@ export function ReviewForm({
       <button
         type="submit"
         disabled={rating === 0 || pending}
-        className="text-on-lime mt-3 flex h-12 w-full items-center justify-center rounded-2xl bg-lime-400 font-bold disabled:opacity-50"
+        className="text-on-lime mt-3 flex h-12 w-full items-center justify-center rounded-2xl bg-orange-500 font-bold disabled:opacity-50"
       >
         {pending ? "Saving…" : initialRating ? "Update rating" : "Post rating"}
       </button>
