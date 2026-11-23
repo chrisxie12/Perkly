@@ -58,6 +58,12 @@ echo "::add-mask::$password"
 decoded=$(printf '%b' "${password//%/\\x}")
 [ "$decoded" = "$password" ] || echo "::add-mask::$decoded"
 
+# Supabase CLI 3.1.0 can prefer SUPABASE_DB_PASSWORD over the password embedded
+# in --db-url. Export the decoded value to later steps in GitHub Actions.
+if [ -n "${GITHUB_ENV:-}" ]; then
+  printf 'SUPABASE_DB_PASSWORD=%s\n' "$decoded" >>"$GITHUB_ENV"
+fi
+
 [[ $server =~ ^([A-Za-z0-9.-]+):([0-9]{1,5})/([A-Za-z0-9_-]+)(\?[A-Za-z0-9._~%=\&-]*)?$ ]] ||
   fail "after the @ it must be HOST:PORT/DATABASE, for example ...pooler.supabase.com:5432/postgres"
 host=${BASH_REMATCH[1]}
