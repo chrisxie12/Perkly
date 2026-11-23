@@ -280,7 +280,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               )}
             </div>
           ) : (
-            <ul className="grid grid-cols-1 gap-5 px-4 pb-6 sm:grid-cols-2 sm:px-0 xl:grid-cols-3 [&>li]:min-w-0">
+            <ul className="grid grid-cols-1 gap-3 px-4 pb-6 sm:grid-cols-2 sm:gap-4 sm:px-0 xl:grid-cols-3 [&>li]:min-w-0">
               {deals.map((d) => (
                 <li key={d.offer_id}>
                   <DealCard deal={d} back={link({ q, category, sort })} locked={!verified} />

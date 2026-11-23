@@ -26,3 +26,26 @@ export function walkLabel(distance: number | null | undefined) {
   const minutes = Math.max(1, Math.ceil(distance / 80));
   return minutes <= 45 ? `${minutes} min walk` : `${(distance / 1000).toFixed(1)} km away`;
 }
+
+/** "Posted today", "Posted 3 days ago", "Posted 2 weeks ago". Null when unknown or older than 8 weeks. */
+export function postedLabel(publishedAt: string | null | undefined, now: Date = new Date()) {
+  if (!publishedAt) return null;
+  const at = new Date(publishedAt);
+  if (Number.isNaN(at.getTime())) return null;
+  const days = Math.floor((now.getTime() - at.getTime()) / 86_400_000);
+  if (days < 0) return null;
+  if (days === 0) return "Posted today";
+  if (days === 1) return "Posted yesterday";
+  if (days < 7) return `Posted ${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks > 8) return null;
+  return weeks === 1 ? "Posted last week" : `Posted ${weeks} weeks ago`;
+}
+
+/** Whole-number share off the normal price, like 20 for 20%. Null when there's no saving. */
+export function percentOff(regular: number, final: number) {
+  const r = Number(regular);
+  const f = Number(final);
+  if (!(r > 0) || !(f < r)) return null;
+  return Math.max(1, Math.round(((r - f) / r) * 100));
+}

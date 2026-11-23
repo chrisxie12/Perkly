@@ -538,7 +538,7 @@
   color: #8dbbff;
 }
 
-/* Dark text that stays dark in dark mode, for lime buttons. */
+/* Dark text that stays dark in dark mode, for the bright orange (and lime) action buttons. Dark on orange-500 is 5.2:1; white would fail. */
 .text-on-lime {
   color: #0b1220;
 }

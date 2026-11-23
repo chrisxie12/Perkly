@@ -279,7 +279,7 @@ export default async function DealPage({ params }: PageProps<"/student/offers/[i
           ) : verified ? (
             <Link
               href="/student/scan"
-              className="text-on-lime flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-lime-400 text-base font-bold shadow-lg transition-transform hover:brightness-105 active:scale-[0.98]"
+              className="text-on-lime flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 text-base font-bold shadow-lg transition-transform hover:brightness-105 active:scale-[0.98]"
             >
               <ScanLine className="size-5" aria-hidden /> Scan at the counter <ChevronRight className="size-5" aria-hidden />
             </Link>
