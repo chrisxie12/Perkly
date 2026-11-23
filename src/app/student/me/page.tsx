@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Repeat,
+  BookOpen,
   Heart,
   MessageCircle,
   BadgeCheck,
@@ -156,6 +157,7 @@ export default async function MePage() {
           />
         )}
         <Row href="/student/favourites" icon={Heart} label="Saved shops" />
+        <Row href="/student/resources" icon={BookOpen} label="Student resources" note="Free tools, courses and opportunities" />
         {campusOn && <Row href="/student/campus" icon={Megaphone} label="Campus" note="Announcements from your school's organisations" />}
         <Row
           href="/student/messages"

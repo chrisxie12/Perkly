@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   BadgeCheck,
+  BookOpen,
   Bell,
   Box,
   Building2,
@@ -68,6 +69,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   star: Star,
   badge: BadgeCheck,
   calendar: CalendarDays,
+  book: BookOpen,
   ticket: Ticket,
   cap: GraduationCap,
 };

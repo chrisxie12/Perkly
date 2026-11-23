@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DealCard } from "@/features/students/app/deal-card";
-import { ArrowRight, LayoutGrid, Map as MapIcon, Search, Store } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronRight, LayoutGrid, Map as MapIcon, Search, Store } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
@@ -243,6 +243,24 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               ))}
             </ul>
           </section>
+        )}
+
+        {!filtering && (
+          <div className="px-4 pt-4 sm:px-0">
+            <Link
+              href="/student/resources"
+              className="flex items-center gap-3 rounded-[22px] bg-white p-3.5 ring-1 ring-ink-200/70 hover:bg-ink-50"
+            >
+              <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
+                <BookOpen className="size-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold text-ink-900">Student resources</span>
+                <span className="block text-[0.8125rem] text-ink-600">Free tools, courses, internships and more</span>
+              </span>
+              <ChevronRight className="size-5 text-ink-400" aria-hidden />
+            </Link>
+          </div>
         )}
 
         {near.length > 0 && (
