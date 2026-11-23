@@ -57,6 +57,9 @@ export function verificationView(status: StudentStatus): VerificationView {
   return "apply";
 }
 
+/** What students are told about review time (founder decision, 2026-11-23). */
+export const REVIEW_PROMISE = "within 2 working days";
+
 /** Student-facing state names (approved product language: pending, approved, rejected, expired). */
 export function stateLabel(status: StudentStatus): string {
   switch (verificationView(status)) {
