@@ -31,10 +31,26 @@ grant usage on schema auth to anon, authenticated, service_role;
 create table auth.users (
   id uuid primary key default gen_random_uuid(),
   email text unique,
+  phone text unique,
+  banned_until timestamptz,
   raw_user_meta_data jsonb not null default '{}'::jsonb,
   raw_app_meta_data jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+-- The sign-in tables account deletion clears (columns it touches only).
+create table auth.identities (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  provider text not null default 'email'
+);
+create table auth.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade
+);
+create table auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade
 );
 
 create function auth.jwt() returns jsonb language sql stable as $$

@@ -244,7 +244,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/stu
             )}
             {reviews.length > 0 && (
               <div className="mt-4">
-                <ReviewList reviews={reviews} />
+                <ReviewList reviews={reviews} reportable />
               </div>
             )}
           </Section>

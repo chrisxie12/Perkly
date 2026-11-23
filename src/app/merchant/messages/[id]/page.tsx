@@ -49,8 +49,8 @@ export default async function MerchantChatPage({ params }: PageProps<"/merchant/
           initialMessages={room.messages}
           initialReactions={room.reactions}
           initialOtherReadAt={chat.other_read_at ?? null}
-          blocked={false}
-          blockedText=""
+          blocked={Boolean(chat.blocked_by_student)}
+          blockedText={`${name} has blocked your business, so you can't send messages.`}
           emptyText="No messages yet."
         />
       </div>

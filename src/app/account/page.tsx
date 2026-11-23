@@ -11,6 +11,7 @@ import { getUserContext } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { cancelDeletion, requestDeletion } from "@/features/account/actions";
+import { deletionDueDate } from "@/features/account/deletion";
 import { NameForm } from "@/features/account/components/name-form";
 import { DarkModeSwitch } from "@/components/theme/theme-toggle";
 import { SoundsSwitch } from "@/components/sound/sounds-switch";
@@ -72,7 +73,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
             {open ? (
               <>
                 <CardDescription>
-                  You asked to delete your account on {formatDate(open.created_at)}. Perqly support will review it and email you.
+                  You asked to delete your account on {formatDate(open.created_at)}. Perqly will delete it by{" "}
+                  {formatDate(deletionDueDate(open.created_at).toISOString())} and email you when it&apos;s done.
                 </CardDescription>
                 <form action={cancelDeletion} className="mt-4">
                   <SubmitButton variant="secondary">Cancel the request</SubmitButton>
@@ -81,8 +83,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
             ) : (
               <>
                 <CardDescription>
-                  Perqly support deletes your profile, verification details and saved businesses. Records of discounts you redeemed are kept
-                  without your name, because businesses rely on them.{" "}
+                  Within 30 days, Perqly deletes your profile, student record, chats, ratings and saved businesses. Records of discounts you
+                  used are kept without your name, because businesses rely on them.{" "}
                   <Link href="/delete-account" className="font-semibold text-blue-700 underline underline-offset-2">
                     How deletion works
                   </Link>

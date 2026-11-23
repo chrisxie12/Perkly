@@ -1,59 +1,74 @@
 # Account deletion runbook
 
-People ask to delete their account from **Your account → Delete your account**. The request appears for Perqly admins under **Admin → Users → Deletion requests**. Deletion is done by a person, not automatically, because completed redemptions must stay as the business's and Perqly's record of discounts given.
+Deletion must be done **within 30 days of the request**. This promise is on `/delete-account`, the account page and in the confirmation email, so it has to hold.
 
-## What is removed and what is kept
+## How a request arrives
 
-| Data                                         | Action                                                                                                                           |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Name, first name, phone, avatar (`profiles`) | Cleared                                                                                                                          |
-| Student profile, verification applications   | Deleted once documents are gone (see step 3)                                                                                     |
-| Saved businesses, notifications              | Deleted                                                                                                                          |
-| Business memberships                         | Removed (`status = 'removed'`). An **owner** must hand the business to someone else first, or the business is suspended          |
-| Redemptions, redemption sessions             | Kept, now attached to an anonymous profile                                                                                       |
-| Audit log                                    | Kept (append-only)                                                                                                               |
-| Sign-in (`auth.users`)                       | Email replaced with an unusable address and the user banned, so the profile row (and the redemptions that reference it) can stay |
+- **In the app:** Your account → Delete your account. The request is created at once.
+- **By email** to the legal contact address. Only act on emails sent **from the account's own address**. Find the account in Admin → Users, open **They emailed to ask for deletion** and record when and from which address they wrote. This starts the same 30 days.
 
-## Steps
+Every Perqly admin gets a notification (push and email, if they've turned them on) when a request arrives. If a request is still open after **20 days**, the daily job sends every admin one reminder.
 
-Run these in the Supabase SQL editor for the right project, as one transaction, replacing `:uid`.
+## Doing it
 
-1. **Check the request.** Confirm the request is open and the person isn't Perqly staff or a business owner.
-   ```sql
-   select * from public.account_deletion_requests where user_id = ':uid' and status = 'open';
-   select role from public.platform_staff where user_id = ':uid';
-   select merchant_id, role, status from public.merchant_users where user_id = ':uid';
-   ```
-2. **Offer an export first** if they haven't downloaded their data (Your account → Download my data).
-3. **Verification documents.** If any application has photos not yet deleted (`documents_deleted_at is null` and a decision), wait for the daily job or delete the files in Storage (`verification-documents/<uid>/…`) first.
-4. **Anonymise.**
-   ```sql
-   begin;
-   update public.profiles set full_name = null, first_name = null, phone = null, avatar_path = null,
-          is_suspended = true, suspended_reason = 'Account deleted at the user''s request' where id = ':uid';
-   delete from public.favourites where student_id = ':uid';
-   delete from public.notifications where user_id = ':uid';
-   update public.merchant_users set status = 'removed', removed_at = now() where user_id = ':uid' and role <> 'owner';
-   delete from public.student_profiles where user_id = ':uid'; -- also deletes verification applications
-   update auth.users set email = 'deleted+' || id || '@invalid.perqly', phone = null, raw_user_meta_data = '{}'::jsonb,
-          banned_until = 'infinity' where id = ':uid';
-   delete from auth.identities where user_id = ':uid';
-   delete from auth.sessions where user_id = ':uid';
-   commit;
-   ```
-   Redemption sessions and redemptions reference `profiles` and `institutions`, not the student profile, so they stay.
-5. **Record the outcome** in Admin → Users with what was done. This writes `account.deletion_completed` to the audit log.
-6. **Email the person** from the support inbox to confirm.
+You need to be a Perqly admin signed in with two-step verification.
 
-### Campus (once migrations `20261117090000` and `20261118100000` are applied)
+1. Go to **Admin → Users → Deletion requests**. Requests are oldest first, with the days left or **Overdue**.
+2. Read what will be deleted and kept. If the person still wants their data, they can download it themselves (Your account → Download my data) before you go ahead.
+3. If a red line says something must be handed over first, sort that out (below), then come back.
+4. Type **DELETE**, keep or change the note (for example "Asked in the app" or "Emailed on 3 Dec from their address"), and choose **Delete account**.
+5. The confirmation email is sent automatically. If the screen says it couldn't be sent, email the address it shows from the support inbox straight away. That is the only time you'll see it.
 
-- Deleting or anonymising a profile: Campus follows, likes, saves, comments, event RSVPs and organisation memberships go with it (cascade). Posts the person wrote stay with their organisation, `author_id` set to null. Reports they made stay with `reporter_id` set to null.
-- Before step 4, check they aren't the **last owner** of an organisation: `select organisation_id from public.organisation_members where user_id = ':uid' and role = 'owner';` Appoint another owner first, or ask a Perqly admin to archive it.
-- Images they uploaded belong to the organisation, not the person, and stay until the post or organisation is removed.
+To refuse a request (for example, it didn't come from the account's address), use **Don't delete** with the reason, and reply to the person.
 
-### Bookings and problem reports (once migrations `20261118110000` and `20261118130000` are applied)
+## What stops a deletion
 
-- A student's bookings are deleted with the account (cascade).
-- Problem reports stay for Perqly support, without the person (`opened_by` set to null).
+| Shown as                          | What to do                                                                                           |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| They are Perqly staff             | Remove their staff role first.                                                                       |
+| They own a business               | Contact them: the business needs a new owner (another team member made owner), or it must be closed. |
+| They are the only owner of a club | Another member must be made owner, or a Perqly admin archives the club.                              |
 
-Target: within 30 days of the request.
+Contact them about it well within the 30 days.
+
+## What it does
+
+`public.admin_complete_account_deletion` (migration `20261125090000_account_deletion.sql`) runs everything in one transaction, so it either all happens or nothing does.
+
+| Data                                                                               | What happens                                                                |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Name, first name, phone, pass photo (`profiles`)                                   | Cleared. The row stays, marked deleted and suspended, and can't be refilled |
+| Sign-in (`auth.users`)                                                             | Unusable email, banned; identities, sessions and second factors deleted     |
+| Student profile, verification applications                                         | Deleted                                                                     |
+| Shop chats (both sides, with photos), friend chats, reactions, chat settings       | Deleted                                                                     |
+| Friends, blocks, shared deals, social settings                                     | Deleted                                                                     |
+| Ratings, saved businesses, savings totals                                          | Deleted                                                                     |
+| Campus follows, likes, saves, comments, RSVPs, unused tickets                      | Deleted; club memberships removed                                           |
+| Push devices, notification settings, notifications                                 | Deleted                                                                     |
+| Business team and school reviewer roles (not ownership)                            | Removed                                                                     |
+| Reports and problem reports they made                                              | Kept for moderators, without who made them                                  |
+| Redemptions, redemption sessions, bookings (student note cleared), scanned tickets | Kept, attached to the empty profile                                         |
+| Campus posts they wrote                                                            | Kept with their club                                                        |
+| Audit log                                                                          | Kept. The deletion entry holds counts only, no email or name                |
+| Files: pass photo, ID card and selfie, chat photos                                 | Queued in `account_media_purge`; the daily job removes them from Storage    |
+
+Backups are kept for 14 days, so deleted data can remain in a backup that long.
+
+## Checking the files are gone
+
+The daily job retries a file up to 7 times. To see anything stuck (SQL editor):
+
+```sql
+select bucket, path, attempts, last_error from public.account_media_purge
+where purged_at is null order by created_at;
+```
+
+A file with `attempts = 7` needs removing by hand in Storage, then:
+
+```sql
+update public.account_media_purge set purged_at = now() where bucket = '<bucket>' and path = '<path>';
+```
+
+## Not part of this
+
+Marking a request "completed" without running the deletion is no longer possible: `resolve_account_deletion` only declines now.

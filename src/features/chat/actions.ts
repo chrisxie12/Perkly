@@ -33,3 +33,16 @@ export async function setConversationBlocked(formData: FormData) {
   revalidatePath(`/merchant/messages/${conversationId.data}`);
   revalidatePath("/merchant/messages");
 }
+
+/** Student blocks or unblocks a business in a shop chat. */
+export async function setBusinessBlocked(formData: FormData) {
+  const conversationId = id.safeParse(formData.get("conversationId"));
+  if (!conversationId.success || !hasSupabaseEnv()) return;
+  const supabase = await createClient();
+  await supabase.rpc("student_set_business_blocked", {
+    p_conversation_id: conversationId.data,
+    p_blocked: formData.get("blocked") === "true",
+  });
+  revalidatePath(`/student/messages/${conversationId.data}`);
+  revalidatePath("/student/messages");
+}

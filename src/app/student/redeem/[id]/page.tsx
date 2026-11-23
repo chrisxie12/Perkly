@@ -113,9 +113,14 @@ export default async function RedeemPage({ params, searchParams }: PageProps<"/s
               )}
             </fieldset>
             {first ? (
-              <SubmitButton size="lg" className="w-full">
-                Show my pass
-              </SubmitButton>
+              <>
+                <SubmitButton size="lg" className="w-full">
+                  Show my pass
+                </SubmitButton>
+                <p className="text-center text-sm text-ink-600">
+                  The business sees your first name, school, pass photo and what you pick, so they can check the discount is yours.
+                </p>
+              </>
             ) : (
               <p className="text-center text-ink-700">You&apos;ve used every deal here for now.</p>
             )}

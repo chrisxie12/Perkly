@@ -1,3 +1,4 @@
+import { ReportReview } from "./report-review";
 import { Stars } from "./stars";
 import type { Review } from "../queries";
 
@@ -19,7 +20,16 @@ export function RatingSummary({ rating, reviews }: { rating: number | null; revi
   );
 }
 
-export function ReviewList({ reviews, staffAction }: { reviews: Review[]; staffAction?: (r: Review) => React.ReactNode }) {
+export function ReviewList({
+  reviews,
+  staffAction,
+  reportable = false,
+}: {
+  reviews: Review[];
+  staffAction?: (r: Review) => React.ReactNode;
+  /** Show "Report" under ratings the viewer didn't write. */
+  reportable?: boolean;
+}) {
   if (reviews.length === 0) return null;
   return (
     <ul className="divide-y divide-ink-200 rounded-3xl bg-white px-4 ring-1 ring-ink-200/70">
@@ -33,6 +43,7 @@ export function ReviewList({ reviews, staffAction }: { reviews: Review[]; staffA
           <span className="sr-only">{r.rating} out of 5</span>
           {r.comment && <p className="mt-1.5 text-[0.9375rem] text-ink-700">{r.comment}</p>}
           {r.hidden && <p className="mt-1 text-xs font-semibold text-ink-600">Hidden by Perqly</p>}
+          {reportable && !r.mine && !r.hidden && <ReportReview reviewId={r.id} />}
           {staffAction?.(r)}
         </li>
       ))}

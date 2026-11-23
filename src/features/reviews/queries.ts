@@ -2,7 +2,16 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/env";
 
-export type Review = { id: string; author: string; rating: number; comment: string | null; created_at: string; hidden: boolean };
+export type Review = {
+  id: string;
+  author: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  hidden: boolean;
+  /** The viewer wrote it. */
+  mine?: boolean;
+};
 export type MyReview = { can_review: boolean; rating: number | null; comment: string | null; hidden: boolean };
 
 export async function listMerchantReviews(merchantId: string, limit = 30): Promise<Review[]> {

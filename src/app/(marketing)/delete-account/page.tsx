@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DraftLegalPage } from "@/components/layout/draft-legal-page";
 import { LEGAL_CONTACT_EMAIL } from "@/config/legal";
+import { DELETED_ITEMS, KEPT_ITEMS } from "@/features/account/deletion";
 
 export const metadata: Metadata = {
   title: "Delete your Perqly account",
@@ -10,8 +11,9 @@ export const metadata: Metadata = {
 
 /**
  * Public account deletion page (Google Play asks for a web link that works without the app).
- * Part of the draft legal set: every statement must match the privacy notice and what support
- * actually does today (docs/ACCOUNT_DELETION_RUNBOOK.md). Change them together.
+ * Part of the draft legal set: every statement must match the privacy notice and what
+ * admin_complete_account_deletion does (see docs/ACCOUNT_DELETION_RUNBOOK.md). The lists come
+ * from features/account/deletion.ts, which the confirmation email uses too.
  */
 export default function DeleteAccountPage() {
   const h2 = "pt-4 font-display text-2xl font-bold text-ink-900";
@@ -50,16 +52,26 @@ export default function DeleteAccountPage() {
 
       <h2 className={h2}>What happens next</h2>
       <ul className="list-disc space-y-2 pl-6">
-        <li>A person at Perqly carries out the deletion and emails you when it&apos;s done.</li>
-        <li>Your name and contact details are removed, and you can no longer sign in.</li>
+        <li>A person at Perqly carries out the deletion within 30 days of your request, and emails you when it&apos;s done.</li>
         <li>
-          Photos of your student ID and your selfie are deleted 30 days after your verification is decided, if they haven&apos;t been
-          already.
+          If you own a business on Perqly or are the only owner of a Campus club, it needs a new owner first. Perqly will contact you about
+          this.
         </li>
-        <li>
-          A record of discounts you used is kept without your name, because it&apos;s the business&apos;s and Perqly&apos;s record of
-          discounts given.
-        </li>
+        <li>After that, you can no longer sign in.</li>
+      </ul>
+
+      <h3 className="pt-2 font-semibold text-ink-900">Deleted</h3>
+      <ul className="list-disc space-y-2 pl-6">
+        {DELETED_ITEMS.map((item) => (
+          <li key={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</li>
+        ))}
+      </ul>
+
+      <h3 className="pt-2 font-semibold text-ink-900">Kept</h3>
+      <ul className="list-disc space-y-2 pl-6">
+        {KEPT_ITEMS.map((item) => (
+          <li key={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</li>
+        ))}
         <li>Perqly&apos;s encrypted backups are kept for 14 days, so deleted data can remain in a backup for up to 14 days.</li>
       </ul>
       <p>

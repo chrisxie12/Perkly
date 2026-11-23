@@ -144,6 +144,7 @@ export const ROUTE_RULES: Rule[] = [
   { path: "/admin/student-reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle student reports." },
   { path: "/admin/resources*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins manage student resources." },
   { path: "/admin/chat-reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle chat reports." },
+  { path: "/admin/rating-reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle rating reports." },
   { path: "/admin/reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see reports." },
   { path: "/admin/staff*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins see staff." },
   { path: "/admin/audit*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins read the audit log." },
@@ -345,6 +346,7 @@ function adminNav(n: NavContext): AreaNav {
   const resources = item("resources", "Student resources", "/admin/resources", "book", ["/admin/resources*"]);
   const studentReports = item("student-reports", "Student reports", "/admin/student-reports", "shield", ["/admin/student-reports*"]);
   const chatReports = item("chat-reports", "Chat reports", "/admin/chat-reports", "chat", ["/admin/chat-reports*"]);
+  const ratingReports = item("rating-reports", "Rating reports", "/admin/rating-reports", "star", ["/admin/rating-reports*"]);
   const audit = item("audit", "Audit logs", "/admin/audit", "scroll", ["/admin/audit*"]);
   const settings = item("settings", "Settings", "/admin/settings", "settings", ["/admin/settings*"]);
   // Perqly admins verify students for any school (D16); the review queue lives in the school area.
@@ -357,7 +359,7 @@ function adminNav(n: NavContext): AreaNav {
     { label: "People", items: [...(support ? [users] : []), ...(admin ? [staff] : [])] },
     {
       label: "Activity",
-      items: [...(support ? [redemptions, disputes, studentReports, chatReports, reports] : []), ...(admin ? [audit] : [])],
+      items: [...(support ? [redemptions, disputes, studentReports, chatReports, ratingReports, reports] : []), ...(admin ? [audit] : [])],
     },
     {
       // Shown once Campus is switched on; before that the pages are reached by address.

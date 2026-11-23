@@ -66,15 +66,30 @@ export type DeletionRequest = {
   id: string;
   user_id: string;
   note: string | null;
+  source: "app" | "email";
   created_at: string;
   profiles: { full_name: string | null } | null;
 };
+
+export type DeletionPreview = {
+  blockers: string[];
+  deleted: Record<string, number>;
+  kept: Record<string, number>;
+};
+
+/** What completing a request would remove. Null when the viewer can't see it (no second factor). */
+export async function getDeletionPreview(requestId: string): Promise<DeletionPreview | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_preview_account_deletion", { p_request_id: requestId });
+  if (error || !data) return null;
+  return data as DeletionPreview;
+}
 
 export async function getOpenDeletionRequests() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("account_deletion_requests")
-    .select("id, user_id, note, created_at, profiles!account_deletion_requests_user_id_fkey(full_name)")
+    .select("id, user_id, note, source, created_at, profiles!account_deletion_requests_user_id_fkey(full_name)")
     .eq("status", "open")
     .order("created_at");
   return (data ?? []) as unknown as DeletionRequest[];

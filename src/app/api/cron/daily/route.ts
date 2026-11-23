@@ -5,6 +5,7 @@ import { isAuthorisedCronRequest } from "@/lib/jobs/cron-auth";
 import { purgeVerificationDocuments } from "@/lib/jobs/verification-retention";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchNotifications } from "@/lib/notifications/dispatch";
+import { runAccountMediaCleanup } from "@/lib/jobs/account-media";
 import { runCampusMediaCleanup } from "@/lib/jobs/campus-media";
 import { runCloseStaleBookings } from "@/lib/jobs/stale-bookings";
 import { runEventReminders } from "@/lib/jobs/event-reminders";
@@ -17,7 +18,8 @@ export const maxDuration = 60;
  * 1. mark lapsed student verifications as expired;
  * 2. mark offers past their end date as ended, and stale redemption sessions as expired;
  * 3. delete verification photos 30 days after a decision;
- * 4. remind students whose verification ends within 14 days, and send pending notifications.
+ * 4. remind students whose verification ends within 14 days, and send pending notifications;
+ * 5. after answering: remove files left by deleted accounts and remind admins of requests open 20 days.
  * Students never see an ended offer even before this runs: the read
  * functions check the dates themselves.
  */
@@ -34,6 +36,7 @@ export async function GET(request: NextRequest) {
   }
   // Campus media clean-up runs only after this response is sent, so it can't affect the steps below.
   after(() => runCampusMediaCleanup());
+  after(() => runAccountMediaCleanup());
   after(() => runCloseStaleBookings());
   after(() => runEventReminders());
 

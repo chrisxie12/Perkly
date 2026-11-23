@@ -62,7 +62,7 @@ export function ReviewForm({
         placeholder="What should other students know?"
         className="mt-1.5 w-full rounded-xl bg-ink-50 p-3 text-[0.9375rem] text-ink-900 ring-1 ring-ink-200 placeholder:text-ink-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
       />
-      <p className="mt-1 text-xs text-ink-600">Other students see your first name and initial.</p>
+      <p className="mt-1 text-xs text-ink-600">Other students and the business see your first name and initial.</p>
       <button
         type="submit"
         disabled={rating === 0 || pending}
