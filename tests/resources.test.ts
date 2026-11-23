@@ -36,6 +36,8 @@ const base: Resource = {
   status: "published",
   published_at: "2026-11-20T10:00:00Z",
   updated_at: "2026-11-20T10:00:00Z",
+  logo_path: null,
+  cover_path: null,
 };
 
 const form = {
@@ -117,5 +119,22 @@ describe("student resources", () => {
     expect(resourceFormSchema.safeParse({ ...form, eligibility: "confirmed" }).success).toBe(false);
     expect(resourceFormSchema.safeParse({ ...form, eligibility: "confirmed", checkedOn: "2026-11-23" }).success).toBe(true);
     expect(resourceFormSchema.safeParse({ ...form, slug: "Bad Slug" }).success).toBe(false);
+  });
+});
+
+describe("resourceImageUrl", () => {
+  const id = "11111111-2222-3333-4444-555555555555";
+  it("builds the public storage URL for a valid path", async () => {
+    const { resourceImageUrl } = await import("@/features/resources/model");
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co/";
+    expect(resourceImageUrl(`${id}/${id}.webp`)).toBe(`https://abc.supabase.co/storage/v1/object/public/resource-images/${id}/${id}.webp`);
+  });
+  it("refuses missing or odd paths", async () => {
+    const { resourceImageUrl } = await import("@/features/resources/model");
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co";
+    expect(resourceImageUrl(null)).toBeNull();
+    expect(resourceImageUrl("../secret.png")).toBeNull();
+    expect(resourceImageUrl(`${id}/${id}.gif`)).toBeNull();
+    expect(resourceImageUrl(`https://evil.example/${id}.png`)).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AreaShell, PageTitle } from "@/components/layout/area-shell";
 import { adminGetResource } from "@/features/resources/queries";
 import { ResourceForm } from "@/features/resources/components/resource-form";
+import { ResourceImages } from "@/features/resources/components/resource-images";
 
 export const metadata: Metadata = { title: "Edit student resource", robots: { index: false, follow: false } };
 
@@ -27,6 +28,7 @@ export default async function EditResourcePage({ params, searchParams }: PagePro
       </p>
       <PageTitle title={resource.name} description={STATUS_NOTE[resource.status]} />
       {sp.saved === "1" && <p className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">Saved as a draft.</p>}
+      <ResourceImages resource={resource} />
       <ResourceForm resource={resource} />
     </AreaShell>
   );

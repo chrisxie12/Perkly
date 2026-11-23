@@ -76,6 +76,8 @@ export const resourceSchema = z.object({
   status: z.enum(STATUSES),
   published_at: z.string().nullable(),
   updated_at: z.string(),
+  logo_path: z.string().nullable().catch(null),
+  cover_path: z.string().nullable().catch(null),
 });
 export type Resource = z.infer<typeof resourceSchema>;
 
@@ -86,6 +88,13 @@ export function parseResources(data: unknown): Resource[] {
     const parsed = resourceSchema.safeParse(row);
     return parsed.success ? [parsed.data] : [];
   });
+}
+
+/** Public URL of an image in the resource-images bucket, or null. */
+export function resourceImageUrl(path: string | null | undefined) {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!path || !base || !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(webp|png|jpg)$/.test(path)) return null;
+  return `${base.replace(/\/$/, "")}/storage/v1/object/public/resource-images/${path}`;
 }
 
 export const categoryLabel = (c: Category) => CATEGORIES.find((x) => x.value === c)?.label ?? c;
@@ -224,6 +233,10 @@ export function resourceErrorMessage(code: string | undefined) {
       return "Publish the resource before featuring it.";
     case "resource_not_found":
       return "That resource no longer exists. Reload the page.";
+    case "image_invalid":
+      return "That image didn't finish uploading. Try again.";
+    case "kind_invalid":
+      return "Choose whether this is the logo or the cover photo.";
     default:
       return "Something went wrong. Reload the page and try again.";
   }

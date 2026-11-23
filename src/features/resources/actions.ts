@@ -105,3 +105,24 @@ export async function setResourceFeatured(_prev: FormState, formData: FormData):
   revalidateResources();
   return { status: "success", message: on ? "Featured." : "No longer featured." };
 }
+
+/** Points a resource at an image the admin just uploaded, then removes the one it replaces. */
+export async function setResourceImage(
+  id: string,
+  kind: "logo" | "cover",
+  path: string | null,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (!z.string().uuid().safeParse(id).success || (kind !== "logo" && kind !== "cover"))
+    return { ok: false, message: resourceErrorMessage(undefined) };
+  if (!hasSupabaseEnv()) return { ok: false, message: unavailable.message ?? "" };
+  const supabase = await createClient();
+  const { data: old, error } = await supabase.rpc("admin_set_student_resource_image", { p_id: id, p_kind: kind, p_path: path });
+  if (error) {
+    if (path) await supabase.storage.from("resource-images").remove([path]);
+    return { ok: false, message: resourceErrorMessage(error.message) };
+  }
+  if (typeof old === "string" && old && old !== path) await supabase.storage.from("resource-images").remove([old]);
+  revalidateResources();
+  revalidatePath(`/admin/resources/${id}`);
+  return { ok: true };
+}

@@ -5,7 +5,7 @@ import { BadgeCheck, Check, ChevronLeft, ExternalLink, Globe2, HelpCircle } from
 import { AreaShell } from "@/components/layout/area-shell";
 import { AVAILABILITY, categoryLabel, formatCheckedOn, requirementLines } from "@/features/resources/model";
 import { getResource } from "@/features/resources/queries";
-import { CategoryTile, OfferPill } from "@/features/resources/components/bits";
+import { OfferPill, ResourceCover, ResourceLogo } from "@/features/resources/components/bits";
 
 export const metadata: Metadata = { title: "Student resource", robots: { index: false } };
 
@@ -23,13 +23,14 @@ export default async function ResourcePage({ params }: PageProps<"/student/resou
         <ChevronLeft className="size-5" aria-hidden /> Resources
       </Link>
 
-      <header className="flex items-start gap-3.5">
-        <CategoryTile category={r.category} size="lg" />
-        <div className="min-w-0">
-          <p className="text-[0.8125rem] font-semibold text-ink-600">{categoryLabel(r.category)}</p>
-          <h1 className="font-display text-2xl leading-tight font-extrabold tracking-tight">{r.name}</h1>
-          <p className="text-[0.9375rem] text-ink-600">{r.provider}</p>
-        </div>
+      <div className="relative -mx-4 sm:mx-0">
+        <ResourceCover resource={r} className="h-40 sm:h-52 sm:rounded-3xl" />
+        <ResourceLogo resource={r} size="lg" className="absolute -bottom-8 left-4 shadow-lg ring-4 ring-white sm:left-6" />
+      </div>
+      <header className="mt-11">
+        <p className="text-[0.8125rem] font-semibold text-ink-600">{categoryLabel(r.category)}</p>
+        <h1 className="font-display text-2xl leading-tight font-extrabold tracking-tight">{r.name}</h1>
+        <p className="text-[0.9375rem] text-ink-600">{r.provider}</p>
       </header>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">

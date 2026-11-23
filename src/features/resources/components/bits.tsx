@@ -1,6 +1,6 @@
 import { BadgeCheck, Brain, Briefcase, Code2, GraduationCap, HelpCircle, Music, Palette, Percent, Rocket, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCheckedOn, offerLabel, OFFER_TYPES, type Category, type Resource } from "../model";
+import { formatCheckedOn, offerLabel, OFFER_TYPES, resourceImageUrl, type Category, type Resource } from "../model";
 
 const ICONS: Record<Category, typeof Brain> = {
   ai_productivity: Brain,
@@ -26,13 +26,70 @@ const TONES: Record<Category, string> = {
   discounts_trials: "bg-sky-50 text-sky-700",
 };
 
+/** A soft two-tone wash per category, for covers and headers without a photo. */
+const WASHES: Record<Category, string> = {
+  ai_productivity: "from-violet-500 to-fuchsia-400",
+  developer_tools: "from-blue-600 to-sky-400",
+  learning_certifications: "from-emerald-600 to-teal-400",
+  career_internships: "from-orange-500 to-amber-400",
+  design_creativity: "from-pink-500 to-rose-400",
+  business_entrepreneurship: "from-amber-500 to-orange-400",
+  finance_student_services: "from-teal-600 to-emerald-400",
+  entertainment_lifestyle: "from-rose-500 to-pink-400",
+  discounts_trials: "from-sky-500 to-blue-400",
+};
+
+/** The cover photo, or the category's colour wash with a large faint icon. */
+export function ResourceCover({ resource, className }: { resource: Pick<Resource, "category" | "cover_path">; className?: string }) {
+  const url = resourceImageUrl(resource.cover_path);
+  const Icon = ICONS[resource.category];
+  if (url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- public storage URL
+      <img src={url} alt="" loading="lazy" className={cn("w-full object-cover", className)} />
+    );
+  }
+  return (
+    <span aria-hidden className={cn("relative block overflow-hidden bg-gradient-to-br", WASHES[resource.category], className)}>
+      <Icon className="absolute -right-4 -bottom-6 size-32 text-white/25" strokeWidth={1.5} />
+      <span className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgb(255_255_255/0.25),transparent_55%)]" />
+    </span>
+  );
+}
+
+/** The provider's logo on a white tile, or the category tile when there's no logo. */
+export function ResourceLogo({
+  resource,
+  size = "md",
+  className,
+}: {
+  resource: Pick<Resource, "category" | "logo_path" | "provider">;
+  size?: "md" | "lg";
+  className?: string;
+}) {
+  const url = resourceImageUrl(resource.logo_path);
+  if (!url) return <CategoryTile category={resource.category} size={size} className={className} />;
+  return (
+    <span
+      className={cn(
+        "grid shrink-0 place-items-center overflow-hidden rounded-2xl bg-white ring-1 ring-ink-200",
+        size === "lg" ? "size-16 p-2" : "size-12 p-1.5",
+        className,
+      )}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- public storage URL */}
+      <img src={url} alt={`${resource.provider} logo`} loading="lazy" className="size-full object-contain" />
+    </span>
+  );
+}
+
 /** The category's icon in a soft tile. */
-export function CategoryTile({ category, size = "md" }: { category: Category; size?: "md" | "lg" }) {
+export function CategoryTile({ category, size = "md", className }: { category: Category; size?: "md" | "lg"; className?: string }) {
   const Icon = ICONS[category];
   return (
     <span
       aria-hidden
-      className={cn("grid shrink-0 place-items-center rounded-2xl", TONES[category], size === "lg" ? "size-16" : "size-12")}
+      className={cn("grid shrink-0 place-items-center rounded-2xl", TONES[category], size === "lg" ? "size-16" : "size-12", className)}
     >
       <Icon className={size === "lg" ? "size-8" : "size-6"} />
     </span>
