@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hasSupabaseEnv } from "@/lib/env";
 import { safeNextPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
+import { recordTermsAcceptance } from "@/features/auth/terms";
 
 const INTENT_COOKIE = "perqly_signup_intent";
 
@@ -29,7 +30,11 @@ export async function GET(request: NextRequest) {
 
   // New accounts: record whether they said student or business, so the first sign-in goes to the right place.
   const intent = request.cookies.get(INTENT_COOKIE)?.value;
-  if (intent === "student" || intent === "merchant") await supabase.rpc("set_signup_intent", { p_intent: intent });
+  // The intent cookie is only set from the sign-up page, after the consent box was ticked.
+  if (intent === "student" || intent === "merchant") {
+    await supabase.rpc("set_signup_intent", { p_intent: intent });
+    await recordTermsAcceptance(supabase);
+  }
 
   const next = safeNextPath(params.get("next")) ?? (intent === "merchant" ? "/merchant" : null);
   const response = NextResponse.redirect(new URL(next ? `/auth/continue?next=${encodeURIComponent(next)}` : "/auth/continue", request.url));

@@ -9,6 +9,7 @@ import { getRequestOrigin } from "@/lib/auth/origin";
 import { safeNextPath } from "@/lib/auth/paths";
 import { requiresTwoFactor } from "@/lib/auth/roles";
 import { getUserContext } from "@/lib/auth/session";
+import { recordTermsAcceptance } from "./terms";
 import { codeSchema, fieldErrors, signInSchema, signUpSchema, totpSchema } from "./schemas";
 import type { FormState, TotpEnrollment } from "./types";
 
@@ -111,6 +112,9 @@ export async function verifySignInCode(_prev: FormState, formData: FormData): Pr
   if (error) return { status: "error", fieldErrors: { code: authErrorMessage(error.code) } };
 
   (await cookies()).delete(PENDING_COOKIE);
+  // New accounts ticked "I agree" on the sign-up form: record which version they accepted.
+  // Best effort: a failure is logged, and never blocks signing in.
+  if (pending.mode === "sign-up") await recordTermsAcceptance(supabase);
   const next = safeNextPath(parsed.data.next);
   redirect(next ? `/auth/continue?next=${encodeURIComponent(next)}` : "/auth/continue");
 }
