@@ -76,6 +76,7 @@ describe("menus by role", () => {
     expect(nav.tabs.map((t) => t.label)).toEqual(["Overview", "Merchants", "Offers", "Users"]);
     expect(nav.more.map((t) => t.label)).toEqual([
       "Institutions",
+      "Student resources",
       "Staff",
       "Redemptions",
       "Problem reports",
@@ -86,6 +87,12 @@ describe("menus by role", () => {
       "Settings",
     ]);
     expect(nav.groups.map((g) => g.label)).toEqual([null, "Partners", "People", "Activity", null]);
+  });
+
+  it("shows Student resources to admins only, not support staff", () => {
+    const all = (n: ReturnType<typeof navFor>) => n.groups.flatMap((g) => g.items).map((i) => i.href);
+    expect(all(navFor("admin", staff("super_admin")))).toContain("/admin/resources");
+    expect(all(navFor("admin", staff("support")))).not.toContain("/admin/resources");
   });
 
   it("puts student reviews first for admins who can verify students", () => {

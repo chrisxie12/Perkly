@@ -41,7 +41,8 @@ export type IconName =
   | "wallet"
   | "chat"
   | "star"
-  | "calendar";
+  | "calendar"
+  | "book";
 
 export type NavItem = {
   key: string;
@@ -141,6 +142,7 @@ export const ROUTE_RULES: Rule[] = [
   { path: "/admin/redemptions*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see redemptions." },
   { path: "/admin/disputes*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle problem reports." },
   { path: "/admin/student-reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle student reports." },
+  { path: "/admin/resources*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins manage student resources." },
   { path: "/admin/chat-reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins handle chat reports." },
   { path: "/admin/reports*", allow: (n) => canSupport(n.ctx), reason: "Only Perqly support and admins see reports." },
   { path: "/admin/staff*", allow: (n) => canManagePlatform(n.ctx), reason: "Only Perqly admins see staff." },
@@ -216,6 +218,7 @@ function studentNav(n: NavContext): AreaNav {
         items: [
           me,
           item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
+          item("resources", "Student resources", "/student/resources", "book", ["/student/resources*"]),
           ...(n.bookings ? [item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"])] : []),
           ...(n.friends ? [item("friends", "Friends", "/student/friends", "users", ["/student/friends*"])] : []),
           item("problems", "Problem reports", "/student/problems", "inbox", ["/student/problems*"]),
@@ -339,6 +342,7 @@ function adminNav(n: NavContext): AreaNav {
   const redemptions = item("redemptions", "Redemptions", "/admin/redemptions", "receipt", ["/admin/redemptions*"]);
   const reports = item("reports", "Reports", "/admin/reports", "chart", ["/admin/reports*"]);
   const disputes = item("disputes", "Problem reports", "/admin/disputes", "inbox", ["/admin/disputes*"]);
+  const resources = item("resources", "Student resources", "/admin/resources", "book", ["/admin/resources*"]);
   const studentReports = item("student-reports", "Student reports", "/admin/student-reports", "shield", ["/admin/student-reports*"]);
   const chatReports = item("chat-reports", "Chat reports", "/admin/chat-reports", "chat", ["/admin/chat-reports*"]);
   const audit = item("audit", "Audit logs", "/admin/audit", "scroll", ["/admin/audit*"]);
@@ -349,7 +353,7 @@ function adminNav(n: NavContext): AreaNav {
 
   const groups: NavGroup[] = [
     { label: null, items: [overview] },
-    { label: "Partners", items: [...(canReview ? [reviews] : []), institutions, merchants, offers] },
+    { label: "Partners", items: [...(canReview ? [reviews] : []), institutions, merchants, offers, ...(admin ? [resources] : [])] },
     { label: "People", items: [...(support ? [users] : []), ...(admin ? [staff] : [])] },
     {
       label: "Activity",
