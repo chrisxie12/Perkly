@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 declare global {
   interface Window {
-    __perqlyTheme?: (choice: "system" | "light" | "dark") => void;
+    __perqlyTheme?: (choice: "light" | "dark") => void;
   }
 }
 
