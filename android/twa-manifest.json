@@ -1,5 +1,6 @@
 {
   "packageId": "com.perqly.app",
+  "minSdkVersion": 24,
   "host": "perqly-git-main-vision61-studios.vercel.app",
   "name": "Perqly",
   "launcherName": "Perqly",
@@ -23,7 +24,7 @@
     "path": "C:\\perqly-keys\\perqly-upload.keystore",
     "alias": "perqly-upload"
   },
-  "appVersionName": "1.0.0",
+  "appVersion": "1.0.0",
   "appVersionCode": 1,
   "shortcuts": [
     {

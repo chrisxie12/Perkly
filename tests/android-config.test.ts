@@ -46,12 +46,21 @@ describe("android/twa-manifest.json", () => {
     expect(twa.signingKey.path).not.toMatch(/\s/);
   });
 
+  it("supports Android 7+ (the TWA library needs API 24) and names the version", () => {
+    expect(twa.minSdkVersion).toBe(24);
+    expect(twa.appVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(Number.isInteger(twa.appVersionCode) && twa.appVersionCode >= 1).toBe(true);
+  });
+
   it("targets Android 16 (API 36) once the project is generated", () => {
     const gradle = join(root, "android", "app", "build.gradle");
     if (!existsSync(gradle)) return;
     const text = readFileSync(gradle, "utf8");
     const target = Number(text.match(/targetSdkVersion\s*=?\s*(\d+)/)?.[1]);
     expect(target).toBeGreaterThanOrEqual(36);
+    expect(Number(text.match(/minSdkVersion\s*=?\s*(\d+)/)?.[1])).toBe(twa.minSdkVersion);
+    expect(text).toContain(`applicationId "${twa.packageId}"`);
+    expect(text).not.toMatch(/storePassword|keyPassword/);
   });
 });
 
