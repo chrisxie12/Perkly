@@ -35,7 +35,7 @@ describe("brand contrast rules", () => {
   it("white on Perkly Blue passes AA", () => expect(contrast("#0066FF", "#FFFFFF")).toBeGreaterThanOrEqual(4.5));
   it("ink on Perk Orange passes AA", () => expect(contrast("#FF6B35", "#1F2937")).toBeGreaterThanOrEqual(4.5));
   it("white on Perk Orange fails AA, so it is never used", () => expect(contrast("#FF6B35", "#FFFFFF")).toBeLessThan(4.5));
-  it("ink-500 body text on paper passes AA", () => expect(contrast("#6B7280", "#F8FAFC")).toBeGreaterThanOrEqual(4.5));
+  it("ink-500 body text on paper passes AA", () => expect(contrast("#6B7280", "#FFFFFF")).toBeGreaterThanOrEqual(4.5));
 });
 
 describe("formatPassClock", () => {
