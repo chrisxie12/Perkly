@@ -28,13 +28,16 @@ export function DisappearSheet({
           <h2 id="disappear-title" className="font-display text-lg font-bold">
             Disappearing messages
           </h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="grid size-10 place-items-center rounded-full hover:bg-ink-100">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="grid size-10 place-items-center rounded-full hover:bg-ink-100"
+          >
             <X className="size-5" aria-hidden />
           </button>
         </div>
-        <p className="mt-1 text-sm text-ink-600">
-          Applies to new messages, for both of you. Pinned messages stay until you unpin them.
-        </p>
+        <p className="mt-1 text-sm text-ink-600">Applies to new messages, for both of you. Pinned messages stay until you unpin them.</p>
         <ul className="mt-3 space-y-2">
           {DISAPPEAR_OPTIONS.map((o) => {
             const on = o.value === current;

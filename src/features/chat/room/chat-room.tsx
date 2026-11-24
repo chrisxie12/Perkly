@@ -874,13 +874,7 @@ export function ChatRoom({
       {disappearOpen && disappear && (
         <DisappearSheet current={disappear} onPick={chooseDisappear} onClose={() => setDisappearOpen(false)} />
       )}
-      {sheet?.mode === "react" && (
-        <EmojiSheet
-          title="React with"
-          onPick={(e) => react(sheet.message, e)}
-          onClose={() => setSheet(null)}
-        />
-      )}
+      {sheet?.mode === "react" && <EmojiSheet title="React with" onPick={(e) => react(sheet.message, e)} onClose={() => setSheet(null)} />}
     </div>
   );
 }

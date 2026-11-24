@@ -75,7 +75,11 @@ export function EmojiPanel({ onPick, onBackspace }: { onPick: (emoji: string) =>
   return (
     <div className="mt-1.5 border-t border-ink-200/70 pt-1.5" aria-label="Emoji" role="group">
       <div className="flex items-center gap-1">
-        <div role="tablist" aria-label="Emoji groups" className="flex min-w-0 flex-1 [scrollbar-width:none] gap-1 overflow-x-auto px-1 pb-1.5">
+        <div
+          role="tablist"
+          aria-label="Emoji groups"
+          className="flex min-w-0 flex-1 [scrollbar-width:none] gap-1 overflow-x-auto px-1 pb-1.5"
+        >
           {EMOJI_GROUPS.map((g, i) => (
             <button
               key={g.name}
