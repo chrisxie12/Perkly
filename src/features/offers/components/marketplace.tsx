@@ -1,10 +1,24 @@
 import Link from "next/link";
-import { Dumbbell, HeartPulse, Heart, Printer, Scissors, Shirt, Smartphone, Store, Utensils, Wrench, type LucideIcon } from "lucide-react";
+import {
+  Dumbbell,
+  HeartPulse,
+  Heart,
+  LayoutGrid,
+  Printer,
+  Scissors,
+  Shirt,
+  Smartphone,
+  Store,
+  Utensils,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
 import { SubmitButton } from "@/features/auth/components/submit-button";
 import { toggleFavourite } from "../actions";
 import { discountLabel, money, type DiscountType } from "../schemas";
 
 const ICONS: Record<string, LucideIcon> = {
+  "layout-grid": LayoutGrid,
   utensils: Utensils,
   scissors: Scissors,
   printer: Printer,

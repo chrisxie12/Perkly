@@ -4,61 +4,53 @@ import { MessageCircle } from "lucide-react";
 import { getUserContext } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { LiveBell } from "@/components/auth/live-bell";
-import { getMyPassPhotoPath, signPassPhoto } from "@/features/pass-photo/server";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { verificationView } from "@/features/students/status";
 import { countUnreadChats } from "@/features/chat/queries";
 import { countFriendRequests, countUnreadFriendChats } from "@/features/friends/queries";
 import { getFeatureSwitches } from "@/features/platform/switches";
+import { Logo } from "@/components/shared/logo";
+import { MeContent } from "@/features/students/app/me-content";
+import { ProfileDrawer } from "./profile-drawer";
 
 const NEEDS_ACTION = ["needs_profile", "apply", "resubmit", "rejected", "expired"];
 
 /**
- * The students' top bar, Snapchat style: your photo at the top left opens Me,
- * and Notifications and Chat sit on the right. The bottom bar is for places.
+ * The students' top bar: the Perqly logo at the top left opens your profile and
+ * settings (the same panel as swiping right on Home), and Notifications and Chat
+ * sit on the right. The bottom bar is for places.
  */
 export async function StudentTopBar() {
   const ctx = await getUserContext();
   if (!ctx) return null;
   const supabase = await createClient();
-  const [status, photoPath, unreadChats, unreadFriendChats, friendRequests, unreadRes, switches] = await Promise.all([
+  const [status, unreadChats, unreadFriendChats, friendRequests, unreadRes, switches] = await Promise.all([
     getMyStudentStatus(),
-    getMyPassPhotoPath(),
     countUnreadChats(),
     countUnreadFriendChats(),
     countFriendRequests(),
     supabase.rpc("unread_notification_count"),
     getFeatureSwitches(),
   ]);
-  // Long enough that the photo stays put while you move between tabs.
-  const photoUrl = await signPassPhoto(photoPath, 3600);
   const view = verificationView(status);
   const verified = view === "verified";
   const needsAction = view !== null && NEEDS_ACTION.includes(view);
-  const name = ctx.fullName ?? ctx.firstName ?? "Me";
   const chatCount = unreadChats + (verified && switches.friends ? unreadFriendChats + friendRequests : 0);
   const unread = typeof unreadRes.data === "number" ? unreadRes.data : 0;
 
   return (
     <div className="flex h-16 items-center justify-between gap-2 px-3 md:px-5">
-      <Link
-        href="/student/me"
-        aria-label={needsAction ? "Me, needs attention" : "Me"}
-        className="press relative shrink-0 rounded-full shadow-soft ring-2 ring-white/80"
+      <ProfileDrawer
+        triggerLabel={needsAction ? "Your profile and settings, needs attention" : "Your profile and settings"}
+        trigger={
+          <>
+            <Logo />
+            {needsAction && <span className="absolute -top-0.5 left-7 size-3 rounded-full bg-orange-500 ring-2 ring-paper" aria-hidden />}
+          </>
+        }
       >
-        {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL
-          <img src={photoUrl} alt="" className="size-11 rounded-full object-cover" />
-        ) : (
-          <span
-            className="grid size-11 place-items-center rounded-full bg-blue-50 font-display text-lg font-bold text-blue-700"
-            aria-hidden
-          >
-            {name.slice(0, 1).toUpperCase()}
-          </span>
-        )}
-        {needsAction && <span className="absolute top-0 right-0 size-3 rounded-full bg-orange-500 ring-2 ring-white" aria-hidden />}
-      </Link>
+        <MeContent />
+      </ProfileDrawer>
       <div className="flex items-center gap-2">
         <LiveBell userId={ctx.userId} initialUnread={unread} round />
         <Link

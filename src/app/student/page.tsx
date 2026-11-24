@@ -1,21 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DealCard } from "@/features/students/app/deal-card";
-import { ArrowRight, BookOpen, ChevronRight, LayoutGrid, Map as MapIcon, Search, Store } from "lucide-react";
+import { DealCard, PopularCard } from "@/features/students/app/deal-card";
+import { ArrowRight, ChevronRight, Flame, Hourglass, Lock, ScanLine, Search, Store, Ticket } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
 import { getCategories } from "@/features/merchants/queries";
-import { money } from "@/features/offers/schemas";
 import { DEAL_SORTS, listDeals, sortDeals, type Deal, type DealSort } from "@/features/offers/queries";
 import { onToday } from "@/features/offers/run-times";
 
 /** A deal with its run-time fields filled in (missing = every day). */
 const withRunTimes = (d: Deal) => ({ ...d, run_days: d.run_days ?? null, run_from: d.run_from ?? null, run_until: d.run_until ?? null });
-import { getMyLiveSession, getSavingsSummary } from "@/features/redemptions/queries";
+import { getMyLiveSession } from "@/features/redemptions/queries";
 import { getMyStudentStatus } from "@/features/students/queries";
 import { REVIEW_PROMISE, verificationView } from "@/features/students/status";
-import { CategoryChip } from "@/features/students/app/bits";
+import { CategoryTile } from "@/features/students/app/bits";
 import { SortMenu } from "@/features/students/app/sort-menu";
 import { getCampusEnabled } from "@/features/campus/queries";
 import { CampusHomeCard } from "@/features/campus/components/campus-home-card";
@@ -34,13 +33,12 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
   const q = typeof params.q === "string" ? params.q.trim().slice(0, 80) : "";
   const category = typeof params.category === "string" ? params.category : "";
   const sort = DEAL_SORTS.find((x) => x === params.sort) ?? null;
-  const [ctx, status, categories, deals, live, savings] = await Promise.all([
+  const [ctx, status, categories, deals, live] = await Promise.all([
     getUserContext(),
     getMyStudentStatus(),
     getCategories(),
     listDeals({ query: q || undefined, category: category || undefined }).then((list) => sortDeals(list, sort)),
     getMyLiveSession(),
-    getSavingsSummary(),
   ]);
   const view = verificationView(status);
   const verified = view === "verified";
@@ -54,7 +52,6 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
         .filter((d) => d.distance_m !== null && d.open_now !== false)
         .sort((a, b) => (a.distance_m ?? 0) - (b.distance_m ?? 0))
         .slice(0, 6);
-  const anyHours = near.some((d) => d.has_hours);
   // Like Stories: deals that only run on some days or times, and are on today. Ghana time is UTC.
   const today = filtering ? [] : onToday(deals.map(withRunTimes), new Date()).slice(0, 8);
   const campus = deals.find((d) => d.campus_name)?.campus_name ?? null;
@@ -68,54 +65,27 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
     return s ? `/student?${s}` : "/student";
   };
 
+  const hour = new Date().getUTCHours(); // Ghana is on UTC all year.
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const popular = near.slice(0, 4);
+  const scanHref = verified ? "/student/scan" : view === "needs_profile" ? "/student/profile" : "/student/verify";
   return (
     <AreaShell area="student">
       <div className="-mx-4 sm:mx-0">
-        {/* Hero: deep blue with soft moving light; the glass panels float on top of it. */}
-        <section
-          aria-labelledby="deals-h"
-          className="theme-fixed relative isolate -mt-6 overflow-hidden rounded-b-[2rem] bg-[#0e1626] px-4 pt-6 pb-5 text-white sm:mt-0 sm:rounded-[2rem] sm:px-6"
-        >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -top-24 -left-20 -z-10 size-80 animate-drift rounded-full bg-[radial-gradient(circle,#3d8bff_0%,rgba(0,102,255,0)_70%)] opacity-80 blur-2xl"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute top-16 -right-24 -z-10 size-72 animate-drift rounded-full bg-[radial-gradient(circle,#ff6b35_0%,rgba(255,107,53,0)_70%)] opacity-60 blur-2xl [animation-delay:-6s]"
-          />
-          <div className="flex items-end justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[0.9375rem] font-medium text-white/80">
-                {ctx?.firstName ? `${ctx.firstName}, here's` : "Here's"} what&apos;s on near {campus ?? "your campus"}
-              </p>
-              <h1 id="deals-h" className="mt-0.5 font-display text-4xl leading-none font-extrabold tracking-tight">
-                Campus deals
-              </h1>
-            </div>
-            <div className="glass-dark flex shrink-0 items-center gap-1 rounded-full p-1" role="group" aria-label="View">
-              <span
-                aria-current="page"
-                className="flex h-9 items-center gap-1.5 rounded-full bg-white px-3 text-sm font-semibold text-ink-900"
-              >
-                <LayoutGrid className="size-4" aria-hidden /> Grid
-              </span>
-              <Link
-                href="/student/map"
-                className="flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-white hover:bg-white/10"
-              >
-                <MapIcon className="size-4" aria-hidden /> Map
-              </Link>
-            </div>
-          </div>
+        <div className="px-4 sm:px-0">
+          <h1 className="font-display text-[1.75rem] leading-tight font-extrabold tracking-tight">
+            {greeting}
+            {ctx?.firstName ? `, ${ctx.firstName}` : ""}
+          </h1>
+          <p className="mt-1 text-[0.9375rem] text-ink-600">Discover deals, learn and save more on campus.</p>
 
           <form
             role="search"
             action="/student"
-            className="glass-dark mt-4 flex h-12 items-center gap-2 rounded-full px-4 focus-within:ring-2 focus-within:ring-white/70"
+            className="mt-4 flex h-[3.75rem] items-center gap-2.5 rounded-[20px] bg-white pr-1.5 pl-4 shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-ink-200/50 focus-within:ring-2 focus-within:ring-blue-500"
           >
             {category && <input type="hidden" name="category" value={category} />}
-            <Search className="size-5 text-white/80" aria-hidden />
+            <Search className="size-5 shrink-0 text-ink-900" aria-hidden />
             <label htmlFor="q" className="sr-only">
               Search deals or shops
             </label>
@@ -126,153 +96,151 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               defaultValue={q}
               placeholder="Search deals or shops"
               autoComplete="off"
-              className="h-full min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/70"
+              className="h-full min-w-0 flex-1 bg-transparent text-base text-ink-900 outline-none placeholder:text-ink-600"
             />
+            <span aria-hidden className="h-7 w-px bg-ink-200" />
+            <Link
+              href={scanHref}
+              aria-label={verified ? "Scan to redeem" : "Scan to redeem, after you're verified"}
+              className={`grid size-12 shrink-0 place-items-center rounded-[15px] ${verified ? "bg-blue-500 text-white" : "bg-ink-200 text-ink-700"}`}
+            >
+              {verified ? <ScanLine className="size-6" aria-hidden /> : <Lock className="size-5" aria-hidden />}
+            </Link>
           </form>
 
-          <div className="mt-4 space-y-3">
-            {live && (
-              <Link
-                href={`/student/redeem/${live}`}
-                className="gloss-orange spring-in flex items-center justify-between gap-3 rounded-3xl p-4 font-semibold text-ink-900"
-              >
-                You have a redemption in progress <ArrowRight className="size-5 shrink-0" aria-hidden />
-              </Link>
-            )}
-            {campusOn && <CampusHomeCard />}
-            {verified ? (
-              <Link
-                href="/student/history"
-                className="gloss-blue spring-in relative flex items-center gap-4 overflow-hidden rounded-3xl p-5"
-                aria-label="See your savings"
-              >
-                <span className="glass-sheen" aria-hidden />
-                <span className="relative">
-                  <span className="block text-[0.8125rem] font-medium text-white/85">Saved with Perqly</span>
-                  <span className="block font-display text-4xl leading-tight font-extrabold tracking-tight tabular-nums">
-                    {money(savings.total_saved)}
-                  </span>
-                  <span className="block text-[0.8125rem] text-white/85">
-                    {savings.redemptions === 0
-                      ? "Your first discount shows up here"
-                      : `${savings.redemptions} ${savings.redemptions === 1 ? "visit" : "visits"}, ${savings.shops} ${savings.shops === 1 ? "shop" : "shops"}`}
-                  </span>
-                </span>
-                <span className="relative ml-auto grid size-10 place-items-center rounded-full bg-white/20">
-                  <ArrowRight className="size-5" aria-hidden />
-                </span>
-              </Link>
-            ) : view === "pending" ? (
-              <div className="glass-dark spring-in rounded-3xl p-4">
-                <h2 className="flex items-center gap-2 font-display text-lg font-bold">
-                  <span className="relative flex size-2.5" aria-hidden>
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-orange-400 opacity-75" />
-                    <span className="relative inline-flex size-2.5 rounded-full bg-orange-500" />
-                  </span>
-                  Perqly is checking your details
-                </h2>
-                <p className="mt-1 text-sm text-white/80">
-                  You can browse deals now. Redeeming unlocks when you&apos;re approved, usually {REVIEW_PROMISE}.
-                </p>
-                <Link
-                  href="/student/verify"
-                  className="mt-3 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-ink-900"
-                >
-                  See status
-                </Link>
-              </div>
-            ) : (
-              <div className="glass-dark spring-in rounded-3xl p-4">
-                <h2 className="font-display text-lg leading-snug font-bold">
-                  {view === "expired"
-                    ? "Your verification has expired"
-                    : view === "rejected"
-                      ? "Your application wasn't approved"
-                      : "Get verified to unlock student prices"}
-                </h2>
-                <p className="mt-1 text-sm text-white/80">
-                  {view === "needs_profile"
-                    ? "Start by choosing your school."
-                    : view === "resubmit"
-                      ? "Your reviewer asked you to change something."
-                      : view === "rejected"
-                        ? "See why, then send a new application."
-                        : "You'll need your student ID card."}
-                </p>
-                <Link
-                  href={view === "needs_profile" ? "/student/profile" : "/student/verify"}
-                  className="gloss-orange mt-3 inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ink-900"
-                >
-                  {view === "needs_profile"
-                    ? "Choose your school"
-                    : view === "resubmit"
-                      ? "See what to change"
-                      : view === "rejected"
-                        ? "See why"
-                        : "Start verification"}{" "}
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
-              </div>
-            )}
-          </div>
-        </section>
+          {live && (
+            <Link
+              href={`/student/redeem/${live}`}
+              className="gloss-orange spring-in mt-3 flex items-center justify-between gap-3 rounded-3xl p-4 font-semibold text-ink-900"
+            >
+              You have a redemption in progress <ArrowRight className="size-5 shrink-0" aria-hidden />
+            </Link>
+          )}
 
-        <nav
-          aria-label="Categories"
-          className="sticky top-16 z-10 flex [scrollbar-width:none] gap-2 overflow-x-auto bg-paper [mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)] px-4 pt-4 pb-2 sm:px-0"
-        >
-          <CategoryChip href={link({ q, sort })} active={!category} label="All" />
-          {categories.map((c) => (
-            <CategoryChip key={c.id} href={link({ q, category: c.slug, sort })} active={category === c.slug} icon={c.icon} label={c.name} />
-          ))}
+          {!verified && (
+            <Link
+              href={view === "needs_profile" ? "/student/profile" : "/student/verify"}
+              className="mt-3 flex items-center gap-3 rounded-[18px] bg-orange-50 p-3.5 ring-[1.5px] ring-orange-200"
+            >
+              <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-xl bg-orange-500 text-ink-900">
+                {view === "pending" ? <Hourglass className="size-5" /> : <Lock className="size-5" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold text-ink-900">
+                  {view === "pending"
+                    ? "Perqly is checking your details"
+                    : view === "expired"
+                      ? "Your verification has expired"
+                      : view === "rejected"
+                        ? "Your application wasn't approved"
+                        : view === "resubmit"
+                          ? "Your reviewer asked for a change"
+                          : view === "needs_profile"
+                            ? "Choose your school to start"
+                            : "Verify you're a student"}
+                </span>
+                <span className="block text-[0.8125rem] text-ink-600">
+                  {view === "pending"
+                    ? `Redeeming unlocks when you're approved, usually ${REVIEW_PROMISE}.`
+                    : view === "needs_profile"
+                      ? "Then verify to unlock student prices."
+                      : "Student ID and a selfie unlock student prices."}
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-ink-700" aria-hidden />
+            </Link>
+          )}
+
+          {campusOn && (
+            <div className="mt-3">
+              <CampusHomeCard />
+            </div>
+          )}
+        </div>
+
+        <nav aria-labelledby="cat-h" className="pt-6">
+          <h2 id="cat-h" className="px-4 font-display text-xl font-extrabold tracking-tight sm:px-0">
+            Categories
+          </h2>
+          <div
+            data-no-swipe
+            className="mt-3 flex [scrollbar-width:none] gap-3 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] px-4 pb-1 sm:px-0"
+          >
+            <CategoryTile href={link({ q, sort })} active={!category} icon="layout-grid" label="All" />
+            {categories.map((c) => (
+              <CategoryTile
+                key={c.id}
+                href={link({ q, category: c.slug, sort })}
+                active={category === c.slug}
+                icon={c.icon}
+                label={c.name}
+                slug={c.slug}
+              />
+            ))}
+          </div>
         </nav>
 
-        {today.length > 0 && (
-          <section aria-labelledby="today-h">
-            <div className="flex items-baseline justify-between px-4 pt-4 pb-2 sm:px-0">
-              <h2 id="today-h" className="font-display text-lg font-bold">
-                On today
-              </h2>
-              <span className="text-[0.8125rem] font-medium text-ink-600">Set days and times</span>
+        {!filtering && (
+          <section aria-label="Campus deals" className="px-4 pt-6 sm:px-0">
+            <div className="theme-fixed relative isolate h-[11.5rem] overflow-hidden rounded-[26px] bg-[#0047b3] text-white">
+              <span
+                aria-hidden
+                className="absolute inset-y-0 right-0 w-44 bg-blue-500 [clip-path:polygon(28%_0,100%_0,100%_100%,0_100%)]"
+              />
+              <span aria-hidden className="absolute top-8 right-5 grid size-28 place-items-center">
+                <span className="absolute inset-0 rounded-full bg-white/15" />
+                <span className="relative flex h-16 w-[5.5rem] -rotate-6 items-center justify-center gap-1.5 rounded-2xl bg-white text-[#0047b3] shadow-xl">
+                  <Ticket className="size-7" />
+                  <span className="text-lg font-extrabold">%</span>
+                </span>
+                <span className="absolute top-1 right-0 size-6 rounded-full bg-orange-500" />
+              </span>
+              <div className="relative max-w-[12.5rem] p-5">
+                <p className="font-display text-[1.75rem] leading-none font-extrabold tracking-tight">Campus</p>
+                <p className="font-display text-[1.75rem] leading-none font-extrabold tracking-tight text-[#ffb08f]">Deals</p>
+                <p className="mt-2 text-sm text-white/90">Student-only offers near {campus ?? "your campus"}</p>
+                <a
+                  href="#all-h"
+                  className="mt-3 inline-flex h-11 items-center gap-1.5 rounded-full bg-white px-4 text-[0.9375rem] font-bold text-ink-900"
+                >
+                  Explore deals <ArrowRight className="size-4" aria-hidden />
+                </a>
+              </div>
             </div>
-            <ul className="flex snap-x [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
-              {today.map((d) => (
-                <li key={d.offer_id} className="w-60 shrink-0 snap-start">
-                  <DealCard deal={d} back={link({ q, category })} locked={!verified} compact />
+          </section>
+        )}
+
+        {popular.length > 0 && (
+          <section aria-labelledby="near-h" className="pt-6">
+            <div className="flex items-center justify-between px-4 sm:px-0">
+              <h2 id="near-h" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
+                <Flame className="size-5 fill-orange-500 text-orange-600" aria-hidden />
+                Popular near you
+              </h2>
+              <Link href="/student/map" className="inline-flex min-h-11 items-center gap-1 text-[0.9375rem] font-bold text-blue-700">
+                See all <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            </div>
+            <ul className="mt-2 grid grid-cols-2 gap-3 px-4 sm:px-0 lg:grid-cols-4 [&>li]:min-w-0">
+              {popular.map((d) => (
+                <li key={d.offer_id}>
+                  <PopularCard deal={d} back={link({ q, category })} locked={!verified} />
                 </li>
               ))}
             </ul>
           </section>
         )}
 
-        {!filtering && (
-          <div className="px-4 pt-4 sm:px-0">
-            <Link
-              href="/student/resources"
-              className="flex items-center gap-3 rounded-[22px] bg-white p-3.5 ring-1 ring-ink-200/70 hover:bg-ink-50"
-            >
-              <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <BookOpen className="size-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-bold text-ink-900">Student resources</span>
-                <span className="block text-[0.8125rem] text-ink-600">Free tools, courses, internships and more</span>
-              </span>
-              <ChevronRight className="size-5 text-ink-400" aria-hidden />
-            </Link>
-          </div>
-        )}
-
-        {near.length > 0 && (
-          <section aria-labelledby="near-h">
-            <div className="flex items-baseline justify-between px-4 pt-4 pb-2 sm:px-0">
-              <h2 id="near-h" className="font-display text-lg font-bold">
-                {anyHours ? "Open now near" : "Closest to"} {campus ?? "campus"}
+        {today.length > 0 && (
+          <section aria-labelledby="today-h">
+            <div className="flex items-baseline justify-between px-4 pt-6 pb-2 sm:px-0">
+              <h2 id="today-h" className="font-display text-xl font-extrabold tracking-tight">
+                On today
               </h2>
-              <span className="text-[0.8125rem] font-medium text-ink-600">By walking time</span>
+              <span className="text-[0.8125rem] font-medium text-ink-600">Set days and times</span>
             </div>
-            <ul className="flex snap-x [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
-              {near.map((d) => (
+            <ul data-no-swipe className="flex snap-x [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:px-0">
+              {today.map((d) => (
                 <li key={d.offer_id} className="w-60 shrink-0 snap-start">
                   <DealCard deal={d} back={link({ q, category })} locked={!verified} compact />
                 </li>
@@ -283,7 +251,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
 
         <section aria-labelledby="all-h">
           <div className="flex items-baseline justify-between px-4 pt-5 pb-2 sm:px-0">
-            <h2 id="all-h" className="font-display text-lg font-bold">
+            <h2 id="all-h" className="scroll-mt-24 font-display text-xl font-extrabold tracking-tight">
               {q ? `Results for “${q}”` : chosen ? chosen.name : sort ? SORTS.find((o) => o.value === sort)?.heading : "All deals"}
             </h2>
             <SortMenu
