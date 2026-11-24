@@ -150,7 +150,7 @@ export function CategoryTile({
       <span
         className={cn(
           "relative grid size-16 place-items-center overflow-hidden rounded-[20px] transition-transform active:scale-95",
-          active && "ring-2 ring-blue-500 ring-offset-2 ring-offset-paper",
+          active && "outline-[2.5px] outline-offset-[3px] outline-blue-500 outline-solid",
         )}
         style={{
           background: `linear-gradient(155deg, color-mix(in srgb, ${tone.bg} 45%, white) 0%, ${tone.bg} 55%, color-mix(in srgb, ${tone.bg} 82%, ${tone.fg}) 100%)`,
