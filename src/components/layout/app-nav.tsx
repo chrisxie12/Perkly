@@ -143,7 +143,7 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
   return (
     <nav
       aria-label={`${nav.label} tabs`}
-      className="glass fixed inset-x-3 bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.375rem))] z-30 mx-auto max-w-md rounded-[2rem] px-1 md:hidden"
+      className="glass pq-dock fixed inset-x-3 bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.375rem))] z-30 mx-auto max-w-md rounded-[2rem] px-1 md:hidden"
     >
       <ul className="grid h-16 auto-cols-fr grid-flow-col items-center">
         {nav.tabs.slice(0, nav.more.length > 0 ? 4 : 5).map((it) => {
@@ -179,7 +179,7 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
                 aria-current={current ? "page" : undefined}
                 className={cn(
                   "relative flex w-full flex-col items-center gap-0.5 text-[0.6875rem] font-medium text-ink-700 transition-colors duration-300 active:scale-95",
-                  current && "font-semibold text-blue-600",
+                  current && "font-semibold text-blue-600 dark:text-[#3B82F6]",
                 )}
               >
                 <span
@@ -190,8 +190,8 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
                 >
                   <Icon
                     className={it.icon === "ticket" ? "size-5" : "size-[1.375rem]"}
-                    // The ticket outline reads heavier than the other icons; thin it to match.
-                    strokeWidth={(current ? 2.4 : 1.9) - (it.icon === "ticket" ? 0.3 : 0)}
+                    // One outline weight for every tab; the active one is told apart by colour.
+                    strokeWidth={1.75}
                     aria-hidden
                   />
                   <Badge badge={it.badge} />

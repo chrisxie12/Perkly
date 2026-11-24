@@ -56,7 +56,7 @@ export async function StudentTopBar() {
         <Link
           href="/student/messages"
           aria-label={chatCount > 0 ? `Chat, ${chatCount} new` : "Chat"}
-          className="press glass grid size-11 place-items-center rounded-full text-ink-900"
+          className="press glass pq-round grid size-11 place-items-center rounded-full text-ink-900"
         >
           <span className="relative grid size-7 place-items-center">
             <MessageCircle className="size-[1.375rem]" aria-hidden />

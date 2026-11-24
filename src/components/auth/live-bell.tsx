@@ -131,7 +131,7 @@ export function LiveBell({
         href="/account/notifications"
         className={
           round
-            ? "press glass grid size-11 place-items-center rounded-full text-ink-900"
+            ? "press glass pq-round grid size-11 place-items-center rounded-full text-ink-900"
             : "relative grid size-10 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
         }
         aria-label={unread > 0 ? `Notifications, ${unread} new` : "Notifications"}

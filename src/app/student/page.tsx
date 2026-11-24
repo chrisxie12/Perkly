@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DealCard, PopularCard } from "@/features/students/app/deal-card";
-import { ArrowRight, ChevronRight, Flame, Hourglass, Lock, ScanLine, Search, Store, Ticket } from "lucide-react";
+import { ArrowRight, ChevronRight, Flame, Hourglass, Lock, ScanLine, Search, Store } from "lucide-react";
 import { AreaShell } from "@/components/layout/area-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { getUserContext } from "@/lib/auth/session";
@@ -73,19 +73,19 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
     <AreaShell area="student">
       <div className="-mx-4 sm:mx-0">
         <div className="px-4 sm:px-0">
-          <h1 className="font-display text-[1.75rem] leading-tight font-extrabold tracking-tight">
+          <h1 className="font-display text-[1.75rem] leading-tight font-extrabold tracking-tight dark:text-white">
             {greeting}
             {ctx?.firstName ? `, ${ctx.firstName}` : ""}
           </h1>
-          <p className="mt-1 text-[0.9375rem] text-ink-600">Discover deals, learn and save more on campus.</p>
+          <p className="mt-1 text-[0.9375rem] text-ink-600 dark:text-[#94A3B8]">Discover deals, learn and save more on campus.</p>
 
           <form
             role="search"
             action="/student"
-            className="mt-4 flex h-[3.75rem] items-center gap-2.5 rounded-[20px] bg-white pr-1.5 pl-4 shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-ink-200/50 focus-within:ring-2 focus-within:ring-blue-500"
+            className="mt-4 flex h-[3.75rem] items-center gap-2.5 rounded-[20px] bg-white pr-1.5 pl-4 shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-ink-200/50 focus-within:ring-2 focus-within:ring-blue-500 dark:rounded-2xl dark:shadow-none dark:ring-[#222C3F] dark:focus-within:ring-[#2563EB]"
           >
             {category && <input type="hidden" name="category" value={category} />}
-            <Search className="size-5 shrink-0 text-ink-900" aria-hidden />
+            <Search className="size-5 shrink-0 text-ink-900 dark:text-[#94A3B8]" aria-hidden />
             <label htmlFor="q" className="sr-only">
               Search deals or shops
             </label>
@@ -96,13 +96,13 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               defaultValue={q}
               placeholder="Search deals or shops"
               autoComplete="off"
-              className="h-full min-w-0 flex-1 bg-transparent text-base text-ink-900 outline-none placeholder:text-ink-600"
+              className="h-full min-w-0 flex-1 bg-transparent text-base text-ink-900 outline-none placeholder:text-ink-600 dark:placeholder:text-[#94A3B8]"
             />
-            <span aria-hidden className="h-7 w-px bg-ink-200" />
+            <span aria-hidden className="h-7 w-px bg-ink-200 dark:hidden" />
             <Link
               href={scanHref}
               aria-label={verified ? "Scan to redeem" : "Scan to redeem, after you're verified"}
-              className={`grid size-12 shrink-0 place-items-center rounded-[15px] ${verified ? "bg-blue-500 text-white" : "bg-ink-200 text-ink-700"}`}
+              className={`grid size-12 shrink-0 place-items-center rounded-[15px] dark:rounded-xl ${verified ? "bg-blue-500 text-white dark:bg-[#2563EB]" : "bg-ink-200 text-ink-700 dark:bg-[#222C3F] dark:text-[#94A3B8]"}`}
             >
               {verified ? <ScanLine className="size-6" aria-hidden /> : <Lock className="size-5" aria-hidden />}
             </Link>
@@ -159,12 +159,12 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
         </div>
 
         <nav aria-labelledby="cat-h" className="pt-6">
-          <h2 id="cat-h" className="px-4 font-display text-xl font-extrabold tracking-tight sm:px-0">
+          <h2 id="cat-h" className="px-4 font-display text-xl font-extrabold tracking-tight sm:px-0 dark:text-white">
             Categories
           </h2>
           <div
             data-no-swipe
-            className="mt-1.5 flex [scrollbar-width:none] gap-3 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] px-4 pt-1.5 pb-1.5 sm:px-0"
+            className="mt-2 flex snap-x scroll-px-4 [scrollbar-width:none] gap-2.5 overflow-x-auto px-4 pt-1.5 pb-1.5 sm:scroll-px-0 sm:px-0"
           >
             <CategoryTile href={link({ q, sort })} active={!category} icon="all" label="All" />
             {categories.map((c) => (
@@ -182,26 +182,27 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
 
         {!filtering && (
           <section aria-label="Campus deals" className="px-4 pt-6 sm:px-0">
-            <div className="theme-fixed relative isolate h-[11.5rem] overflow-hidden rounded-[26px] bg-[#0047b3] text-white">
+            <div className="theme-fixed relative isolate h-[11.5rem] overflow-hidden rounded-[20px] bg-[linear-gradient(120deg,#1D4ED8_0%,#2563EB_100%)] text-white">
               <span
                 aria-hidden
-                className="absolute inset-y-0 right-0 w-44 bg-blue-500 [clip-path:polygon(28%_0,100%_0,100%_100%,0_100%)]"
+                className="absolute inset-y-0 right-0 w-48 bg-[#3B82F6]/45 [clip-path:polygon(32%_0,100%_0,100%_100%,0_100%)]"
               />
-              <span aria-hidden className="absolute top-8 right-5 grid size-28 place-items-center">
-                <span className="absolute inset-0 rounded-full bg-white/15" />
-                <span className="relative flex h-16 w-[5.5rem] -rotate-6 items-center justify-center gap-1.5 rounded-2xl bg-white text-[#0047b3] shadow-xl">
-                  <Ticket className="size-7" />
-                  <span className="text-lg font-extrabold">%</span>
-                </span>
-                <span className="absolute top-1 right-0 size-6 rounded-full bg-orange-500" />
-              </span>
+              <span aria-hidden className="absolute top-1/2 right-6 size-32 -translate-y-1/2 rounded-full bg-white/10" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- small local illustration */}
+              <img
+                src="/icons/3d/discount-ticket.webp"
+                alt=""
+                width={150}
+                height={100}
+                className="absolute top-1/2 right-3 w-[9.5rem] -translate-y-1/2 drop-shadow-[0_12px_18px_rgba(0,0,0,0.28)]"
+              />
               <div className="relative max-w-[12.5rem] p-5">
                 <p className="font-display text-[1.75rem] leading-none font-extrabold tracking-tight">Campus</p>
-                <p className="font-display text-[1.75rem] leading-none font-extrabold tracking-tight text-[#ffb08f]">Deals</p>
+                <p className="font-display text-[1.75rem] leading-none font-extrabold tracking-tight text-[#FDBA8C]">Deals</p>
                 <p className="mt-2 text-sm text-white/90">Student-only offers near {campus ?? "your campus"}</p>
                 <a
                   href="#all-h"
-                  className="mt-3 inline-flex h-11 items-center gap-1.5 rounded-full bg-white px-4 text-[0.9375rem] font-bold text-ink-900"
+                  className="mt-3 inline-flex h-11 items-center gap-1.5 rounded-full bg-white px-4 text-[0.9375rem] font-bold text-[#0B111E]"
                 >
                   Explore deals <ArrowRight className="size-4" aria-hidden />
                 </a>
@@ -213,7 +214,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
         {popular.length > 0 && (
           <section aria-labelledby="near-h" className="pt-6">
             <div className="flex items-center justify-between px-4 sm:px-0">
-              <h2 id="near-h" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
+              <h2 id="near-h" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight dark:text-white">
                 <Flame className="size-5 fill-orange-500 text-orange-600" aria-hidden />
                 Popular near you
               </h2>
