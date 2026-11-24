@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,14 @@ export function ProfileDrawer({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
+  // The panel is put straight under <body> (the top bar's blur would otherwise trap it in
+  // the bar), and only once first opened, so the server and the first render match.
+  const [ready, setReady] = React.useState(false);
+  const show = React.useCallback(() => {
+    setReady(true);
+    // Two frames: the panel exists off-screen first, so it slides in rather than appearing.
+    requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
+  }, []);
   const pathname = usePathname();
   const panel = React.useRef<HTMLDivElement>(null);
   const opener = React.useRef<HTMLButtonElement>(null);
@@ -45,7 +54,7 @@ export function ProfileDrawer({
     };
     const onEnd = (e: TouchEvent) => {
       const t = e.changedTouches[0];
-      if (start.current && t && isOpenSwipe(start.current, { x: t.clientX, y: t.clientY }, window.innerWidth)) setOpen(true);
+      if (start.current && t && isOpenSwipe(start.current, { x: t.clientX, y: t.clientY }, window.innerWidth)) show();
       start.current = null;
     };
     window.addEventListener("touchstart", onStart, { passive: true });
@@ -54,7 +63,7 @@ export function ProfileDrawer({
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchend", onEnd);
     };
-  }, [pathname, open]);
+  }, [pathname, open, show]);
 
   // While open: Escape closes, the page behind doesn't scroll, focus moves in and comes back.
   React.useEffect(() => {
@@ -95,7 +104,7 @@ export function ProfileDrawer({
       <button
         ref={opener}
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={show}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={triggerLabel}
@@ -103,51 +112,55 @@ export function ProfileDrawer({
       >
         {trigger}
       </button>
-      <div className={cn("fixed inset-0 z-50", open ? "" : "pointer-events-none")} aria-hidden={!open}>
-        <div
-          className={cn(
-            "absolute inset-0 bg-ink-900/40 transition-opacity duration-300 motion-reduce:transition-none",
-            open ? "opacity-100" : "opacity-0",
-          )}
-          onClick={() => setOpen(false)}
-        />
-        <div
-          ref={panel}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Your profile and settings"
-          tabIndex={-1}
-          inert={!open}
-          // Following a link in the panel (or signing out) closes it.
-          onClick={(e) => {
-            if (e.target instanceof Element && e.target.closest("a[href]")) setOpen(false);
-          }}
-          onTouchStart={(e) => (closeStart.current = e.touches[0]?.clientX ?? null)}
-          onTouchEnd={(e) => {
-            const x = e.changedTouches[0]?.clientX;
-            if (closeStart.current !== null && x !== undefined && closeStart.current - x > 70) setOpen(false);
-            closeStart.current = null;
-          }}
-          className={cn(
-            "pt-safe pb-safe absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-paper shadow-2xl outline-none",
-            "transition-transform duration-300 ease-out motion-reduce:transition-none",
-            open ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          <div className="flex items-center justify-between px-4 pt-3 pb-1">
-            <p className="font-display text-lg font-bold">You</p>
-            <button
-              type="button"
+      {ready &&
+        createPortal(
+          <div className={cn("fixed inset-0 z-50", open ? "" : "pointer-events-none")} aria-hidden={!open}>
+            <div
+              className={cn(
+                "absolute inset-0 bg-ink-900/40 transition-opacity duration-300 motion-reduce:transition-none",
+                open ? "opacity-100" : "opacity-0",
+              )}
               onClick={() => setOpen(false)}
-              aria-label="Close"
-              className="grid size-11 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
+            />
+            <div
+              ref={panel}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Your profile and settings"
+              tabIndex={-1}
+              inert={!open}
+              // Following a link in the panel (or signing out) closes it.
+              onClick={(e) => {
+                if (e.target instanceof Element && e.target.closest("a[href]")) setOpen(false);
+              }}
+              onTouchStart={(e) => (closeStart.current = e.touches[0]?.clientX ?? null)}
+              onTouchEnd={(e) => {
+                const x = e.changedTouches[0]?.clientX;
+                if (closeStart.current !== null && x !== undefined && closeStart.current - x > 70) setOpen(false);
+                closeStart.current = null;
+              }}
+              className={cn(
+                "pt-safe pb-safe absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-paper shadow-2xl outline-none",
+                "transition-transform duration-300 ease-out motion-reduce:transition-none",
+                open ? "translate-x-0" : "-translate-x-full",
+              )}
             >
-              <X className="size-5" aria-hidden />
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">{children}</div>
-        </div>
-      </div>
+              <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                <p className="font-display text-lg font-bold">You</p>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                  className="grid size-11 place-items-center rounded-full text-ink-700 hover:bg-ink-100"
+                >
+                  <X className="size-5" aria-hidden />
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">{children}</div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
