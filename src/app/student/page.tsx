@@ -82,7 +82,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
           <form
             role="search"
             action="/student"
-            className="mt-4 flex h-[3.75rem] items-center gap-2.5 rounded-[20px] bg-white pr-1.5 pl-4 shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-ink-200/50 focus-within:ring-2 focus-within:ring-blue-500 dark:rounded-2xl dark:shadow-none dark:ring-[#222C3F] dark:focus-within:ring-[#2563EB]"
+            className="mt-4 flex h-[3.75rem] items-center gap-2.5 rounded-[20px] bg-white pr-1.5 pl-4 shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-ink-200/50 focus-within:ring-2 focus-within:ring-blue-500 dark:rounded-[16px] dark:shadow-none dark:ring-[#222C3F] dark:focus-within:ring-[#2563EB]"
           >
             {category && <input type="hidden" name="category" value={category} />}
             <Search className="size-5 shrink-0 text-ink-900 dark:text-[#94A3B8]" aria-hidden />
@@ -102,7 +102,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             <Link
               href={scanHref}
               aria-label={verified ? "Scan to redeem" : "Scan to redeem, after you're verified"}
-              className={`grid size-12 shrink-0 place-items-center rounded-[15px] dark:rounded-xl ${verified ? "bg-blue-500 text-white dark:bg-[#2563EB]" : "bg-ink-200 text-ink-700 dark:bg-[#222C3F] dark:text-[#94A3B8]"}`}
+              className={`grid size-12 shrink-0 place-items-center rounded-[15px] dark:rounded-[12px] ${verified ? "bg-blue-500 text-white dark:bg-[#2563EB]" : "bg-ink-200 text-ink-700 dark:bg-[#222C3F] dark:text-[#94A3B8]"}`}
             >
               {verified ? <ScanLine className="size-6" aria-hidden /> : <Lock className="size-5" aria-hidden />}
             </Link>
@@ -190,7 +190,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
               <span aria-hidden className="absolute top-1/2 right-6 size-32 -translate-y-1/2 rounded-full bg-white/10" />
               {/* eslint-disable-next-line @next/next/no-img-element -- small local illustration */}
               <img
-                src="/icons/3d/discount-ticket.webp"
+                src="/icons/3d/discount-ticket.webp?v=2"
                 alt=""
                 width={150}
                 height={100}

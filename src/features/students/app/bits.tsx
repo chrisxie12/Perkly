@@ -171,7 +171,7 @@ export function CategoryTile({
       <span
         className={cn(
           "relative grid size-16 place-items-center overflow-hidden rounded-[20px] [box-shadow:var(--tile-shadow)] transition-transform [background:var(--tile-light)] active:scale-95",
-          "dark:size-[72px] dark:rounded-2xl dark:border dark:[border-color:var(--tile-border)] dark:shadow-none dark:[background:var(--tile-dark)]",
+          "dark:size-[72px] dark:rounded-[16px] dark:border dark:[border-color:var(--tile-border)] dark:shadow-none dark:[background:var(--tile-dark)]",
           active && "outline-[2.5px] outline-offset-[3px] outline-blue-500 outline-solid dark:border-[1.5px] dark:outline-none",
         )}
         style={look}
@@ -183,7 +183,7 @@ export function CategoryTile({
         {ICONS_3D.has(icon ?? "") ? (
           // eslint-disable-next-line @next/next/no-img-element -- tiny local icon, no optimisation needed
           <img
-            src={`/icons/3d/${icon}.webp`}
+            src={`/icons/3d/${icon}.webp?v=2`}
             alt=""
             width={40}
             height={40}

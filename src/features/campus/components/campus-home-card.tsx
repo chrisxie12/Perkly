@@ -6,7 +6,7 @@ export function CampusHomeCard() {
   return (
     <Link
       href="/student/campus"
-      className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-200 hover:bg-ink-50 dark:ring-[#222C3F] dark:hover:bg-[#1A2232]"
+      className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-ink-200 hover:bg-ink-50 dark:rounded-[16px] dark:ring-[#222C3F] dark:hover:bg-[#1A2232]"
     >
       <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-orange-100 text-ink-900 dark:rounded-full dark:bg-[#2B2118] dark:text-orange-400">
         <Megaphone className="size-5" aria-hidden />
