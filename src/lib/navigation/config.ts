@@ -196,16 +196,24 @@ function studentNav(n: NavContext): AreaNav {
   const view = n.verification ?? null;
   const verified = view === "verified";
   const needsAction = view !== null && ["needs_profile", "apply", "resubmit", "rejected", "expired"].includes(view);
-  // Snapchat-style frame: "Me" lives in the profile photo at the top left, and the
-  // top bar holds Notifications and Chat, so the bottom bar is for places to go.
+  // Bottom bar: places to go. "Me" (profile and settings) is the panel that slides in from
+  // the left (swipe right on Home, or tap the Perqly logo); Scan is the button in Home's search bar.
   const tabs = [
     item("deals", "Home", "/student", "home", ["/student", "/student/offers*", "/student/merchants*"]),
     item("map", "Explore", "/student/map", "compass", ["/student/map*"]),
-    item("scan", "Scan", "/student/scan", "scan", ["/student/scan*", "/student/redeem*"], verified ? undefined : "lock"),
-    item("savings", "My Deals", "/student/history", "ticket", ["/student/history*"]),
+    item("resources", "Resources", "/student/resources", "book", ["/student/resources*"]),
+    item("savings", "My Deals", "/student/history", "heart", ["/student/history*"]),
     // Only while Campus is switched on (it's off for the pilot).
     ...(n.campus ? [item("campus", "Campus", "/student/campus", "cap", ["/student/campus*"])] : []),
   ];
+  const scan = item(
+    "scan",
+    "Scan to redeem",
+    "/student/scan",
+    "scan",
+    ["/student/scan*", "/student/redeem*"],
+    verified ? undefined : "lock",
+  );
   const me = item("me", "Me", "/student/me", "user", ["/student/me*"], needsAction ? "dot" : undefined);
   return {
     area: "student",
@@ -218,8 +226,8 @@ function studentNav(n: NavContext): AreaNav {
         label: "You",
         items: [
           me,
+          scan,
           item("saved", "Saved shops", "/student/favourites", "heart", ["/student/favourites*"]),
-          item("resources", "Student resources", "/student/resources", "book", ["/student/resources*"]),
           ...(n.bookings ? [item("bookings", "Bookings", "/student/bookings", "calendar", ["/student/bookings*"])] : []),
           ...(n.friends ? [item("friends", "Friends", "/student/friends", "users", ["/student/friends*"])] : []),
           item("problems", "Problem reports", "/student/problems", "inbox", ["/student/problems*"]),

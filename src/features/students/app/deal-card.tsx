@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Lock, Star } from "lucide-react";
+import { ChevronRight, Lock, MapPin, Star, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "@/features/offers/components/marketplace";
 import type { Deal } from "@/features/offers/queries";
@@ -234,4 +234,62 @@ function CompactDealCard({ deal, back, locked }: { deal: Deal; back: string; loc
       </span>
     </article>
   );
+}
+
+/**
+ * "Popular near you" on Home: big photo with the saving on it and the heart,
+ * then the shop, how far it is and its rating (only when it has real ratings).
+ */
+export function PopularCard({ deal, back, locked }: { deal: Deal; back: string; locked: boolean }) {
+  const closed = Boolean(deal.has_hours && !deal.open_now);
+  const away = shortDistance(deal.distance_m);
+  return (
+    <article className="relative min-w-0 overflow-hidden rounded-[22px] bg-white shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-ink-200/50">
+      <Link href={`/student/offers/${deal.offer_id}`} className="block focus-visible:outline-none">
+        <span className="relative block h-32 overflow-hidden bg-ink-100">
+          <DealPhoto deal={deal} closed={closed} />
+          <span className="absolute top-3 left-3 rounded-full bg-white px-3 py-1.5 text-sm font-extrabold text-blue-700 uppercase ring-[1.5px] ring-blue-500">
+            {savingLabel(deal)}
+          </span>
+          {locked && (
+            <span className="absolute bottom-2.5 left-3 inline-flex items-center gap-1 rounded-full bg-ink-900/85 px-2.5 py-1 text-xs font-semibold text-white">
+              <Lock className="size-3" aria-hidden /> Verify to use
+            </span>
+          )}
+          {closed && !locked && (
+            <span className="absolute bottom-2.5 left-3 rounded-full bg-black/65 px-2.5 py-1 text-xs font-semibold text-white">Closed</span>
+          )}
+        </span>
+        <span className="block px-3 pt-3 pb-3.5">
+          <span className="flex min-w-0 items-center gap-2 text-base font-bold text-ink-900">
+            <Store className="size-5 shrink-0 text-ink-700" aria-hidden />
+            <span className="truncate">{deal.merchant_name}</span>
+          </span>
+          <span className="mt-0.5 block truncate pl-7 text-[0.8125rem] text-ink-600">{deal.title}</span>
+          <span className="mt-2 flex items-center justify-between gap-2 text-sm text-ink-600">
+            {away ? (
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="size-4" aria-hidden /> {away}
+              </span>
+            ) : (
+              <span />
+            )}
+            <RatingTag rating={deal.rating} reviews={deal.reviews} />
+          </span>
+        </span>
+      </Link>
+      {!locked && (
+        <span className="absolute top-2.5 right-2.5 rounded-full bg-white shadow-[0_2px_6px_rgba(15,23,42,0.12)]">
+          <HeartButton merchantId={deal.merchant_id} saved={deal.is_favourite} back={back} label={deal.merchant_name} />
+        </span>
+      )}
+    </article>
+  );
+}
+
+/** "0.3 km", "850 m". */
+export function shortDistance(m: number | null | undefined) {
+  if (m === null || m === undefined) return null;
+  if (m < 1000) return `${Math.max(10, Math.round(m / 10) * 10)} m`;
+  return `${(m / 1000).toFixed(1)} km`;
 }

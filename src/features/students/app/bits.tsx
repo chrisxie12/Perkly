@@ -119,6 +119,41 @@ export function CategoryChip({ href, active, icon, label }: { href: string; acti
   );
 }
 
+/** A category as a big tinted tile with its label underneath (Home). */
+export function CategoryTile({
+  href,
+  active,
+  icon,
+  label,
+  slug,
+}: {
+  href: string;
+  active: boolean;
+  icon?: string;
+  label: string;
+  slug?: string;
+}) {
+  const tone = slug ? toneFor(slug) : { bg: "#EEF2F7", fg: "#334155" };
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className="flex w-[4.25rem] shrink-0 flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900"
+    >
+      <span
+        className={cn(
+          "grid size-16 place-items-center rounded-[20px] transition-transform active:scale-95",
+          active && "ring-2 ring-blue-500 ring-offset-2 ring-offset-paper",
+        )}
+        style={{ background: tone.bg, color: tone.fg }}
+      >
+        <CategoryIcon name={icon ?? "store"} className="size-7" />
+      </span>
+      <span className="line-clamp-2">{label}</span>
+    </Link>
+  );
+}
+
 /** When a deal with set days or times runs, and whether it's on now. Nothing for every-day deals. */
 export function RunTimesTag({ deal, className }: { deal: RunTimes & { running_now?: boolean }; className?: string }) {
   if (isEveryDay(deal)) return null;

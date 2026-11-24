@@ -68,8 +68,8 @@ describe("Campus menu items", () => {
   it("shows Campus as the fifth student tab only while Campus is switched on (off for the pilot)", () => {
     const off = navFor("student", { ctx: base, verification: "verified" }).tabs.map((t) => t.label);
     const on = navFor("student", { ctx: base, verification: "verified", campus: true }).tabs.map((t) => t.label);
-    expect(off).toEqual(["Home", "Explore", "Scan", "My Deals"]);
-    expect(on).toEqual(["Home", "Explore", "Scan", "My Deals", "Campus"]);
+    expect(off).toEqual(["Home", "Explore", "Resources", "My Deals"]);
+    expect(on).toEqual(["Home", "Explore", "Resources", "My Deals", "Campus"]);
   });
 
   it("limits the admin Campus pages by staff role", () => {
