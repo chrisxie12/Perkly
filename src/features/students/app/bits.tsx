@@ -138,7 +138,7 @@ export function CategoryTile({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className="flex w-[4.25rem] shrink-0 flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900"
+      className="flex w-[4.75rem] shrink-0 flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900"
     >
       <span
         className={cn(
