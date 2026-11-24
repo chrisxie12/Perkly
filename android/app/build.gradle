@@ -85,6 +85,9 @@ android {
         
 
         
+            // The data for the app to support web share target.
+            resValue "string", "shareTarget", '{\\"action\\":\\"/student/share\\",\\"method\\":\\"GET\\",\\"params\\":{\\"title\\":\\"title\\",\\"text\\":\\"text\\",\\"url\\":\\"url\\"}}'
+        
 
         // The hostname is used when building the intent-filter, so the TWA is able to
         // handle Intents to open host url of the application.
