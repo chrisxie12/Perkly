@@ -140,14 +140,33 @@ export function CategoryTile({
       aria-current={active ? "page" : undefined}
       className="flex w-[4.75rem] shrink-0 flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900"
     >
+      {/* Raised tile with an extruded, glossy icon: a darker copy sits a little lower as its depth. */}
       <span
         className={cn(
-          "grid size-16 place-items-center rounded-[20px] transition-transform active:scale-95",
+          "relative grid size-16 place-items-center overflow-hidden rounded-[20px] transition-transform active:scale-95",
           active && "ring-2 ring-blue-500 ring-offset-2 ring-offset-paper",
         )}
-        style={{ background: tone.bg, color: tone.fg }}
+        style={{
+          background: `linear-gradient(155deg, color-mix(in srgb, ${tone.bg} 45%, white) 0%, ${tone.bg} 55%, color-mix(in srgb, ${tone.bg} 82%, ${tone.fg}) 100%)`,
+          boxShadow: `inset 0 2px 1px rgba(255,255,255,0.85), inset 0 -3px 6px color-mix(in srgb, ${tone.fg} 14%, transparent), 0 10px 18px -10px color-mix(in srgb, ${tone.fg} 55%, transparent)`,
+        }}
       >
-        <CategoryIcon name={icon ?? "store"} className="size-7" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-1.5 top-1 h-6 rounded-t-[16px] bg-gradient-to-b from-white/70 to-white/0"
+        />
+        <span className="relative grid place-items-center">
+          <CategoryIcon
+            name={icon ?? "store"}
+            className="absolute size-8 translate-x-[1px] translate-y-[2.5px] stroke-[2.6]"
+            style={{ color: `color-mix(in srgb, ${tone.fg} 70%, black)`, opacity: 0.55 }}
+          />
+          <CategoryIcon
+            name={icon ?? "store"}
+            className="relative size-8 stroke-[2.6]"
+            style={{ color: tone.fg, filter: "drop-shadow(0 -1px 0 rgba(255,255,255,0.7))" }}
+          />
+        </span>
       </span>
       <span className="line-clamp-2">{label}</span>
     </Link>

@@ -29,9 +29,9 @@ const ICONS: Record<string, LucideIcon> = {
   wrench: Wrench,
 };
 
-export function CategoryIcon({ name, className }: { name: string; className?: string }) {
+export function CategoryIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
   const Icon = ICONS[name] ?? Store;
-  return <Icon className={className} aria-hidden />;
+  return <Icon className={className} style={style} aria-hidden />;
 }
 
 export function OfferCard({
