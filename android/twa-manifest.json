@@ -24,8 +24,8 @@
     "path": "C:\\perqly-keys\\perqly-upload.keystore",
     "alias": "perqly-upload"
   },
-  "appVersion": "1.1.0",
-  "appVersionCode": 2,
+  "appVersion": "1.2.0",
+  "appVersionCode": 3,
   "shortcuts": [
     {
       "name": "Scan to redeem",
@@ -49,5 +49,14 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fingerprints": []
+  "fingerprints": [],
+  "shareTarget": {
+    "action": "/student/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

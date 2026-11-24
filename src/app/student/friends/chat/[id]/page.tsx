@@ -7,11 +7,13 @@ import { RoomHeader } from "@/features/chat/room/room-header";
 import { getChatPref, loadRoom } from "@/features/chat/room/server";
 import { ChatMenu } from "@/features/chat/room/chat-menu";
 import { getFriendChat } from "@/features/friends/queries";
+import { draftFrom } from "@/features/share/model";
 
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
 
-export default async function FriendChatPage({ params }: PageProps<"/student/friends/chat/[id]">) {
+export default async function FriendChatPage({ params, searchParams }: PageProps<"/student/friends/chat/[id]">) {
   const { id } = await params;
+  const draft = draftFrom((await searchParams).draft);
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const [chat, ctx] = await Promise.all([getFriendChat(id), getUserContext()]);
   if (!chat || !ctx) notFound();
@@ -41,6 +43,7 @@ export default async function FriendChatPage({ params }: PageProps<"/student/fri
           blocked={!chat.can_send}
           blockedText="You can only message friends. This chat is closed."
           emptyText={`Say hi to ${chat.friend_name}. Only the two of you can see this chat.`}
+          initialDraft={draft}
         />
       </div>
     </AreaShell>

@@ -12,7 +12,7 @@ The Android app is a thin wrapper made with [Bubblewrap](https://github.com/Goog
 | Staging  | `perqly-git-main-vision61-studios.vercel.app` | Your own and testers' phones only     |
 | Production | `perqly.online`                             | Friends' phones now; Google Play later |
 
-`twa-manifest.json` in git is the **production** build (perqly.online) since version 1.1.0 (code 2). Switching between the two changes `host`, `fullScopeUrl`, `webManifestUrl`, the icon URLs and the shortcut URLs to `perqly.online`, and raises `appVersionCode`. Nothing else changes. `tests/android-config.test.ts` fails CI if the package id, colours, fallback or target SDK drift.
+`twa-manifest.json` in git is the **production** build (perqly.online) since version 1.1.0 (code 2); share to Perqly from 1.2.0 (code 3). Switching between the two changes `host`, `fullScopeUrl`, `webManifestUrl`, the icon URLs and the shortcut URLs to `perqly.online`, and raises `appVersionCode`. Nothing else changes. `tests/android-config.test.ts` fails CI if the package id, colours, fallback or target SDK drift.
 
 The website vouches for the app at `/.well-known/assetlinks.json` only where the Vercel variable `ANDROID_ASSET_LINK_FINGERPRINTS` is set (comma-separated SHA-256 fingerprints). Staging (Preview) and production both have the upload key. When the app goes on Google Play, add Play's app signing key to the same variable (comma-separated) and redeploy. Unset means 404 and no link.
 
