@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(:root[data-theme="dark"], :root[data-theme="dark"] *));
 
 /*
  * Perqly design tokens.
@@ -401,9 +402,10 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --surface-card: #131b2b;
+  /* Midnight navy page, slate cards (student Home dark-mode spec, 24 Nov). */
+  --surface-card: #141b29;
 
-  --color-ink-50: #0b1220;
+  --color-ink-50: #0b111e;
   --color-ink-100: #1b2436;
   --color-ink-200: #263147;
   --color-ink-300: #364259;
@@ -413,7 +415,7 @@
   --color-ink-700: #c6cdd9;
   --color-ink-800: #dfe4ec;
   --color-ink-900: #eff2f7;
-  --color-paper: #0b1220;
+  --color-paper: #0b111e;
 
   --color-blue-50: #0f2140;
   --color-blue-100: #14294f;
@@ -588,6 +590,16 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.16),
     0 14px 34px -14px rgb(0 0 0 / 0.7);
+}
+:root[data-theme="dark"] .glass.pq-round {
+  background: #141b29;
+  border-color: #222c3f;
+  box-shadow: none;
+}
+:root[data-theme="dark"] .glass.pq-dock {
+  background: rgb(20 27 41 / 0.78);
+  border-color: #222c3f;
+  box-shadow: 0 16px 36px -14px rgb(0 0 0 / 0.75);
 }
 :root[data-lite="1"] :is(.glass, .glass-dark) {
   -webkit-backdrop-filter: none;

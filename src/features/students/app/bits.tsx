@@ -1,3 +1,4 @@
+import type * as React from "react";
 import Link from "next/link";
 import { Clock, Footprints, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,19 @@ export function CategoryChip({ href, active, icon, label }: { href: string; acti
  */
 const ICONS_3D = new Set(["all", "utensils", "scissors", "printer", "smartphone", "shirt", "heart-pulse", "dumbbell", "wrench"]);
 
+/** Dark-mode tiles: a deep tint of each category's colour, with a slightly lighter hairline border. */
+const DARK_TILE: Record<string, { bg: string; border: string }> = {
+  food: { bg: "#2B2118", border: "#453322" },
+  beauty: { bg: "#2D1926", border: "#4A253D" },
+  printing: { bg: "#1E2235", border: "#323856" },
+  tech: { bg: "#1A2130", border: "#2E3A50" },
+  fashion: { bg: "#2A2416", border: "#463B21" },
+  health: { bg: "#14261D", border: "#234030" },
+  fitness: { bg: "#13222F", border: "#22394D" },
+  services: { bg: "#211C33", border: "#382E56" },
+};
+const DARK_TILE_DEFAULT = { bg: "#1A2130", border: "#2E3A50" };
+
 /** A category as a big tinted tile with its label underneath (Home). */
 export function CategoryTile({
   href,
@@ -140,26 +154,31 @@ export function CategoryTile({
   slug?: string;
 }) {
   const tone = slug ? toneFor(slug) : { bg: "#EEF2F7", fg: "#334155" };
+  const dark = DARK_TILE[slug ?? ""] ?? DARK_TILE_DEFAULT;
+  // Light: raised, glossy pastel tile. Dark: flat tinted tile with a hairline border.
+  const look = {
+    "--tile-light": `linear-gradient(155deg, color-mix(in srgb, ${tone.bg} 45%, white) 0%, ${tone.bg} 55%, color-mix(in srgb, ${tone.bg} 82%, ${tone.fg}) 100%)`,
+    "--tile-shadow": `inset 0 2px 1px rgba(255,255,255,0.85), inset 0 -3px 6px color-mix(in srgb, ${tone.fg} 14%, transparent), 0 10px 18px -10px color-mix(in srgb, ${tone.fg} 55%, transparent)`,
+    "--tile-dark": active ? "#14244B" : dark.bg,
+    "--tile-border": active ? "#3B82F6" : dark.border,
+  } as React.CSSProperties;
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className="flex w-[4.75rem] shrink-0 flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900"
+      className="flex w-20 shrink-0 snap-start flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900 dark:text-white"
     >
-      {/* Raised, glossy tile with a 3D icon. */}
       <span
         className={cn(
-          "relative grid size-16 place-items-center overflow-hidden rounded-[20px] transition-transform active:scale-95",
-          active && "outline-[2.5px] outline-offset-[3px] outline-blue-500 outline-solid",
+          "relative grid size-16 place-items-center overflow-hidden rounded-[20px] [box-shadow:var(--tile-shadow)] transition-transform [background:var(--tile-light)] active:scale-95",
+          "dark:size-[72px] dark:rounded-2xl dark:border dark:[border-color:var(--tile-border)] dark:shadow-none dark:[background:var(--tile-dark)]",
+          active && "outline-[2.5px] outline-offset-[3px] outline-blue-500 outline-solid dark:border-[1.5px] dark:outline-none",
         )}
-        style={{
-          background: `linear-gradient(155deg, color-mix(in srgb, ${tone.bg} 45%, white) 0%, ${tone.bg} 55%, color-mix(in srgb, ${tone.bg} 82%, ${tone.fg}) 100%)`,
-          boxShadow: `inset 0 2px 1px rgba(255,255,255,0.85), inset 0 -3px 6px color-mix(in srgb, ${tone.fg} 14%, transparent), 0 10px 18px -10px color-mix(in srgb, ${tone.fg} 55%, transparent)`,
-        }}
+        style={look}
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-1.5 top-1 h-6 rounded-t-[16px] bg-gradient-to-b from-white/70 to-white/0"
+          className="pointer-events-none absolute inset-x-1.5 top-1 h-6 rounded-t-[16px] bg-gradient-to-b from-white/70 to-white/0 dark:hidden"
         />
         {ICONS_3D.has(icon ?? "") ? (
           // eslint-disable-next-line @next/next/no-img-element -- tiny local icon, no optimisation needed
@@ -168,7 +187,7 @@ export function CategoryTile({
             alt=""
             width={40}
             height={40}
-            className="relative size-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.12)]"
+            className="relative size-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.12)] dark:size-12 dark:drop-shadow-[0_6px_8px_rgba(0,0,0,0.35)]"
           />
         ) : (
           <CategoryIcon name={icon ?? "store"} className="relative size-8 stroke-[2.4]" style={{ color: tone.fg }} />
