@@ -164,7 +164,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
           </h2>
           <div
             data-no-swipe
-            className="mt-3 flex [scrollbar-width:none] gap-3 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] px-4 pb-1 sm:px-0"
+            className="mt-1.5 flex [scrollbar-width:none] gap-3 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] px-4 pt-1.5 pb-1.5 sm:px-0"
           >
             <CategoryTile href={link({ q, sort })} active={!category} icon="all" label="All" />
             {categories.map((c) => (
