@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The Perqly mark: a lowercase "p" on Perqly Blue, with an orange dot
+ * The Perqly mark: a lowercase "p" on Perqly Purple, with an orange dot
  * for the perk. The same geometry is used for the PWA icons
  * (scripts/generate-icons.mjs), so keep the two in sync.
  */
@@ -9,7 +9,7 @@ export function LogoMark({ className, title }: { className?: string; title?: str
   return (
     <svg viewBox="0 0 48 48" className={cn("size-9", className)} role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
       {title && <title>{title}</title>}
-      <rect width="48" height="48" rx="14" fill="#0066FF" />
+      <rect width="48" height="48" rx="14" fill="#6D28D9" />
       <rect x="13" y="12" width="6.5" height="26" rx="3.25" fill="#FFFFFF" />
       <circle cx="24.5" cy="20.5" r="7" fill="none" stroke="#FFFFFF" strokeWidth="6.5" />
       <circle cx="35" cy="35.5" r="4.5" fill="#FF6B35" />

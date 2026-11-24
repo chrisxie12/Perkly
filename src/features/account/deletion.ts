@@ -82,7 +82,7 @@ export function buildDeletionConfirmationEmail(siteUrl: string) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px">
       <tr>
         <td style="padding: 32px">
-          <p style="margin: 0 0 24px; font-size: 22px; font-weight: bold; color: #0066ff">perqly</p>
+          <p style="margin: 0 0 24px; font-size: 22px; font-weight: bold; color: #6d28d9">perqly</p>
           <p style="margin: 0 0 12px; font-size: 18px; font-weight: bold; line-height: 1.4">${escapeHtml(subject)}</p>
           <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.5">${escapeHtml(intro)}</p>
           <p style="margin: 0 0 4px; font-size: 15px; font-weight: bold">Deleted</p>

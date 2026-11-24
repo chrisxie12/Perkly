@@ -179,7 +179,7 @@ export function BottomNav({ nav }: { nav: AreaNav }) {
                 aria-current={current ? "page" : undefined}
                 className={cn(
                   "relative flex w-full flex-col items-center gap-0.5 text-[0.6875rem] font-medium text-ink-700 transition-colors duration-300 active:scale-95",
-                  current && "font-semibold text-blue-600 dark:text-[#3B82F6]",
+                  current && "font-semibold text-blue-600 dark:text-[#A78BFA]",
                 )}
               >
                 <span

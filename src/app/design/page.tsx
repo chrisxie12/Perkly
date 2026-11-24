@@ -14,7 +14,7 @@ import { DAY_COLOURS } from "@/lib/day-colour";
 export const metadata: Metadata = { title: "Design system", robots: { index: false, follow: false } };
 
 const swatches = [
-  { name: "Perqly Blue", value: "#0066FF", className: "bg-blue-500", text: "text-white" },
+  { name: "Perqly Purple", value: "#6D28D9", className: "bg-blue-500", text: "text-white" },
   { name: "Perk Orange", value: "#FF6B35", className: "bg-orange-500", text: "text-ink-900" },
   { name: "Ink", value: "#1F2937", className: "bg-ink-900", text: "text-white" },
   { name: "Paper", value: "#FFFFFF", className: "bg-paper ring-1 ring-ink-200", text: "text-ink-900" },

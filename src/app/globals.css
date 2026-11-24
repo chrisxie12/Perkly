@@ -4,11 +4,14 @@
 /*
  * Perqly design tokens.
  *
- * Brand: Perqly Blue #0066FF, Perk Orange #FF6B35, Ink #1F2937,
+ * Brand: Perqly Purple #6D28D9, Perk Orange #FF6B35, Ink #1F2937,
  * Paper #F8FAFC, White #FFFFFF.
  *
+ * The purple ramp keeps the class names blue-50 … blue-950 (purple since 24 Nov 2026), so every
+ * screen switched at once. Read "blue-*" as "brand-*".
+ *
  * Contrast rules (WCAG 2.2 AA):
- * - White on blue-500 ≈ 4.8:1 → OK for all text.
+ * - White on blue-500 (#6D28D9) ≈ 7.1:1 → OK for all text.
  * - White on orange-500 ≈ 2.8:1 → NEVER. Use ink-900 text on orange (≈ 5.2:1).
  * - Orange is never used for text on white or paper.
  * - ink-500 (#6B7280) is the lightest grey allowed for body text on white/paper.
@@ -19,18 +22,18 @@
   --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 
-  /* Perqly Blue */
-  --color-blue-50: #ebf3ff;
-  --color-blue-100: #d6e6ff;
-  --color-blue-200: #adcdff;
-  --color-blue-300: #7aaeff;
-  --color-blue-400: #3d88ff;
-  --color-blue-500: #0066ff;
-  --color-blue-600: #0052cc;
-  --color-blue-700: #0040a3;
-  --color-blue-800: #002f78;
-  --color-blue-900: #001f52;
-  --color-blue-950: #00143a;
+  /* Perqly Purple (named blue-* for history; see above) */
+  --color-blue-50: #f5f0ff;
+  --color-blue-100: #ebe1ff;
+  --color-blue-200: #d6c3ff;
+  --color-blue-300: #b998fb;
+  --color-blue-400: #9566f2;
+  --color-blue-500: #6d28d9;
+  --color-blue-600: #5b21b6;
+  --color-blue-700: #4c1d95;
+  --color-blue-800: #3b1574;
+  --color-blue-900: #2a0f55;
+  --color-blue-950: #1a0838;
 
   /* Perk Orange */
   --color-orange-50: #fff3ee;
@@ -81,10 +84,10 @@
   --radius-xl: 1.75rem;
   --radius-2xl: 2.25rem;
 
-  /* Shadows tinted toward Perqly Blue, never flat grey */
-  --shadow-soft: 0 1px 2px rgb(0 31 82 / 0.06), 0 4px 16px -4px rgb(0 31 82 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(0 31 82 / 0.06), 0 18px 40px -12px rgb(0 31 82 / 0.22);
-  --shadow-phone: 0 40px 80px -24px rgb(0 20 58 / 0.45), 0 12px 24px -8px rgb(0 20 58 / 0.18);
+  /* Shadows tinted toward Perqly Purple, never flat grey */
+  --shadow-soft: 0 1px 2px rgb(42 15 85 / 0.06), 0 4px 16px -4px rgb(42 15 85 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(42 15 85 / 0.06), 0 18px 40px -12px rgb(42 15 85 / 0.22);
+  --shadow-phone: 0 40px 80px -24px rgb(26 8 56 / 0.45), 0 12px 24px -8px rgb(26 8 56 / 0.18);
 
   /* Type scale (fluid display sizes) */
   --text-display-xl: clamp(2.75rem, 1.6rem + 5.4vw, 6rem);
@@ -417,9 +420,9 @@
   --color-ink-900: #eff2f7;
   --color-paper: #0b111e;
 
-  --color-blue-50: #0f2140;
-  --color-blue-100: #14294f;
-  --color-blue-200: #1e3b6e;
+  --color-blue-50: #1d1335;
+  --color-blue-100: #251846;
+  --color-blue-200: #3a2470;
   --color-orange-50: #2a1810;
   --color-orange-100: #3b2014;
   --color-orange-200: #5c321d;
@@ -449,9 +452,9 @@
   --color-ink-800: #283240;
   --color-ink-900: #1f2937;
   --color-paper: #ffffff;
-  --color-blue-50: #ebf3ff;
-  --color-blue-100: #d6e6ff;
-  --color-blue-200: #adcdff;
+  --color-blue-50: #f5f0ff;
+  --color-blue-100: #ebe1ff;
+  --color-blue-200: #d6c3ff;
   --color-orange-50: #fff3ee;
   --color-orange-100: #ffe3d6;
   --color-orange-200: #ffc5ad;
@@ -461,8 +464,8 @@
   --color-emerald-200: oklch(90.5% 0.093 164.15);
   --color-red-50: oklch(97.1% 0.013 17.38);
   --color-red-200: oklch(88.5% 0.062 18.334);
-  --shadow-soft: 0 1px 2px rgb(0 31 82 / 0.06), 0 4px 16px -4px rgb(0 31 82 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(0 31 82 / 0.06), 0 18px 40px -12px rgb(0 31 82 / 0.22);
+  --shadow-soft: 0 1px 2px rgb(42 15 85 / 0.06), 0 4px 16px -4px rgb(42 15 85 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(42 15 85 / 0.06), 0 18px 40px -12px rgb(42 15 85 / 0.22);
 }
 
 /* White surfaces become dark cards (translucent headers keep their blur). */
@@ -573,7 +576,7 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.85),
     inset 0 -1px 0 rgb(255 255 255 / 0.2),
-    0 12px 32px -12px rgb(0 31 82 / 0.28);
+    0 12px 32px -12px rgb(42 15 85 / 0.28);
 }
 .glass-dark {
   color: #fff;
@@ -681,7 +684,7 @@
   background: linear-gradient(150deg, #3d8bff 0%, #0066ff 45%, #0039a6 100%);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.4),
-    0 24px 44px -20px rgb(0 102 255 / 0.75);
+    0 24px 44px -20px rgb(109 40 217 / 0.75);
 }
 
 /* Landing hero: the phone floats with a slow 3D tilt; coins turn as they drift. */

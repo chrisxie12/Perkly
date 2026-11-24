@@ -66,9 +66,9 @@ function Coin({ x, y, size, blue = false }: { x: number; y: number; size: number
         justifyContent: "center",
         fontWeight: 900,
         backgroundImage: blue
-          ? "radial-gradient(circle at 32% 28%, #D6E6FF 0%, #3D8BFF 42%, #0039A6 100%)"
+          ? "radial-gradient(circle at 32% 28%, #EBE1FF 0%, #9566F2 42%, #3B1574 100%)"
           : "radial-gradient(circle at 32% 28%, #FFD8C7 0%, #FF6B35 45%, #B93C0E 100%)",
-        boxShadow: blue ? "0 18px 36px rgba(0,102,255,0.45)" : "0 18px 36px rgba(255,107,53,0.45)",
+        boxShadow: blue ? "0 18px 36px rgba(109,40,217,0.45)" : "0 18px 36px rgba(255,107,53,0.45)",
       }}
     >
       <Cedi size={size * 0.5} color={blue ? "#FFFFFF" : "#3A1405"} />
@@ -86,7 +86,7 @@ export async function shareImage({ headline, sub, tag, card }: Props) {
         position: "relative",
         backgroundColor: "#0B1220",
         backgroundImage:
-          "radial-gradient(circle at 12% 8%, rgba(0,102,255,0.7) 0%, rgba(0,102,255,0) 50%), radial-gradient(circle at 92% 105%, rgba(255,107,53,0.5) 0%, rgba(255,107,53,0) 48%)",
+          "radial-gradient(circle at 12% 8%, rgba(109,40,217,0.7) 0%, rgba(109,40,217,0) 50%), radial-gradient(circle at 92% 105%, rgba(255,107,53,0.5) 0%, rgba(255,107,53,0) 48%)",
         color: "#FFFFFF",
         fontFamily: "Geist",
         overflow: "hidden",
@@ -100,7 +100,7 @@ export async function shareImage({ headline, sub, tag, card }: Props) {
               width: 60,
               height: 60,
               borderRadius: 18,
-              background: "#0066FF",
+              background: "#6D28D9",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -170,7 +170,7 @@ export async function shareImage({ headline, sub, tag, card }: Props) {
           justifyContent: "space-between",
           padding: 34,
           transform: "rotate(-6deg)",
-          backgroundImage: "linear-gradient(150deg, #3D8BFF 0%, #0066FF 48%, #0039A6 100%)",
+          backgroundImage: "linear-gradient(150deg, #9566F2 0%, #6D28D9 48%, #3B1574 100%)",
           boxShadow: "0 40px 80px rgba(0,30,90,0.6), inset 0 2px 0 rgba(255,255,255,0.4)",
           overflow: "hidden",
         }}
@@ -207,7 +207,7 @@ export async function shareImage({ headline, sub, tag, card }: Props) {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", fontSize: 22, fontWeight: 500, color: "#D6E6FF" }}>{card.label}</div>
+          <div style={{ display: "flex", fontSize: 22, fontWeight: 500, color: "#EBE1FF" }}>{card.label}</div>
           {"saving" in card ? (
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <div style={{ display: "flex", fontSize: 108, fontWeight: 900, lineHeight: 1 }}>−</div>
@@ -217,7 +217,7 @@ export async function shareImage({ headline, sub, tag, card }: Props) {
           ) : (
             <div style={{ display: "flex", fontSize: 108, fontWeight: 900, lineHeight: 1, letterSpacing: -5 }}>{card.big}</div>
           )}
-          <div style={{ display: "flex", fontSize: 24, fontWeight: 500, color: "#D6E6FF" }}>{card.small}</div>
+          <div style={{ display: "flex", fontSize: 24, fontWeight: 500, color: "#EBE1FF" }}>{card.small}</div>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {Array.from({ length: 22 }).map((_, i) => (
