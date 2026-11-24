@@ -11,6 +11,9 @@ export type RoomMessage = {
   photo_path: string | null;
   /** Set while the message is pinned in the chat. */
   pinned_at?: string | null;
+  /** Friend chats: when it disappears (pinned messages stay), and whether it goes once seen. */
+  expires_at?: string | null;
+  once?: boolean;
   /** A short-lived signed URL for the photo, when there is one. */
   photo_url?: string | null;
   pending?: boolean;
@@ -32,6 +35,8 @@ type RawRow = {
   sender_side?: string | null;
   sender_id?: string | null;
   pinned_at?: string | null;
+  expires_at?: string | null;
+  once?: boolean | null;
 };
 
 export function toRoomMessage(row: RawRow, me: RoomMe): RoomMessage {
@@ -44,7 +49,37 @@ export function toRoomMessage(row: RawRow, me: RoomMe): RoomMessage {
     reply_to: row.reply_to ?? null,
     photo_path: row.photo_path ?? null,
     pinned_at: row.pinned_at ?? null,
+    expires_at: row.expires_at ?? null,
+    once: Boolean(row.once),
   };
+}
+
+/** Whether a message is still in the chat: pinned ones stay; the rest go when they expire. */
+export function isLive(m: Pick<RoomMessage, "pinned_at" | "expires_at">, now = Date.now()) {
+  return Boolean(m.pinned_at) || !m.expires_at || new Date(m.expires_at).getTime() > now;
+}
+
+/** The next moment a shown message is due to disappear, so the room can drop it then. */
+export function nextExpiry(messages: RoomMessage[], now = Date.now()) {
+  let next: number | null = null;
+  for (const m of messages) {
+    if (m.pinned_at || !m.expires_at) continue;
+    const t = new Date(m.expires_at).getTime();
+    if (t > now && (next === null || t < next)) next = t;
+  }
+  return next;
+}
+
+export type DisappearMode = "24h" | "12h" | "seen";
+
+export const DISAPPEAR_OPTIONS: { value: DisappearMode; label: string; detail: string }[] = [
+  { value: "24h", label: "24 hours", detail: "Messages disappear 24 hours after they're sent." },
+  { value: "12h", label: "12 hours", detail: "Messages disappear 12 hours after they're sent." },
+  { value: "seen", label: "After viewing", detail: "Messages disappear once they've been opened and the chat is closed." },
+];
+
+export function disappearText(mode: DisappearMode) {
+  return (DISAPPEAR_OPTIONS.find((o) => o.value === mode) ?? DISAPPEAR_OPTIONS[0]).detail;
 }
 
 /** The most recently pinned message, shown under the chat's header. */

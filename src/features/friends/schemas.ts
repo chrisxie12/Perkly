@@ -45,7 +45,13 @@ export type FriendChatHeader = {
   can_send: boolean;
   blocked: boolean;
   other_read_at?: string | null;
+  disappear?: DisappearMode;
+  disappear_set_by_me?: boolean | null;
+  disappear_set_at?: string | null;
 };
+
+/** When friend-chat messages disappear. Matches friend_chats.disappear. */
+export type DisappearMode = "24h" | "12h" | "seen";
 
 export const REPORT_REASONS = [
   { value: "harassment", label: "Harassment or bullying" },

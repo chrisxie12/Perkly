@@ -6,7 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /**
  * Account deletion clean-up, run by the daily cron after it has answered.
  *
- *   1. reminds admins about deletion requests open for 20 days (once each);
+ *   1. reminds admins about deletion requests open for 20 days (once each), and deletes
+ *      friend-chat messages that have disappeared (queueing their photos);
  *   2. claims files queued by admin_complete_account_deletion (row-locked);
  *   3. removes them from their bucket, then marks them.
  * A failed file is retried on the next run, up to 7 times. It never throws and
@@ -15,7 +16,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const ACCOUNT_MEDIA_LIMITS = { files: 200, seconds: 20, batch: 50 } as const;
 
-export type AccountMediaResult = { reminded: number; removed: number; failed: number; stoppedEarly: boolean; error?: string };
+export type AccountMediaResult = {
+  reminded: number;
+  chatMessages: number;
+  removed: number;
+  failed: number;
+  stoppedEarly: boolean;
+  error?: string;
+};
 
 type Deps = { client?: () => SupabaseClient; now?: () => number; dispatch?: () => Promise<unknown> };
 type Claimed = { bucket: string; path: string };
@@ -32,7 +40,7 @@ export function groupByBucket(rows: Claimed[]): Map<string, string[]> {
 export async function runAccountMediaCleanup(deps: Deps = {}): Promise<AccountMediaResult> {
   const now = deps.now ?? Date.now;
   const started = now();
-  const result: AccountMediaResult = { reminded: 0, removed: 0, failed: 0, stoppedEarly: false };
+  const result: AccountMediaResult = { reminded: 0, chatMessages: 0, removed: 0, failed: 0, stoppedEarly: false };
   const outOfTime = () => now() - started > ACCOUNT_MEDIA_LIMITS.seconds * 1000;
   try {
     const admin = (deps.client ?? createAdminClient)();
@@ -41,6 +49,11 @@ export async function runAccountMediaCleanup(deps: Deps = {}): Promise<AccountMe
     else result.reminded = (reminders.data as number | null) ?? 0;
     // The cron sent its notifications before this ran, so send the reminders now.
     if (result.reminded > 0) await (deps.dispatch ?? (() => dispatchNotifications(50)))().catch(() => undefined);
+
+    // Friend-chat messages past their time are deleted, and their photos join the queue below.
+    const chats = await admin.rpc("purge_expired_friend_messages");
+    if (chats.error) console.error("[account-media] purge_expired_friend_messages failed", chats.error.message);
+    else result.chatMessages = (chats.data as number | null) ?? 0;
 
     let handled = 0;
     while (handled < ACCOUNT_MEDIA_LIMITS.files) {
