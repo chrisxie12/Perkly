@@ -6,9 +6,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { playSound } from "@/lib/sound";
+import { notificationGroup, notificationTag, type NotificationGroup } from "@/lib/notifications/style";
 import { NotificationToast, type ToastNotification } from "./notification-toast";
 
-type RowLike = { id: string; title?: string; body?: string | null; link?: string | null; url?: string | null };
+type RowLike = {
+  id: string;
+  title?: string;
+  body?: string | null;
+  link?: string | null;
+  url?: string | null;
+  kind?: string | null;
+  group?: NotificationGroup | null;
+};
 
 /**
  * The bell with its unread count, kept current without a refresh: Supabase
@@ -57,8 +66,39 @@ export function LiveBell({
     const target = (n.link ?? n.url ?? "").split("?")[0];
     if (target && target === window.location.pathname) return;
     playSound("notify");
-    setToast({ id: n.id, title: n.title ?? "Perqly", body: n.body ?? null, hasLink: Boolean(n.link ?? n.url) });
+    const group = n.group ?? notificationGroup(n.kind);
+    const tag = n.kind ? notificationTag(n.kind, n.link ?? n.url) : group === "chat" ? `chat:${target}` : `kind:${group}`;
+    // Another message in the chat already showing: it joins that banner instead of replacing it.
+    setToast((current) => ({
+      id: n.id,
+      title: n.title ?? "Perqly",
+      body: n.body ?? null,
+      hasLink: Boolean(n.link ?? n.url),
+      group,
+      tag,
+      count: current && current.tag === tag && group === "chat" ? current.count + 1 : 1,
+    }));
   }, []);
+
+  // Opening a chat (or anything a phone notification is about) clears its phone notification,
+  // the way messaging apps do.
+  useEffect(() => {
+    const clear = () => {
+      if (document.visibilityState !== "visible") return;
+      navigator.serviceWorker?.ready
+        .then((reg) => reg.getNotifications())
+        .then((list) => {
+          for (const n of list) {
+            const link = (n.data as { link?: unknown } | null)?.link;
+            if (typeof link === "string" && link.split("?")[0] === pathname) n.close();
+          }
+        })
+        .catch(() => undefined);
+    };
+    clear();
+    document.addEventListener("visibilitychange", clear);
+    return () => document.removeEventListener("visibilitychange", clear);
+  }, [pathname]);
 
   // A fresh server render (navigation, refresh) brings the true count.
   const [seenInitial, setSeenInitial] = useState(initialUnread);
@@ -93,6 +133,12 @@ export function LiveBell({
     }
 
     const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === "PERQLY_NOTIFICATIONS_READ") {
+        // Marked read from a phone notification's button.
+        void recount();
+        if (onInbox) router.refresh();
+        return;
+      }
       if (event.data?.type === "PERQLY_NOTIFICATION") {
         // Arrived as a phone notification first: show it here too (doubles are skipped).
         if (event.data.notification) announce(event.data.notification as RowLike);
@@ -126,7 +172,7 @@ export function LiveBell({
 
   return (
     <>
-      <NotificationToast key={toast?.id ?? "none"} toast={toast} onClose={closeToast} />
+      <NotificationToast key={toast?.tag ?? "none"} toast={toast} onClose={closeToast} />
       <Link
         href="/account/notifications"
         className={

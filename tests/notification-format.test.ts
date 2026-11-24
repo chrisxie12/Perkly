@@ -24,8 +24,19 @@ describe("notification formatting", () => {
       body: "Haircut",
       url: `/account/notifications/open/${base.id}`,
       link: "/student/offers/abc",
-      tag: "deal.new",
+      tag: "kind:deal.new",
+      kind: "deal.new",
+      group: "deal",
+      icon: "/icons/notify/deal.png",
     });
+  });
+  it("threads chat notifications per conversation", () => {
+    const chat = { ...base, kind: "chat.message", link: "/student/messages/c1?x=1" };
+    const p = buildPushPayload(chat);
+    expect(p.tag).toBe("chat:/student/messages/c1");
+    expect(p.group).toBe("chat");
+    expect(p.icon).toBe("/icons/notify/chat.png");
+    expect(buildPushPayload({ ...chat, link: "/student/messages/c2" }).tag).not.toBe(p.tag);
   });
   it("builds an escaped email with a settings link", () => {
     const email = buildNotificationEmail({ ...base, title: "<b>Hi</b>" }, "https://perqly.example/");
