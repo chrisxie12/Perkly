@@ -14,6 +14,12 @@ default**, and friends can see each other's deal activity, share deals, see who'
 - **Share a deal**: "Send to a friend" on a deal page, with an optional note (140 characters). The friend gets a
   notification and sees it under Deals friends sent you.
 - **Chat**: friends message each other (Friends → message button). Live updates, same as shop chat, on separate tables.
+- **Disappearing messages**: every friend chat has a setting either friend can change (applies to new messages):
+  24 hours after sending (default), 12 hours after sending, or after viewing (gone once the other person opens it and
+  leaves the chat; an hour after opening at most; 7 days if never opened). Pinned messages stay until unpinned.
+  Row security hides expired messages at once; the daily cron (`purge_expired_friend_messages`) deletes the rows,
+  queues their photos for removal and blanks the words in chat notifications older than 24 hours. Chats with an open
+  student report are skipped until support handles the report.
 - **Block and report**: blocking ends the friendship, hides both students from each other's search, closes chats and hides
   shared deals. Reports go to Perqly support (Admin → Activity → Student reports, two-factor), with the last 50 messages
   of the chat if the report came from one. The reported student is not told who reported them.
@@ -40,4 +46,4 @@ Tests: `supabase/tests/031_friends_test.sql`, `tests/friends.test.ts`.
 
 - The privacy notice must describe Friends: what classmates can see (name, programme, level), the two settings, chat,
   reports and how long messages are kept. The Data Protection Commission registration should list it too.
-- Decide how long friend chat messages are kept (they are kept until either account is deleted today).
+- Friend chat messages disappear (see above); the privacy notice should say so before it is finalised.

@@ -34,8 +34,9 @@ export async function loadInbox(includeFriends: boolean): Promise<InboxItem[]> {
       title: c.friend_name,
       href: `/student/friends/chat/${c.id}`,
       photo: null,
-      preview: c.last_message_preview,
-      fromMe: c.last_from_me,
+      // Every message in the chat has disappeared.
+      preview: c.last_message_preview ?? "Messages disappeared",
+      fromMe: c.last_message_preview !== null && c.last_from_me,
       at: c.last_message_at,
       unread: c.unread,
       closed: !c.can_send,

@@ -8,7 +8,7 @@ const { runAccountMediaCleanup, groupByBucket } = await import("@/lib/jobs/accou
 type Row = { bucket: string; path: string };
 type Call = { fn: string; args?: unknown };
 
-function fakeAdmin(opts: { claims?: Row[][]; reminded?: number; claimError?: boolean; failBucket?: string }) {
+function fakeAdmin(opts: { claims?: Row[][]; reminded?: number; claimError?: boolean; failBucket?: string; chats?: number }) {
   const calls: Call[] = [];
   const removed: { bucket: string; paths: string[] }[] = [];
   const claims = [...(opts.claims ?? [])];
@@ -16,6 +16,7 @@ function fakeAdmin(opts: { claims?: Row[][]; reminded?: number; claimError?: boo
     rpc: async (fn: string, args?: unknown) => {
       calls.push({ fn, args });
       if (fn === "remind_overdue_account_deletions") return { data: opts.reminded ?? 0, error: null };
+      if (fn === "purge_expired_friend_messages") return { data: opts.chats ?? 0, error: null };
       if (fn === "claim_account_media_due")
         return opts.claimError ? { data: null, error: { message: "boom" } } : { data: claims.shift() ?? [], error: null };
       if (fn === "mark_account_media_purged") return { data: (args as { p_paths: string[] }).p_paths.length, error: null };
@@ -43,6 +44,14 @@ const rows: Row[] = [
 ];
 
 describe("account media clean-up", () => {
+  it("deletes disappeared friend-chat messages before removing files", async () => {
+    const f = fakeAdmin({ claims: [rows], chats: 7 });
+    const r = await runAccountMediaCleanup({ client: f.client, dispatch: async () => undefined });
+    expect(r.chatMessages).toBe(7);
+    const order = f.calls.map((c) => c.fn);
+    expect(order.indexOf("purge_expired_friend_messages")).toBeLessThan(order.indexOf("claim_account_media_due"));
+  });
+
   it("removes each queued file from its own bucket and marks it", async () => {
     const f = fakeAdmin({ claims: [rows] });
     const r = await runAccountMediaCleanup({ client: f.client, dispatch: async () => undefined });

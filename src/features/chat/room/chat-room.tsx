@@ -1,16 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Check, CheckCheck, ImagePlus, Pin, SendHorizontal, Smile, X } from "lucide-react";
+import { Check, CheckCheck, ImagePlus, Keyboard, Pin, SendHorizontal, Smile, Timer, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { playSound } from "@/lib/sound";
-import { markRoomRead, pinMessage, reactInRoom, sendRoomMessage } from "./actions";
+import { leaveRoom, markRoomRead, pinMessage, reactInRoom, sendRoomMessage, setDisappear } from "./actions";
 import { isBigEmoji } from "./emoji";
-import { EmojiSheet } from "./emoji-picker";
+import { EmojiPanel, EmojiSheet } from "./emoji-picker";
 import { MessageOverlay } from "./message-overlay";
+import { DisappearSheet } from "./disappear-sheet";
 import {
+  disappearText,
+  isLive,
   latestPin,
+  nextExpiry,
   photoPathFor,
   place,
   seenState,
@@ -19,6 +23,7 @@ import {
   toRoomMessage,
   typingTopic,
   upsertReaction,
+  type DisappearMode,
   type Placed,
   type RoomKind,
   type RoomMe,
@@ -55,6 +60,8 @@ export function ChatRoom({
   emptyText,
   emptyCard,
   initialDraft,
+  initialDisappear,
+  disappearSetBy,
 }: {
   kind: RoomKind;
   chatId: string;
@@ -70,8 +77,15 @@ export function ChatRoom({
   emptyCard?: React.ReactNode;
   /** Text waiting in the message box, such as something shared from another app. Never sent by itself. */
   initialDraft?: string;
+  /** Friend chats: when messages disappear, and who last changed it ("me", "friend" or null). */
+  initialDisappear?: DisappearMode;
+  disappearSetBy?: "me" | "friend" | null;
 }) {
-  const [messages, setMessages] = useState<RoomMessage[]>(initialMessages);
+  const [allMessages, setMessages] = useState<RoomMessage[]>(initialMessages);
+  const [disappear, setDisappearMode] = useState<DisappearMode | undefined>(initialDisappear);
+  const [setBy, setSetBy] = useState(disappearSetBy ?? null);
+  const [disappearOpen, setDisappearOpen] = useState(false);
+  const [clock, setClock] = useState(() => Date.now());
   const [reactions, setReactions] = useState<RoomReaction[]>(initialReactions);
   const [otherReadAt, setOtherReadAt] = useState<string | null>(initialOtherReadAt);
   const [otherTyping, setOtherTyping] = useState(false);
@@ -100,6 +114,30 @@ export function ChatRoom({
   useEffect(() => {
     meRef.current = me;
   }, [me]);
+
+  // Friend chats: a message leaves the screen when it expires. Your own "after viewing" messages go
+  // an hour after your friend opened them (the server ends them then at the latest).
+  const expiryOf = useCallback(
+    (m: RoomMessage) => {
+      if (m.once && m.mine && otherReadAt && otherReadAt > m.created_at) {
+        const opened = new Date(otherReadAt).getTime() + 3_600_000;
+        const own = m.expires_at ? new Date(m.expires_at).getTime() : Infinity;
+        return { ...m, expires_at: new Date(Math.min(opened, own)).toISOString() };
+      }
+      return m;
+    },
+    [otherReadAt],
+  );
+  const messages = useMemo(
+    () => allMessages.filter((m) => m.pending || m.failed || isLive(expiryOf(m), clock)),
+    [allMessages, clock, expiryOf],
+  );
+  useEffect(() => {
+    const next = nextExpiry(allMessages.map(expiryOf), clock);
+    if (next === null) return;
+    const id = setTimeout(() => setClock(Date.now()), Math.min(next - Date.now() + 250, 2_147_000_000));
+    return () => clearTimeout(id);
+  }, [allMessages, clock, expiryOf]);
 
   const byId = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
   const placed = useMemo(() => place(messages), [messages]);
@@ -142,14 +180,23 @@ export function ChatRoom({
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: t.messages, filter: `${t.chatColumn}=eq.${chatId}` },
           (payload) => {
-            // Pins (the only change to a sent message).
-            const row = payload.new as { id: string; pinned_at?: string | null };
-            setMessages((list) => list.map((x) => (x.id === row.id ? { ...x, pinned_at: row.pinned_at ?? null } : x)));
+            // Pins, and a friend-chat message's expiry moving.
+            const row = payload.new as { id: string; pinned_at?: string | null; expires_at?: string | null };
+            setMessages((list) =>
+              list.map((x) =>
+                x.id === row.id ? { ...x, pinned_at: row.pinned_at ?? null, expires_at: row.expires_at ?? x.expires_at } : x,
+              ),
+            );
+            setClock(Date.now());
           },
         )
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: t.chat, filter: `id=eq.${chatId}` }, (payload) => {
           const row = payload.new as Record<string, string | null>;
           const m = meRef.current;
+          if (m.kind === "friend" && (row.disappear === "24h" || row.disappear === "12h" || row.disappear === "seen")) {
+            setDisappearMode(row.disappear);
+            if (row.disappear_set_by) setSetBy(row.disappear_set_by === m.userId ? "me" : "friend");
+          }
           const read =
             m.kind === "shop"
               ? m.side === "student"
@@ -177,11 +224,21 @@ export function ChatRoom({
       void supabase.realtime.setAuth().then(() => typing.subscribe());
       typingChannel.current = typing;
 
+      // Leaving (or hiding the app) ends "after viewing" messages you've opened.
+      const leave = () => {
+        if (kind !== "friend") return;
+        void leaveRoom(chatId);
+        const at = new Date().toISOString();
+        setMessages((list) => list.map((x) => (x.once && !x.mine && !x.pinned_at ? { ...x, expires_at: at } : x)));
+        setClock(Date.now());
+      };
       const onVisible = () => {
         if (document.visibilityState === "visible") void markRoomRead(kind, chatId);
+        else leave();
       };
       document.addEventListener("visibilitychange", onVisible);
       cleanup = () => {
+        leave();
         document.removeEventListener("visibilitychange", onVisible);
         void supabase.removeChannel(live);
         void supabase.removeChannel(typing);
@@ -284,9 +341,35 @@ export function ChatRoom({
         if (landed)
           return list.filter((m) => m.id !== tempId).map((m) => (m.id === result.id ? { ...m, photo_url: m.photo_url ?? preview } : m));
         return list.map((m) =>
-          m.id === tempId ? { ...m, id: result.id, created_at: result.createdAt, photo_path: path, pending: false, failed: false } : m,
+          m.id === tempId
+            ? {
+                ...m,
+                id: result.id,
+                created_at: result.createdAt,
+                photo_path: path,
+                pending: false,
+                failed: false,
+                ...(kind === "friend" ? localExpiry(result.createdAt, disappear) : {}),
+              }
+            : m,
         );
       });
+    });
+  }
+
+  function chooseDisappear(mode: DisappearMode) {
+    setDisappearOpen(false);
+    if (mode === disappear) return;
+    const before = { disappear, setBy };
+    setDisappearMode(mode);
+    setSetBy("me");
+    startTransition(async () => {
+      const result = await setDisappear(chatId, mode);
+      if (!result.ok) {
+        setDisappearMode(before.disappear);
+        setSetBy(before.setBy);
+        setError(result.error ?? "Couldn't change that. Try again.");
+      }
     });
   }
 
@@ -368,16 +451,53 @@ export function ChatRoom({
     };
   }
 
+  // Where the cursor was in the message box, so emoji go there while the panel has the
+  // keyboard's place (the box isn't focused then, or the keyboard would cover the panel).
+  const caret = useRef<{ start: number; end: number } | null>(null);
+  const emojiOpen = sheet?.mode === "compose";
+
   function insertEmoji(emoji: string) {
     const el = input.current;
-    const start = el?.selectionStart ?? draft.length;
-    const end = el?.selectionEnd ?? draft.length;
+    const at = emojiOpen ? caret.current : null;
+    const start = at?.start ?? el?.selectionStart ?? draft.length;
+    const end = at?.end ?? el?.selectionEnd ?? draft.length;
     const next = (draft.slice(0, start) + emoji + draft.slice(end)).slice(0, 1000);
     setDraft(next);
+    const pos = Math.min(next.length, start + emoji.length);
+    caret.current = { start: pos, end: pos };
+    if (emojiOpen) return;
     requestAnimationFrame(() => {
       el?.focus();
-      el?.setSelectionRange(start + emoji.length, start + emoji.length);
+      el?.setSelectionRange(pos, pos);
     });
+  }
+
+  /** The panel's delete key: removes the character or emoji before the cursor. */
+  function backspace() {
+    const at = caret.current ?? { start: draft.length, end: draft.length };
+    if (at.start !== at.end) {
+      setDraft(draft.slice(0, at.start) + draft.slice(at.end));
+      caret.current = { start: at.start, end: at.start };
+      return;
+    }
+    if (at.start === 0) return;
+    const before = Array.from(draft.slice(0, at.start));
+    before.pop();
+    const head = before.join("");
+    setDraft(head + draft.slice(at.start));
+    caret.current = { start: head.length, end: head.length };
+  }
+
+  function toggleEmoji() {
+    if (emojiOpen) {
+      setSheet(null);
+      requestAnimationFrame(() => input.current?.focus());
+      return;
+    }
+    const el = input.current;
+    caret.current = { start: el?.selectionStart ?? draft.length, end: el?.selectionEnd ?? draft.length };
+    el?.blur();
+    setSheet({ mode: "compose" });
   }
 
   function jumpTo(id: string) {
@@ -457,6 +577,21 @@ export function ChatRoom({
           <span className="min-w-0">
             <span className="block text-xs font-semibold text-blue-700">Pinned</span>
             <span className="block truncate text-sm text-ink-900">{snippet(pinned)}</span>
+          </span>
+        </button>
+      )}
+      {kind === "friend" && disappear && (
+        <button
+          type="button"
+          onClick={() => !blocked && setDisappearOpen(true)}
+          disabled={blocked}
+          className="mx-auto mb-1 flex max-w-full items-center gap-2 rounded-full bg-ink-100/80 px-3.5 py-1.5 text-left text-xs text-ink-700 backdrop-blur disabled:opacity-70"
+        >
+          <Timer className="size-3.5 shrink-0 text-blue-700" aria-hidden />
+          <span className="min-w-0">
+            {disappearText(disappear)}
+            {setBy && <span className="text-ink-500"> {setBy === "me" ? "You set this." : `${otherName} set this.`}</span>}
+            {!blocked && <span className="ml-1 font-semibold text-blue-700">Change</span>}
           </span>
         </button>
       )}
@@ -656,11 +791,12 @@ export function ChatRoom({
             </button>
             <button
               type="button"
-              onClick={() => setSheet({ mode: "compose" })}
-              aria-label="Add an emoji"
+              onClick={toggleEmoji}
+              aria-label={emojiOpen ? "Show keyboard" : "Add an emoji"}
+              aria-expanded={emojiOpen}
               className="grid size-11 shrink-0 place-items-center rounded-full text-blue-700 hover:bg-blue-50"
             >
-              <Smile className="size-5" aria-hidden />
+              {emojiOpen ? <Keyboard className="size-5" aria-hidden /> : <Smile className="size-5" aria-hidden />}
             </button>
             <label htmlFor="chat-input" className="sr-only">
               Message
@@ -674,6 +810,11 @@ export function ChatRoom({
                 if (e.target.value.trim()) signalTyping();
               }}
               onBlur={() => signalTyping(true)}
+              // Tapping the box brings the keyboard back in place of the emoji panel.
+              onFocus={() => emojiOpen && setSheet(null)}
+              onSelect={(e) => {
+                caret.current = { start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd };
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && window.matchMedia("(pointer: fine)").matches) {
                   e.preventDefault();
@@ -693,6 +834,7 @@ export function ChatRoom({
               <SendHorizontal className="size-5" aria-hidden />
             </button>
           </form>
+          {emojiOpen && <EmojiPanel onPick={insertEmoji} onBackspace={backspace} />}
         </div>
       )}
       {error && (
@@ -729,16 +871,22 @@ export function ChatRoom({
           onClose={() => setHeld(null)}
         />
       )}
-      {sheet && (
+      {disappearOpen && disappear && (
+        <DisappearSheet current={disappear} onPick={chooseDisappear} onClose={() => setDisappearOpen(false)} />
+      )}
+      {sheet?.mode === "react" && (
         <EmojiSheet
-          title={sheet.mode === "react" ? "React with" : "Add an emoji"}
-          onPick={(e) => {
-            if (sheet.mode === "react") react(sheet.message, e);
-            else insertEmoji(e);
-          }}
+          title="React with"
+          onPick={(e) => react(sheet.message, e)}
           onClose={() => setSheet(null)}
         />
       )}
     </div>
   );
+}
+
+/** A sent friend-chat message's expiry, until the live row arrives with the server's own. */
+function localExpiry(createdAt: string, mode: DisappearMode | undefined) {
+  const hours = mode === "12h" ? 12 : mode === "seen" ? 24 * 7 : 24;
+  return { expires_at: new Date(new Date(createdAt).getTime() + hours * 3_600_000).toISOString(), once: mode === "seen" };
 }

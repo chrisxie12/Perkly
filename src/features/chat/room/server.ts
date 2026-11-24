@@ -4,8 +4,14 @@ import { hasSupabaseEnv } from "@/lib/env";
 import { toRoomMessage, type RoomKind, type RoomMe, type RoomMessage, type RoomReaction } from "./model";
 
 const TABLES = {
-  shop: { messages: "messages", chatColumn: "conversation_id", sender: "sender_side", reactions: "message_reactions" },
-  friend: { messages: "friend_messages", chatColumn: "chat_id", sender: "sender_id", reactions: "friend_message_reactions" },
+  shop: { messages: "messages", chatColumn: "conversation_id", sender: "sender_side", reactions: "message_reactions", extra: "" },
+  friend: {
+    messages: "friend_messages",
+    chatColumn: "chat_id",
+    sender: "sender_id",
+    reactions: "friend_message_reactions",
+    extra: ", expires_at, once",
+  },
 } as const;
 
 /** Photos stay private; links last an hour, long enough for a chat session. */
@@ -19,7 +25,7 @@ export async function loadRoom(kind: RoomKind, chatId: string, me: RoomMe) {
   const supabase = await createClient();
   const { data } = await supabase
     .from(t.messages)
-    .select(`id, ${t.sender}, body, created_at, reply_to, photo_path, pinned_at`)
+    .select(`id, ${t.sender}, body, created_at, reply_to, photo_path, pinned_at${t.extra}`)
     .eq(t.chatColumn, chatId)
     .order("created_at", { ascending: false })
     .limit(200);

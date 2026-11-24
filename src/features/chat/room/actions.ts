@@ -71,6 +71,24 @@ export async function reactInRoom(k: RoomKind, messageId: string, emoji: string 
   return error ? { ok: false, error: messageFor(error) } : { ok: true };
 }
 
+const disappearMode = z.enum(["24h", "12h", "seen"]);
+
+/** Friend chats: when messages disappear. Applies to messages sent from now on. */
+export async function setDisappear(chatId: string, mode: string): Promise<{ ok: boolean; error?: string }> {
+  if (!uuid.safeParse(chatId).success || !disappearMode.safeParse(mode).success) return { ok: false, error: ERRORS.forbidden };
+  if (!hasSupabaseEnv()) return { ok: false, error: "This isn't available in this environment yet." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_friend_chat_disappear", { p_chat_id: chatId, p_mode: mode });
+  return error ? { ok: false, error: messageFor(error) } : { ok: true };
+}
+
+/** Friend chats: leaving the chat ends "after viewing" messages you've opened. */
+export async function leaveRoom(chatId: string) {
+  if (!uuid.safeParse(chatId).success || !hasSupabaseEnv()) return;
+  const supabase = await createClient();
+  await supabase.rpc("leave_friend_chat", { p_chat_id: chatId });
+}
+
 export async function markRoomRead(k: RoomKind, chatId: string) {
   if (!kind.safeParse(k).success || !uuid.safeParse(chatId).success || !hasSupabaseEnv()) return;
   const supabase = await createClient();

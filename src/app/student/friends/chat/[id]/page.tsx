@@ -44,6 +44,8 @@ export default async function FriendChatPage({ params, searchParams }: PageProps
           blockedText="You can only message friends. This chat is closed."
           emptyText={`Say hi to ${chat.friend_name}. Only the two of you can see this chat.`}
           initialDraft={draft}
+          initialDisappear={chat.disappear ?? "24h"}
+          disappearSetBy={chat.disappear_set_by_me == null ? null : chat.disappear_set_by_me ? "me" : "friend"}
         />
       </div>
     </AreaShell>
