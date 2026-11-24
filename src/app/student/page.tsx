@@ -166,7 +166,7 @@ export default async function DealsPage({ searchParams }: PageProps<"/student">)
             data-no-swipe
             className="mt-3 flex [scrollbar-width:none] gap-3 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] px-4 pb-1 sm:px-0"
           >
-            <CategoryTile href={link({ q, sort })} active={!category} icon="layout-grid" label="All" />
+            <CategoryTile href={link({ q, sort })} active={!category} icon="all" label="All" />
             {categories.map((c) => (
               <CategoryTile
                 key={c.id}

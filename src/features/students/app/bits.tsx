@@ -119,6 +119,12 @@ export function CategoryChip({ href, active, icon, label }: { href: string; acti
   );
 }
 
+/**
+ * 3D icons (Microsoft Fluent Emoji, MIT licence: public/icons/3d/LICENSE-fluent-emoji.txt), by
+ * category icon name. A category whose icon isn't here keeps its drawn icon.
+ */
+const ICONS_3D = new Set(["all", "utensils", "scissors", "printer", "smartphone", "shirt", "heart-pulse", "dumbbell", "wrench"]);
+
 /** A category as a big tinted tile with its label underneath (Home). */
 export function CategoryTile({
   href,
@@ -140,14 +146,33 @@ export function CategoryTile({
       aria-current={active ? "page" : undefined}
       className="flex w-[4.75rem] shrink-0 flex-col items-center gap-2 text-center text-[0.8125rem] leading-tight font-semibold text-ink-900"
     >
+      {/* Raised, glossy tile with a 3D icon. */}
       <span
         className={cn(
-          "grid size-16 place-items-center rounded-[20px] transition-transform active:scale-95",
+          "relative grid size-16 place-items-center overflow-hidden rounded-[20px] transition-transform active:scale-95",
           active && "ring-2 ring-blue-500 ring-offset-2 ring-offset-paper",
         )}
-        style={{ background: tone.bg, color: tone.fg }}
+        style={{
+          background: `linear-gradient(155deg, color-mix(in srgb, ${tone.bg} 45%, white) 0%, ${tone.bg} 55%, color-mix(in srgb, ${tone.bg} 82%, ${tone.fg}) 100%)`,
+          boxShadow: `inset 0 2px 1px rgba(255,255,255,0.85), inset 0 -3px 6px color-mix(in srgb, ${tone.fg} 14%, transparent), 0 10px 18px -10px color-mix(in srgb, ${tone.fg} 55%, transparent)`,
+        }}
       >
-        <CategoryIcon name={icon ?? "store"} className="size-7" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-1.5 top-1 h-6 rounded-t-[16px] bg-gradient-to-b from-white/70 to-white/0"
+        />
+        {ICONS_3D.has(icon ?? "") ? (
+          // eslint-disable-next-line @next/next/no-img-element -- tiny local icon, no optimisation needed
+          <img
+            src={`/icons/3d/${icon}.webp`}
+            alt=""
+            width={40}
+            height={40}
+            className="relative size-10 drop-shadow-[0_4px_4px_rgba(0,0,0,0.12)]"
+          />
+        ) : (
+          <CategoryIcon name={icon ?? "store"} className="relative size-8 stroke-[2.4]" style={{ color: tone.fg }} />
+        )}
       </span>
       <span className="line-clamp-2">{label}</span>
     </Link>
