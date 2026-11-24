@@ -54,6 +54,7 @@ export function ChatRoom({
   blockedText,
   emptyText,
   emptyCard,
+  initialDraft,
 }: {
   kind: RoomKind;
   chatId: string;
@@ -67,12 +68,14 @@ export function ChatRoom({
   emptyText: string;
   /** Shown instead of emptyText before the first message, such as the shop and its deals. */
   emptyCard?: React.ReactNode;
+  /** Text waiting in the message box, such as something shared from another app. Never sent by itself. */
+  initialDraft?: string;
 }) {
   const [messages, setMessages] = useState<RoomMessage[]>(initialMessages);
   const [reactions, setReactions] = useState<RoomReaction[]>(initialReactions);
   const [otherReadAt, setOtherReadAt] = useState<string | null>(initialOtherReadAt);
   const [otherTyping, setOtherTyping] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialDraft ?? "");
   const [photo, setPhoto] = useState<Draft>(null);
   const [replyTo, setReplyTo] = useState<RoomMessage | null>(null);
   /** The message being held, and where it sits on screen. */

@@ -15,11 +15,13 @@ import { getCoverPhotos, listDeals } from "@/features/offers/queries";
 import { money } from "@/features/offers/schemas";
 import { formatRunTimes, isEveryDay } from "@/features/offers/run-times";
 import { initials } from "@/features/students/app/format";
+import { draftFrom } from "@/features/share/model";
 
 export const metadata: Metadata = { title: "Chat", robots: { index: false } };
 
-export default async function StudentChatPage({ params }: PageProps<"/student/messages/[id]">) {
+export default async function StudentChatPage({ params, searchParams }: PageProps<"/student/messages/[id]">) {
   const { id } = await params;
+  const draft = draftFrom((await searchParams).draft);
   const [chat, ctx] = await Promise.all([getConversation(id), getUserContext()]);
   if (!chat || chat.side !== "student" || !ctx) notFound();
   const me = { kind: "shop", side: "student", userId: ctx.userId } as const;
@@ -125,6 +127,7 @@ export default async function StudentChatPage({ params }: PageProps<"/student/me
           blockedText={youBlocked ? "Unblock this business to send a message." : "This business isn't taking messages from you."}
           emptyText={`Ask ${chat.merchant_name} about a deal, opening times or anything else.`}
           emptyCard={intro}
+          initialDraft={draft}
         />
       </div>
     </AreaShell>

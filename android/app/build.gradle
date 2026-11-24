@@ -22,7 +22,7 @@ plugins {
 
 def twaManifest = [
     applicationId: 'com.perqly.app',
-    hostName: 'perqly-git-main-vision61-studios.vercel.app', // The domain being opened in the TWA.
+    hostName: 'perqly.online', // The domain being opened in the TWA.
     launchUrl: '/student', // The start path for the TWA. Must be relative to the domain.
     name: 'Perqly', // The application name.
     launcherName: 'Perqly', // The name shown on the Android Launcher.
@@ -39,7 +39,7 @@ def twaManifest = [
     // - short_name: Shorter string used if |name| is too long.
     // - url: Absolute path of the URL to launch the app with (e.g '/create').
     // - icon: Name of the resource in the drawable folder to use as an icon.
-    shortcuts: [[name:'Scan to redeem', short_name:'Scan', url:'https://perqly-git-main-vision61-studios.vercel.app/student/scan', icon:'shortcut_0'],[name:'Your savings', short_name:'Savings', url:'https://perqly-git-main-vision61-studios.vercel.app/student/history', icon:'shortcut_1']],
+    shortcuts: [[name:'Scan to redeem', short_name:'Scan', url:'https://perqly.online/student/scan', icon:'shortcut_0'],[name:'Your savings', short_name:'Savings', url:'https://perqly.online/student/history', icon:'shortcut_1']],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
     splashScreenFadeOutDuration: 300,
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
@@ -57,8 +57,8 @@ android {
         applicationId "com.perqly.app"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 3
+        versionName "1.2.0"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -76,14 +76,17 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'https://perqly-git-main-vision61-studios.vercel.app/manifest.webmanifest'
+            resValue "string", "webManifestUrl", 'https://perqly.online/manifest.webmanifest'
         
 
         
             // This is used by Meta Quest.
-            resValue "string", "fullScopeUrl", 'https://perqly-git-main-vision61-studios.vercel.app/'
+            resValue "string", "fullScopeUrl", 'https://perqly.online/'
         
 
+        
+            // The data for the app to support web share target.
+            resValue "string", "shareTarget", '{\\"action\\":\\"/student/share\\",\\"method\\":\\"GET\\",\\"params\\":{\\"title\\":\\"title\\",\\"text\\":\\"text\\",\\"url\\":\\"url\\"}}'
         
 
         // The hostname is used when building the intent-filter, so the TWA is able to

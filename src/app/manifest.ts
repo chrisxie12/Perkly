@@ -20,6 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: siteConfig.backgroundColor,
     categories: ["shopping", "lifestyle", "education"],
     lang: "en-GH",
+    // "Share to Perqly" in the phone's share menu: pick a chat, the text waits in its message box.
+    share_target: { action: "/student/share", method: "GET", params: { title: "title", text: "text", url: "url" } },
     shortcuts: [
       { name: "Scan to redeem", short_name: "Scan", url: "/student/scan", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
       { name: "Your savings", short_name: "Savings", url: "/student/history" },
