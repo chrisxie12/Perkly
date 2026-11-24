@@ -193,9 +193,12 @@ const cleanCode = (v: FormDataEntryValue | null) =>
 /** Door: look a code up (step "find") or check it in (step "check_in"). */
 export async function doorAction(_prev: DoorState, formData: FormData): Promise<DoorState> {
   const postId = uuid.safeParse(formData.get("postId"));
-  const code = cleanCode(formData.get("code"));
+  // A scanned QR holds the ticket's secret ("PQT1:" + 32 hex); typed codes are 8 characters.
+  const raw = String(formData.get("code") ?? "").trim();
+  const secret = /^PQT1:[0-9A-F]{32}$/i.test(raw) ? raw : null;
+  const code = secret ?? cleanCode(raw);
   if (!postId.success) return { status: "error", message: "Reload the page and try again." };
-  if (code.length !== 8) return { status: "error", message: "Ticket codes are 8 letters and numbers.", code };
+  if (!secret && code.length !== 8) return { status: "error", message: "Ticket codes are 8 letters and numbers.", code };
   if (!hasSupabaseEnv()) return { status: "error", message: "This isn't available in this environment yet." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("door_lookup_ticket", { p_post_id: postId.data, p_code: code });

@@ -11,8 +11,15 @@ import { formatCedis, formatTicketCode, savingLabel } from "../schemas";
 
 type Detector = { detect: (source: CanvasImageSource) => Promise<{ rawValue: string }[]> };
 
-/** A ticket QR holds just its 8-character code. */
-const codeFrom = (raw: string) => raw.toUpperCase().match(/[A-HJ-NP-Z2-9]{8}/)?.[0] ?? null;
+/**
+ * What a scanned ticket QR holds: the ticket's secret ("PQT1:" + 32 hex, since Events &
+ * Conferences), or just its 8-character code (older tickets). Both are checked by the database.
+ */
+export const codeFrom = (raw: string) => {
+  const secret = raw.trim().match(/^PQT1:[0-9a-f]{32}$/i)?.[0];
+  if (secret) return secret;
+  return raw.toUpperCase().match(/[A-HJ-NP-Z2-9]{8}/)?.[0] ?? null;
+};
 
 /** A small rear-camera reader for ticket QRs. BarcodeDetector where available, jsQR elsewhere. */
 function TicketCamera({ onCode, onClose }: { onCode: (code: string) => void; onClose: () => void }) {

@@ -22,11 +22,14 @@ export default async function TicketPage({ params }: PageProps<"/student/campus/
   const ticket = event?.my_ticket;
   if (!post || !event || !ticket) notFound();
   const [qr, photo] = await Promise.all([
-    QRCode.toString(ticket.code, { type: "svg", errorCorrectionLevel: "M", margin: 2 }),
+    // The QR holds the ticket's secret; the code below it stays for typing in at the door.
+    QRCode.toString(ticket.qr ?? ticket.code, { type: "svg", errorCorrectionLevel: "M", margin: 2 }),
     signPassPhoto(photoPath, 600),
   ]);
   const name = ctx?.fullName ?? ctx?.firstName ?? "Student";
   const inside = ticket.status === "checked_in";
+  // Free events have tickets too (for the door); they show no price.
+  const free = ticket.student_price === 0;
   return (
     <AreaShell area="student">
       <Link href={`/student/campus/posts/${post.id}`} className="mb-4 inline-flex items-center gap-1 font-semibold text-blue-600">
@@ -76,15 +79,25 @@ export default async function TicketPage({ params }: PageProps<"/student/campus/
               <p className="truncate font-semibold">{name}</p>
               <p className="text-sm text-ink-700">Verified student</p>
             </div>
-            <div className="text-right">
-              <p className="font-display text-xl font-extrabold">{formatCedis(ticket.student_price)}</p>
-              <p className="text-xs text-ink-700 line-through">{formatCedis(ticket.normal_price)}</p>
-            </div>
+            {free ? (
+              <p className="font-display text-xl font-extrabold">Free</p>
+            ) : (
+              <div className="text-right">
+                <p className="font-display text-xl font-extrabold">{formatCedis(ticket.student_price)}</p>
+                <p className="text-xs text-ink-700 line-through">{formatCedis(ticket.normal_price)}</p>
+              </div>
+            )}
           </div>
           {!inside && (
             <p className="mt-5 rounded-2xl bg-blue-50 p-3 text-sm text-ink-900">
-              At the door, show this QR and pay {formatCedis(ticket.student_price)}.{" "}
-              {savingLabel(ticket.normal_price, ticket.student_price)}.
+              {free ? (
+                "At the door, show this QR."
+              ) : (
+                <>
+                  At the door, show this QR and pay {formatCedis(ticket.student_price)}.{" "}
+                  {savingLabel(ticket.normal_price, ticket.student_price)}.
+                </>
+              )}
             </p>
           )}
         </div>

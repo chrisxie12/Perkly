@@ -130,8 +130,9 @@ select lives_ok(format('select public.set_event_details(%L, now() + interval ''3
   'an editor adds event details to a draft');
 select throws_ok(format('select public.set_event_details(%L, now() + interval ''1 day'', now(), %L)', :'ev', 'Hall'),
   'P0001', 'event_invalid', 'the end must be after the start');
-select throws_ok(format('select public.set_event_details(%L, now() + interval ''1 day'', now() + interval ''20 days'', %L)', :'ev', 'Hall'),
-  'P0001', 'event_invalid', 'events last at most 14 days');
+-- Events & Conferences (20261127): no more 14-day limit; a year is the sanity cap.
+select throws_ok(format('select public.set_event_details(%L, now() + interval ''1 day'', now() + interval ''400 days'', %L)', :'ev', 'Hall'),
+  'P0001', 'event_invalid', 'events last at most a year');
 select throws_ok(format('select public.set_event_details(%L, now() + interval ''2 years'', null, %L)', :'ev', 'Hall'),
   'P0001', 'event_invalid', 'events start within a year');
 select throws_ok(format('select public.set_event_details(%L, now() + interval ''1 day'', null, %L)', :'ev', ' '),
@@ -212,9 +213,11 @@ select tests.as_postgres(); update public.profiles set is_suspended = true where
 select tests.as_user(:'s3');
 select throws_ok(format('select public.set_rsvp(%L, true)', :'ev'), 'P0001', 'account_suspended', 'suspended students cannot RSVP');
 select tests.as_user(:'s1');
-select lives_ok(format('select public.remove_event_details(%L)', :'ev'), 'an editor removes the event details');
+-- Events & Conferences (20261127): registrations are never deleted; cancel the event instead.
+select throws_ok(format('select public.remove_event_details(%L)', :'ev'), 'P0001', 'registrations_exist',
+  'an editor cannot remove event details once people registered');
 select tests.as_postgres();
-select is((select count(*)::int from public.event_rsvps where post_id = :'ev'), 0, 'removing the event removes its RSVPs');
+select ok((select count(*)::int from public.event_rsvps where post_id = :'ev') > 0, 'so registrations are kept');
 delete from auth.users where id = :'s2';
 select is((select count(*)::int from public.event_rsvps where user_id = :'s2'), 0, 'deleting an account removes its RSVPs');
 

@@ -228,7 +228,17 @@ const MESSAGES: Record<string, string> = {
   comment_invalid: "Write a comment of up to 1,000 characters.",
   setting_not_tunable: "That setting can't be changed here.",
   agreement_not_found: "There's no agreement on record for this school.",
-  event_invalid: "Check the event: it needs a venue, a start within the next year, and an end after the start (up to 14 days).",
+  event_invalid: "Check the event: it needs a venue, a start within the next year, and an end after the start.",
+  registrations_exist: "People have already registered, so this can't be removed. Cancel the event instead.",
+  event_closed: "This event is cancelled, completed or archived, so it can't change.",
+  event_cancelled: "This event was cancelled.",
+  registration_not_open: "Registration hasn't opened yet.",
+  registration_closed: "Registration has closed.",
+  registration_rejected: "The organisers didn't approve your registration for this event.",
+  answer_required: "Answer the required questions to register.",
+  answers_invalid: "Check your answers and try again.",
+  cancel_not_allowed: "This event doesn't allow cancelling. Contact the organisers.",
+  cancel_too_late: "It's too close to the start to cancel now.",
   event_not_allowed: "Emergency notices can't be events.",
   capacity_below_going: "More people are already going than that. Choose a bigger number.",
   event_not_found: "This post isn't an event.",
@@ -341,7 +351,11 @@ export const commentFormSchema = z.object({
 export const eventSchema = z.object({
   starts_at: z.string(),
   ends_at: z.string().nullable(),
-  venue: z.string(),
+  // Online events have no venue.
+  venue: z
+    .string()
+    .nullable()
+    .transform((v) => v ?? "Online"),
   capacity: z.number().nullable(),
   rsvp_open: z.boolean(),
   going: z.number(),
@@ -359,6 +373,8 @@ export const eventSchema = z.object({
       student_price: z.number(),
       created_at: z.string(),
       checked_in_at: z.string().nullable(),
+      // The ticket's QR secret ("PQT1:…"). Older responses only had the code.
+      qr: z.string().optional(),
     })
     .nullable()
     .default(null),

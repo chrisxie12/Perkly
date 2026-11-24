@@ -40,7 +40,9 @@ Shown under a post only while both switches are on. Authors appear by first name
 
 ## Events (C3)
 
-Any post except an emergency notice can be made an event on its edit page: start, optional end (up to 14 days later), venue, optional number of places, and whether RSVPs are open. Times are Ghana time.
+Events & Conferences (`docs/EVENTS.md`) builds on this: categories, online and hybrid events, registration windows, waitlists, approval, conference sessions and tickets for every registration. The 14-day limit is gone.
+
+Any post except an emergency notice can be made an event on its edit page: start, optional end, venue, optional number of places, and whether RSVPs are open. Times are Ghana time.
 
 - Verified students of the school RSVP from the post, and see **Campus → Events** (upcoming at their school, soonest first, plus the ones they're going to).
 - When places run out the event shows as full. The last place can't be taken twice: RSVPs lock the event row.
