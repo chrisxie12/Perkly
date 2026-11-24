@@ -57,7 +57,7 @@ export function NotificationToast({ toast, onClose }: { toast: ToastNotification
           <span className="shrink-0 text-xs text-ink-600 dark:text-[#94A3B8]">now</span>
         </span>
         {toast.count > 1 && (
-          <span className="block text-xs font-semibold text-blue-700 dark:text-[#60A5FA]">{toast.count} new messages</span>
+          <span className="block text-xs font-semibold text-blue-700 dark:text-[#B998FB]">{toast.count} new messages</span>
         )}
         {toast.body && <span className="line-clamp-2 text-sm text-ink-700 dark:text-[#CBD5E1]">{toast.body}</span>}
       </span>

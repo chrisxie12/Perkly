@@ -67,10 +67,10 @@ export function buildDecisionEmail(notice: DecisionNotice, siteUrl: string) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px">
       <tr>
         <td style="padding: 32px">
-          <p style="margin: 0 0 24px; font-size: 22px; font-weight: bold; color: #0066ff">perqly</p>
+          <p style="margin: 0 0 24px; font-size: 22px; font-weight: bold; color: #6d28d9">perqly</p>
           <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.5">${escapeHtml(greeting)}</p>
           ${body.map((line) => `<p style="margin: 0 0 16px; font-size: 16px; line-height: 1.5">${escapeHtml(line)}</p>`).join("\n          ")}
-          <p style="margin: 24px 0 0"><a href="${escapeHtml(link)}" style="display: inline-block; padding: 12px 20px; border-radius: 999px; background: #0066ff; color: #ffffff; font-weight: bold; text-decoration: none">Open Perqly</a></p>
+          <p style="margin: 24px 0 0"><a href="${escapeHtml(link)}" style="display: inline-block; padding: 12px 20px; border-radius: 999px; background: #6d28d9; color: #ffffff; font-weight: bold; text-decoration: none">Open Perqly</a></p>
         </td>
       </tr>
     </table>

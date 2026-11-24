@@ -160,7 +160,7 @@ export function CategoryTile({
     "--tile-light": `linear-gradient(155deg, color-mix(in srgb, ${tone.bg} 45%, white) 0%, ${tone.bg} 55%, color-mix(in srgb, ${tone.bg} 82%, ${tone.fg}) 100%)`,
     "--tile-shadow": `inset 0 2px 1px rgba(255,255,255,0.85), inset 0 -3px 6px color-mix(in srgb, ${tone.fg} 14%, transparent), 0 10px 18px -10px color-mix(in srgb, ${tone.fg} 55%, transparent)`,
     "--tile-dark": active ? "#14244B" : dark.bg,
-    "--tile-border": active ? "#3B82F6" : dark.border,
+    "--tile-border": active ? "#8B5CF6" : dark.border,
   } as React.CSSProperties;
   return (
     <Link

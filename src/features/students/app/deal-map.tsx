@@ -70,7 +70,7 @@ export function DealMap({ points, campus }: { points: MapPoint[]; campus: MapCam
           icon: L.divIcon({
             className: "",
             iconSize: [22, 22],
-            html: '<span class="block size-[22px] rounded-full border-4 border-white bg-[#0066FF] shadow-[0_0_0_8px_rgba(0,102,255,0.18)]"></span>',
+            html: '<span class="block size-[22px] rounded-full border-4 border-white bg-[#6D28D9] shadow-[0_0_0_8px_rgba(109,40,217,0.18)]"></span>',
           }),
         }).addTo(map);
       }
@@ -100,7 +100,7 @@ export function DealMap({ points, campus }: { points: MapPoint[]; campus: MapCam
         pin.className = cn(
           "flex items-center gap-1 rounded-full border-[3px] border-white px-2.5 py-1 text-xs font-black whitespace-nowrap text-white uppercase shadow-lg transition-transform",
           p.open === false ? "bg-[#64748b]" : "bg-[#FF6B35]",
-          selected === p.branchId && "scale-125 bg-[#0066FF]",
+          selected === p.branchId && "scale-125 bg-[#6D28D9]",
         );
         pin.textContent = p.saving;
         const marker = L.marker([p.latitude, p.longitude], {
@@ -171,7 +171,7 @@ export function DealMap({ points, campus }: { points: MapPoint[]; campus: MapCam
               }}
               className={cn(
                 "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold shadow-md",
-                category === c.slug ? "bg-[#0066FF] text-white" : "bg-white text-ink-900",
+                category === c.slug ? "bg-[#6D28D9] text-white" : "bg-white text-ink-900",
               )}
             >
               {c.icon && <CategoryIcon name={c.icon} className="size-3.5" />}
@@ -237,7 +237,7 @@ export function DealMap({ points, campus }: { points: MapPoint[]; campus: MapCam
               <div
                 className={cn(
                   "flex gap-3 rounded-3xl bg-white p-2.5 shadow-xl ring-1 transition-shadow",
-                  selected === p.branchId ? "ring-2 ring-[#0066FF]" : "ring-black/5",
+                  selected === p.branchId ? "ring-2 ring-[#6D28D9]" : "ring-black/5",
                 )}
               >
                 <button
@@ -258,7 +258,7 @@ export function DealMap({ points, campus }: { points: MapPoint[]; campus: MapCam
                 <Link href={p.href} className="flex min-w-0 flex-1 flex-col">
                   <span className="flex items-start justify-between gap-2">
                     <span className="line-clamp-2 font-display leading-tight font-extrabold text-ink-900">{p.merchantName}</span>
-                    <span className="shrink-0 font-display text-sm font-black text-[#0066FF] uppercase">{p.saving}</span>
+                    <span className="shrink-0 font-display text-sm font-black text-[#6D28D9] uppercase">{p.saving}</span>
                   </span>
                   <span className="truncate text-[0.8125rem] text-ink-600">
                     {p.dealTitle}

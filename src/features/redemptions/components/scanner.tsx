@@ -162,7 +162,7 @@ export function Scanner({ allowedOrigins, message }: { allowedOrigins: string[];
             <span key={c} className={cn("absolute size-11", c, state === "found" ? "border-emerald-400" : "border-white")} />
           ))}
           {state === "scanning" && (
-            <span className="absolute inset-x-4 top-5 h-0.5 animate-[scanline_1.8s_ease-in-out_infinite_alternate] bg-blue-500 shadow-[0_0_12px_2px_rgba(0,102,255,0.8)] motion-reduce:animate-none" />
+            <span className="absolute inset-x-4 top-5 h-0.5 animate-[scanline_1.8s_ease-in-out_infinite_alternate] bg-blue-500 shadow-[0_0_12px_2px_rgba(109,40,217,0.8)] motion-reduce:animate-none" />
           )}
           {(state === "denied" || state === "unsupported") && <CameraOff className="absolute inset-0 m-auto size-10 text-white/70" />}
         </div>

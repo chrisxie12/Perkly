@@ -11,7 +11,7 @@ function markSvg({ size, padding = 0, rounded = true }) {
   const inner = 48 - padding * 2;
   const scale = inner / 48;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 48 48">
-  <rect width="48" height="48" rx="${rounded ? 14 : 0}" fill="#0066FF"/>
+  <rect width="48" height="48" rx="${rounded ? 14 : 0}" fill="#6D28D9"/>
   <g transform="translate(${padding} ${padding}) scale(${scale})">
     <rect x="13" y="12" width="6.5" height="26" rx="3.25" fill="#FFFFFF"/>
     <circle cx="24.5" cy="20.5" r="7" fill="none" stroke="#FFFFFF" stroke-width="6.5"/>
