@@ -9,7 +9,19 @@ export type NotificationContent = {
   link: string | null;
 };
 
-export type PushPayload = { id: string; title: string; body: string; url: string; link: string; tag: string };
+import { notificationGroup, notificationIcon, notificationTag, type NotificationGroup } from "./style";
+
+export type PushPayload = {
+  id: string;
+  title: string;
+  body: string;
+  url: string;
+  link: string;
+  tag: string;
+  kind: string;
+  group: NotificationGroup;
+  icon: string;
+};
 
 /** Only same-site paths are ever opened from a notification. */
 export function safeNotificationPath(link: string | null | undefined): string {
@@ -25,8 +37,11 @@ export function buildPushPayload(n: NotificationContent): PushPayload {
     url: `/account/notifications/open/${n.id}`,
     // What it's about, so an open app can skip the pop-up when you're already there.
     link: safeNotificationPath(n.link),
-    // One visible notification per thing: a newer one about the same kind replaces the older.
-    tag: n.kind,
+    // One thread per chat, one slot per other type: newer ones join or replace older ones.
+    tag: notificationTag(n.kind, safeNotificationPath(n.link)),
+    kind: n.kind,
+    group: notificationGroup(n.kind),
+    icon: notificationIcon(notificationGroup(n.kind)),
   };
 }
 
